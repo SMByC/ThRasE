@@ -19,20 +19,28 @@
  ***************************************************************************/
 """
 
+import os.path
+import shutil
+import tempfile
+from pathlib import Path
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QAction, QMessageBox
+from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
 from .resources import *
 
 from ThRasE.gui.thrase_dialog import ThRasEDialog
-import os.path
+from ThRasE.gui.about_dialog import AboutDialog
+from ThRasE.utils.qgis_utils import unload_layer_in_qgis
 
 
 class ThRasE:
     """QGIS Plugin Implementation."""
+    dialog = None
+    tmp_dir = None
 
     def __init__(self, iface):
         """Constructor.
@@ -48,10 +56,7 @@ class ThRasE:
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
         locale = QSettings().value('locale/userLocale')[0:2]
-        locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'ThRasE_{}.qm'.format(locale))
+        locale_path = os.path.join(self.plugin_dir, 'i18n', 'ThRasE_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -60,13 +65,11 @@ class ThRasE:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-        # Declare instance attributes
-        self.actions = []
-        self.menu = self.tr(u'&ThRasE')
+        self.menu_name_plugin = self.tr("ThRasE - Thematic Raster Edition")
+        self.pluginIsActive = False
+        ThRasE.dialog = None
 
-        # Check if plugin was started the first time in current QGIS session
-        # Must be set in initGui() to survive plugin reloads
-        self.first_start = None
+        self.about_dialog = AboutDialog()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -83,119 +86,125 @@ class ThRasE:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('ThRasE', message)
 
-
-    def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
-
-        icon = QIcon(icon_path)
-        action = QAction(icon, text, parent)
-        action.triggered.connect(callback)
-        action.setEnabled(enabled_flag)
-
-        if status_tip is not None:
-            action.setStatusTip(status_tip)
-
-        if whats_this is not None:
-            action.setWhatsThis(whats_this)
-
-        if add_to_toolbar:
-            # Adds plugin icon to Plugins toolbar
-            self.iface.addToolBarIcon(action)
-
-        if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
-
-        self.actions.append(action)
-
-        return action
-
     def initGui(self):
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+        ### Main dialog menu
+        # Create action that will start plugin configuration
         icon_path = ':/plugins/thrase/icons/thrase.svg'
-        self.add_action(
-            icon_path,
-            text=self.tr(u'ThRasE - Thematic Raster Edition'),
-            callback=self.run,
-            parent=self.iface.mainWindow())
+        self.dockable_action = QAction(QIcon(icon_path), "ThRasE", self.iface.mainWindow())
+        # connect the action to the run method
+        self.dockable_action.triggered.connect(self.run)
+        # Add toolbar button and menu item
+        self.iface.addToolBarIcon(self.dockable_action)
+        self.iface.addPluginToMenu(self.menu_name_plugin, self.dockable_action)
 
-        # will be set False in run()
-        self.first_start = True
+        # Plugin info
+        # Create action that will start plugin configuration
+        icon_path = ':/plugins/thrase/icons/about.svg'
+        self.about_action = QAction(QIcon(icon_path), self.tr('About'), self.iface.mainWindow())
+        # connect the action to the run method
+        self.about_action.triggered.connect(self.about)
+        # Add toolbar button and menu item
+        self.iface.addPluginToMenu(self.menu_name_plugin, self.about_action)
 
+    def about(self):
+        self.about_dialog.show()
+
+    #--------------------------------------------------------------------------
+
+    def run(self):
+        """Run method that loads and starts the plugin"""
+
+        if not self.pluginIsActive:
+            self.pluginIsActive = True
+
+            # dialog may not exist if:
+            #    first run of plugin
+            #    removed on close (see self.onClosePlugin method)
+            if ThRasE.dialog is None:
+                ThRasE.dialog = ThRasEDialog()
+
+            # init tmp dir for all process and intermediate files
+            ThRasE.tmp_dir = tempfile.mkdtemp()
+            # connect to provide cleanup on closing of dialog
+            ThRasE.dialog.closingPlugin.connect(self.onClosePlugin)
+            # reload
+            ThRasE.dialog.QPBtn_PluginClearReload.clicked.connect(self.clear_reload_plugin)
+
+            # show the dialog
+            ThRasE.dialog.show()
+            # Run the dialog event loop
+            result = ThRasE.dialog.exec_()
+            # See if OK was pressed
+            if result:
+                # Do something useful here - delete the line containing pass and
+                # substitute with your code.
+                pass
+
+    #--------------------------------------------------------------------------
+
+    def onClosePlugin(self):
+        """Cleanup necessary items here when plugin is closed"""
+
+        self.removes_temporary_files()
+
+        # disconnects
+        ThRasE.dialog.closingPlugin.disconnect(self.onClosePlugin)
+
+        # remove this statement if dialog is to remain
+        # for reuse if plugin is reopened
+        # Commented next statement since it causes QGIS crashe
+        # when closing the docked window:
+        ThRasE.dialog.close()
+        ThRasE.dialog = None
+
+        self.pluginIsActive = False
+
+        from qgis.utils import reloadPlugin
+        reloadPlugin("ThRasE - Thematic Raster Edition")
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr(u'&ThRasE'),
-                action)
-            self.iface.removeToolBarIcon(action)
+        self.removes_temporary_files()
+        # Remove the plugin menu item and icon
+        self.iface.removePluginMenu(self.menu_name_plugin, self.dockable_action)
+        self.iface.removePluginMenu(self.menu_name_plugin, self.about_action)
+        self.iface.removeToolBarIcon(self.dockable_action)
 
+        if ThRasE.dialog:
+            ThRasE.dialog.close()
 
-    def run(self):
-        """Run method that performs all the real work"""
+    def clear_reload_plugin(self):
+        # first prompt
+        quit_msg = "Are you sure you want to: clean tmp files, delete all unsaved files, and reload plugin?"
+        reply = QMessageBox.question(None, 'Clear all and reload the ThRasE plugin.',
+                                     quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.No:
+            return
 
-        # Create the dialog with elements (after translation) and keep reference
-        # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
-            self.first_start = False
-            self.dlg = ThRasEDialog()
+        self.onClosePlugin()
+        from qgis.utils import plugins
+        plugins["ThRasE"].run()
 
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+    @staticmethod
+    def removes_temporary_files():
+        if not ThRasE.dialog:
+            return
+        # unload all layers instances from Qgis saved in tmp dir
+        try:
+            d = ThRasE.tmp_dir
+            files_in_tmp_dir = [Path(d, f) for f in os.listdir(d)
+                                if Path(d, f).is_file()]
+        except: files_in_tmp_dir = []
+
+        for file_tmp in files_in_tmp_dir:
+            unload_layer_in_qgis(str(file_tmp))
+
+        # clear ThRasE.tmp_dir
+        if ThRasE.tmp_dir and os.path.isdir(ThRasE.tmp_dir):
+            shutil.rmtree(ThRasE.tmp_dir, ignore_errors=True)
+        ThRasE.tmp_dir = None
+
+        # clear qgis main canvas
+        iface.mapCanvas().clearCache()
+        iface.mapCanvas().refresh()
+

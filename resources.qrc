@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/plugins/thrase" >
         <file>icons/thrase.svg</file>
+        <file>icons/about.svg</file>
     </qresource>
 </RCC>

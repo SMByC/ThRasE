@@ -23,29 +23,18 @@ import os
 from pathlib import Path
 
 from qgis.PyQt import uic
-from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtWidgets import QDialog
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'thrase_dialog_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'about_dialog.ui'))
 
 
-class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
-    closingPlugin = pyqtSignal()
-
-    def __init__(self, parent=None):
-        """Constructor."""
-        super(ThRasEDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+class AboutDialog(QDialog, FORM_CLASS):
+    def __init__(self):
+        QDialog.__init__(self)
         self.setupUi(self)
-        #self.setup_gui()
-
-        def closeEvent(self, event):
-            self.closingPlugin.emit()
-            event.accept()
-
+        about_file = Path(plugin_folder, 'gui', 'about.html')
+        html_text = open(about_file).read()
+        self.about_html.setHtml(html_text)
+        self.about_html.setOpenExternalLinks(True)
