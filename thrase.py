@@ -32,7 +32,7 @@ from qgis.utils import iface
 # Initialize Qt resources from file resources.py
 from .resources import *
 
-from ThRasE.gui.thrase_dialog import ThRasEDialog
+from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.utils.qgis_utils import unload_layer_in_qgis
 

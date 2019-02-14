@@ -28,7 +28,7 @@ from qgis.PyQt.QtCore import pyqtSignal
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'thrase_dialog_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'main_dialog.ui'))
 
 
 class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
