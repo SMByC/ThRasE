@@ -229,5 +229,22 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>CloseButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1361</x>
+     <y>873</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1412</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

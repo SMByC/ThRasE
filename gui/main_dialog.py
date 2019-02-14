@@ -20,15 +20,25 @@
 """
 
 import os
+import webbrowser
+import configparser
 from pathlib import Path
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, Qt
+from qgis.PyQt.QtWidgets import QMessageBox
+
+from ThRasE.gui.about_dialog import AboutDialog
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'main_dialog.ui'))
+
+cfg = configparser.ConfigParser()
+cfg.read(str(Path(plugin_folder, 'metadata.txt')))
+VERSION = cfg.get('general', 'version')
+HOMEPAGE = cfg.get('general', 'homepage')
 
 
 class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -43,9 +53,29 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-        #self.setup_gui()
+        self.setup_gui()
 
-        def closeEvent(self, event):
-            self.closingPlugin.emit()
-            event.accept()
+    def setup_gui(self):
+        # ######### plugin info ######### #
+        self.about_dialog = AboutDialog()
+        self.QPBtn_PluginInfo.setText("v{}".format(VERSION))
+        self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
+        self.QPBtn_PluginDocs.clicked.connect(lambda: webbrowser.open("https://smbyc.bitbucket.io/qgisplugins/thrase"))
 
+    def closeEvent(self, event):
+        # first prompt
+        quit_msg = "Are you sure you want close the ThRasE plugin?"
+        reply = QMessageBox.question(None, 'Closing the ThRasE plugin',
+                                     quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.No:
+            # don't close
+            event.ignore()
+            return
+        # close
+        self.closingPlugin.emit()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        # ignore esc key for close the main dialog
+        if not event.key() == Qt.Key_Escape:
+            super(ThRasEDialog, self).keyPressEvent(event)

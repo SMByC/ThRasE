@@ -144,11 +144,7 @@ class ThRasE:
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin is closed"""
-
         self.removes_temporary_files()
-
-        # disconnects
-        ThRasE.dialog.closingPlugin.disconnect(self.onClosePlugin)
 
         # remove this statement if dialog is to remain
         # for reuse if plugin is reopened
