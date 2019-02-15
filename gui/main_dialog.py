@@ -20,7 +20,6 @@
 """
 
 import os
-import webbrowser
 import configparser
 from pathlib import Path
 
@@ -60,7 +59,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.about_dialog = AboutDialog()
         self.QPBtn_PluginInfo.setText("v{}".format(VERSION))
         self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
-        self.QPBtn_PluginDocs.clicked.connect(lambda: webbrowser.open("https://smbyc.bitbucket.io/qgisplugins/thrase"))
+
+        # ######### setup widgets and others ######### #
+        self.NavTilesWidget.setHidden(True)
+        self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
 
     def closeEvent(self, event):
         # first prompt
@@ -79,3 +81,13 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # ignore esc key for close the main dialog
         if not event.key() == Qt.Key_Escape:
             super(ThRasEDialog, self).keyPressEvent(event)
+
+    def set_navigation_tool(self, nav_type):
+        if nav_type == "free":
+            self.NavTilesWidget.setHidden(True)
+        if nav_type == "by tiles in whole image":
+            self.NavTilesWidget.setVisible(True)
+            self.NavTiles_widgetAOI.setHidden(True)
+        if nav_type == "by tiles in AOI":
+            self.NavTilesWidget.setVisible(True)
+            self.NavTiles_widgetAOI.setVisible(True)

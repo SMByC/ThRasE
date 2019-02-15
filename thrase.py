@@ -127,8 +127,6 @@ class ThRasE:
             ThRasE.tmp_dir = tempfile.mkdtemp()
             # connect to provide cleanup on closing of dialog
             ThRasE.dialog.closingPlugin.connect(self.onClosePlugin)
-            # reload
-            ThRasE.dialog.QPBtn_PluginClearReload.clicked.connect(self.clear_reload_plugin)
 
             # show the dialog
             ThRasE.dialog.show()
@@ -168,18 +166,6 @@ class ThRasE:
 
         if ThRasE.dialog:
             ThRasE.dialog.close()
-
-    def clear_reload_plugin(self):
-        # first prompt
-        quit_msg = "Are you sure you want to: clean tmp files, delete all unsaved files, and reload plugin?"
-        reply = QMessageBox.question(None, 'Clear all and reload the ThRasE plugin.',
-                                     quit_msg, QMessageBox.Yes, QMessageBox.No)
-        if reply == QMessageBox.No:
-            return
-
-        self.onClosePlugin()
-        from qgis.utils import plugins
-        plugins["ThRasE"].run()
 
     @staticmethod
     def removes_temporary_files():
