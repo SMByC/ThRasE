@@ -85,9 +85,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def set_navigation_tool(self, nav_type):
         if nav_type == "free":
             self.NavTilesWidget.setHidden(True)
-        if nav_type == "by tiles in whole image":
+        if nav_type == "by tiles throughout the image":
             self.NavTilesWidget.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
-        if nav_type == "by tiles in AOI":
+        if nav_type == "by tiles throughout the AOI":
             self.NavTilesWidget.setVisible(True)
             self.NavTiles_widgetAOI.setVisible(True)
