@@ -23,12 +23,12 @@ import os
 import configparser
 from pathlib import Path
 
-from qgis.PyQt import uic
-from qgis.PyQt import QtWidgets
+from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt
-from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout
 
 from ThRasE.gui.about_dialog import AboutDialog
+from ThRasE.gui.layer_view_widget import LayerViewWidget
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -42,6 +42,7 @@ HOMEPAGE = cfg.get('general', 'homepage')
 
 class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     closingPlugin = pyqtSignal()
+    view_widgets = []
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -64,6 +65,34 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.NavTilesWidget.setHidden(True)
         self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
 
+        # ######### build the view render widgets windows ######### #
+        grid_rows = 2
+        grid_columns = 2
+        # configure the views layout
+        views_layout = QGridLayout()
+        views_layout.setSpacing(0)
+        views_layout.setMargin(0)
+        view_widgets = []
+        for row in range(grid_rows):
+            for column in range(grid_columns):
+                new_view_widget = LayerViewWidget()
+                views_layout.addWidget(new_view_widget, row, column)
+                view_widgets.append(new_view_widget)
+
+        # add to change analysis dialog
+        self.widget_view_windows.setLayout(views_layout)
+        # save instances
+        ThRasEDialog.view_widgets = view_widgets
+        # setup view widget
+        for idx, view_widget in enumerate(ThRasEDialog.view_widgets, start=1):
+            view_widget.id = idx
+            view_widget.setup_view_widget()
+
+    def keyPressEvent(self, event):
+        # ignore esc key for close the main dialog
+        if not event.key() == Qt.Key_Escape:
+            super(ThRasEDialog, self).keyPressEvent(event)
+
     def closeEvent(self, event):
         # first prompt
         quit_msg = "Are you sure you want close the ThRasE plugin?"
@@ -77,11 +106,6 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.closingPlugin.emit()
         event.accept()
 
-    def keyPressEvent(self, event):
-        # ignore esc key for close the main dialog
-        if not event.key() == Qt.Key_Escape:
-            super(ThRasEDialog, self).keyPressEvent(event)
-
     def set_navigation_tool(self, nav_type):
         if nav_type == "free":
             self.NavTilesWidget.setHidden(True)
@@ -91,3 +115,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if nav_type == "by tiles throughout the AOI":
             self.NavTilesWidget.setVisible(True)
             self.NavTiles_widgetAOI.setVisible(True)
+
+    def set_layer_to_edit(self):
+        pass
+
