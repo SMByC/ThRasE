@@ -24,11 +24,12 @@ import configparser
 from pathlib import Path
 
 from qgis.PyQt import QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, Qt
-from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout
+from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot
+from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog
 
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.layer_view_widget import LayerViewWidget
+from ThRasE.utils.qgis_utils import load_and_select_filepath_in
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -88,6 +89,13 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             view_widget.id = idx
             view_widget.setup_view_widget()
 
+        # ######### setup layer to edit ######### #
+        self.QCBox_LayerToEdit.setCurrentIndex(-1)
+        # handle connect layer selection with render canvas
+        self.QCBox_LayerToEdit.currentIndexChanged.connect(self.set_layer_to_edit)
+        # call to browse the render file
+        self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
+
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
         if not event.key() == Qt.Key_Escape:
@@ -105,6 +113,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # close
         self.closingPlugin.emit()
         event.accept()
+
+    @pyqtSlot()
+    def browse_dialog_layer_to_edit(self):
+        file_path, _ = QFileDialog.getOpenFileName(self,
+            self.tr("Select the thematic raster file to edit"), "",
+            self.tr("Raster files (*.tif *.img);;All files (*.*)"))
+        if file_path != '' and os.path.isfile(file_path):
+            # load to qgis and update combobox list
+            load_and_select_filepath_in(self.QCBox_RenderFile_1, file_path, "raster")
 
     def set_navigation_tool(self, nav_type):
         if nav_type == "free":
