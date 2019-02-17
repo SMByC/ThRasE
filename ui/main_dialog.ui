@@ -249,14 +249,14 @@
                      </font>
                     </property>
                     <property name="toolTip">
-                     <string>Go to the previous sample</string>
+                     <string>Go to the previous tile</string>
                     </property>
                     <property name="text">
                      <string>Previous</string>
                     </property>
                     <property name="icon">
                      <iconset>
-                      <normaloff>:/plugins/AcATaMa/icons/previous.svg</normaloff>:/plugins/AcATaMa/icons/previous.svg</iconset>
+                      <normaloff>:/plugins/thrase/icons/previous.svg</normaloff>:/plugins/thrase/icons/previous.svg</iconset>
                     </property>
                     <property name="toolButtonStyle">
                      <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -297,14 +297,14 @@
                      <item>
                       <widget class="QToolButton" name="currentTile">
                        <property name="toolTip">
-                        <string>Go to current sample</string>
+                        <string>Go to current tile</string>
                        </property>
                        <property name="text">
                         <string>Current Tile</string>
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>:/plugins/AcATaMa/icons/go_to_sample.svg</normaloff>:/plugins/AcATaMa/icons/go_to_sample.svg</iconset>
+                         <normaloff>:/plugins/thrase/icons/current_tile.svg</normaloff>:/plugins/thrase/icons/current_tile.svg</iconset>
                        </property>
                        <property name="toolButtonStyle">
                         <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -345,7 +345,7 @@
                      </font>
                     </property>
                     <property name="toolTip">
-                     <string>Go to the next sample</string>
+                     <string>Go to the next tile</string>
                     </property>
                     <property name="layoutDirection">
                      <enum>Qt::RightToLeft</enum>
@@ -355,7 +355,7 @@
                     </property>
                     <property name="icon">
                      <iconset>
-                      <normaloff>:/plugins/AcATaMa/icons/next.svg</normaloff>:/plugins/AcATaMa/icons/next.svg</iconset>
+                      <normaloff>:/plugins/thrase/icons/next.svg</normaloff>:/plugins/thrase/icons/next.svg</iconset>
                     </property>
                     <property name="toolButtonStyle">
                      <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -488,9 +488,6 @@
                         <font>
                          <pointsize>8</pointsize>
                         </font>
-                       </property>
-                       <property name="toolTip">
-                        <string>The sample ID is the number of identification of the points order in the sampling file.</string>
                        </property>
                        <property name="text">
                         <string>Areas Of Interest:</string>

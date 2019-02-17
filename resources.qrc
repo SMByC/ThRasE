@@ -7,5 +7,8 @@
         <file>icons/undo.svg</file>
         <file>icons/trash.svg</file>
         <file>icons/run.svg</file>
+        <file>icons/next.svg</file>
+        <file>icons/previous.svg</file>
+        <file>icons/current_tile.svg</file>
     </qresource>
 </RCC>
