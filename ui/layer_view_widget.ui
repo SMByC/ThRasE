@@ -100,10 +100,7 @@
    </item>
    <item>
     <widget class="QWidget" name="widget_ActiveLayers" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="spacing">
-       <number>2</number>
-      </property>
+     <layout class="QGridLayout" name="gridLayout">
       <property name="leftMargin">
        <number>3</number>
       </property>
@@ -116,7 +113,10 @@
       <property name="bottomMargin">
        <number>3</number>
       </property>
-      <item>
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <item row="0" column="1">
        <widget class="QWidget" name="widget_ActiveLayer_1" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_26">
          <property name="spacing">
@@ -261,7 +261,7 @@
         </layout>
        </widget>
       </item>
-      <item>
+      <item row="1" column="1">
        <widget class="QWidget" name="widget_ActiveLayer_2" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_27">
          <property name="spacing">
@@ -406,7 +406,7 @@
         </layout>
        </widget>
       </item>
-      <item>
+      <item row="2" column="1">
        <widget class="QWidget" name="widget_ActiveLayer_3" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_28">
          <property name="spacing">
@@ -551,6 +551,69 @@
         </layout>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="OnOffActiveLayer_1">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>On/Off this layer</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="OnOffActiveLayer_2">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>On/Off this layer</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="OnOffActiveLayer_3">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>On/Off this layer</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -580,5 +643,54 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>OnOffActiveLayer_1</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>widget_ActiveLayer_1</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>21</x>
+     <y>224</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>OnOffActiveLayer_2</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>widget_ActiveLayer_2</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>14</x>
+     <y>270</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>70</x>
+     <y>266</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>OnOffActiveLayer_3</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>widget_ActiveLayer_3</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>11</x>
+     <y>319</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>70</x>
+     <y>316</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
