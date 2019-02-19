@@ -12,7 +12,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>3</number>
+    <number>2</number>
    </property>
    <property name="leftMargin">
     <number>3</number>
@@ -49,7 +49,7 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>28</height>
+          <height>24</height>
          </size>
         </property>
         <property name="font">
@@ -73,7 +73,7 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>28</height>
+          <height>24</height>
          </size>
         </property>
         <property name="font">
@@ -102,7 +102,7 @@
     <widget class="QWidget" name="widget_ActiveLayers" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
-       <number>4</number>
+       <number>2</number>
       </property>
       <property name="leftMargin">
        <number>3</number>
@@ -120,7 +120,7 @@
        <widget class="QWidget" name="widget_ActiveLayer_1" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_26">
          <property name="spacing">
-          <number>4</number>
+          <number>2</number>
          </property>
          <property name="leftMargin">
           <number>0</number>
@@ -265,7 +265,7 @@
        <widget class="QWidget" name="widget_ActiveLayer_2" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_27">
          <property name="spacing">
-          <number>4</number>
+          <number>2</number>
          </property>
          <property name="leftMargin">
           <number>0</number>
@@ -410,7 +410,7 @@
        <widget class="QWidget" name="widget_ActiveLayer_3" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_28">
          <property name="spacing">
-          <number>4</number>
+          <number>2</number>
          </property>
          <property name="leftMargin">
           <number>0</number>
