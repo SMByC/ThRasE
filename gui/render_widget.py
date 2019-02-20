@@ -78,6 +78,10 @@ class RenderWidget(QWidget):
                 self.canvas.setDestinationCrs(self.crs)
             # get all valid activated layers
             valid_layers = [active_layer.layer for active_layer in self.active_layers if active_layer.is_active]
+            if len(valid_layers) == 0:
+                self.canvas.setLayers([])
+                self.canvas.refresh()
+                return
             # set to canvas
             self.canvas.setLayers(valid_layers)
             # set init extent from other view if any is activated else set layer extent
