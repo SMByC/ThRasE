@@ -88,7 +88,6 @@ class LayerViewWidget(QWidget, FORM_CLASS):
             self.render_widget.canvas.setLayers([])
             self.render_widget.canvas.clearCache()
             self.render_widget.canvas.refresh()
-            self.render_widget.layer = None
             # deactivate some parts of this view
             self.QLabel_ViewName.setDisabled(True)
             self.render_widget.setDisabled(True)

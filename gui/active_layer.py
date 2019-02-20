@@ -65,6 +65,8 @@ class ActiveLayer(QWidget, FORM_CLASS):
         # edit layer properties
         self.layerStyleEditor.setDisabled(True)
         self.layerStyleEditor.clicked.connect(self.layer_style_editor)
+        # on /off layer
+        self.OnOffActiveLayer.toggled.connect(self.on_off_layer)
         # handle connect layer visibility
         self.layerVisibility.setDisabled(True)
         self.layerVisibility.valueChanged.connect(self.update_layer_visibility)
@@ -108,11 +110,20 @@ class ActiveLayer(QWidget, FORM_CLASS):
 
         if not layer:
             self.disable()
+            self.layer = None
             self.render_widget.update_render_layers()
             return
 
         self.layer = layer
         self.enable()
+        self.render_widget.update_render_layers()
+
+    def on_off_layer(self, checked):
+        if checked and self.layer:
+            self.enable()
+        else:
+            self.disable()
+
         self.render_widget.update_render_layers()
 
     def update_layer_visibility(self, visibility):
