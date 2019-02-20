@@ -24,7 +24,7 @@ from pathlib import Path
 from qgis.core import QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtGui import QColor
 
 from ThRasE.utils.system_utils import block_signals_to
@@ -107,4 +107,14 @@ class LayerViewWidget(QWidget, FORM_CLASS):
             self.widget_ActiveLayers.setVisible(True)
             self.QPBtn_ConfActiveLayers.setArrowType(Qt.UpArrow)
 
+    @pyqtSlot()
+    def canvas_changed(self):
+        if self.is_active:
+            new_extent = self.render_widget.canvas.extent()
+            # update canvas for all view activated except this view
+            from ThRasE.gui.main_dialog import ThRasEDialog
+            for view_widget in ThRasEDialog.view_widgets:
+                # for layer view widget in main dialog
+                if view_widget.is_active and view_widget != self:
+                    view_widget.render_widget.update_canvas_to(new_extent)
 
