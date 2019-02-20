@@ -100,7 +100,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
 
     @pyqtSlot()
     def layer_style_editor(self):
-        style_editor_dlg = StyleEditorDialog(self.layer, self.canvas, self.parent())
+        style_editor_dlg = StyleEditorDialog(self.layer, self.render_widget.canvas, self.parent())
         if style_editor_dlg.exec_():
             style_editor_dlg.apply()
 
