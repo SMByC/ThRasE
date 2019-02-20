@@ -86,10 +86,11 @@ class RenderWidget(QWidget):
             self.canvas.setLayers(valid_layers)
             # set init extent from other view if any is activated else set layer extent
             from ThRasE.gui.main_dialog import ThRasEDialog
-            others_view = [view_widget.render_widget.canvas.extent() for view_widget in ThRasEDialog.view_widgets
-                           if not view_widget.render_widget.canvas.extent().isEmpty()]
-            if others_view:
-                extent = others_view[0]
+            others_extents = [view_widget.render_widget.canvas.extent() for view_widget in ThRasEDialog.view_widgets
+                              if view_widget.is_active and view_widget != self and not view_widget.render_widget.canvas.extent().isEmpty()]
+
+            if others_extents:
+                extent = others_extents[0]
                 self.update_canvas_to(extent)
             else:
                 self.canvas.setExtent(valid_layers[0].extent())
