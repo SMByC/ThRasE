@@ -67,9 +67,9 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.layerStyleEditor.clicked.connect(self.layer_style_editor)
         # on /off layer
         self.OnOffActiveLayer.toggled.connect(self.on_off_layer)
-        # handle connect layer visibility
-        self.layerVisibility.setDisabled(True)
-        self.layerVisibility.valueChanged.connect(self.update_layer_visibility)
+        # handle connect layer opacity
+        self.layerOpacity.setDisabled(True)
+        self.layerOpacity.valueChanged[int].connect(self.update_layer_opacity)
 
     @pyqtSlot()
     def fileDialog_browse(self, combo_box, dialog_title, dialog_types, layer_type):
@@ -84,7 +84,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         with block_signals_to(self.render_widget):
             # activate some parts of this view
             self.layerStyleEditor.setEnabled(True)
-            self.layerVisibility.setEnabled(True)
+            self.layerOpacity.setEnabled(True)
             # set status for view widget
             self.is_active = True
             self.parent_view.update()
@@ -93,7 +93,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         with block_signals_to(self.render_widget):
             # deactivate some parts of this view
             self.layerStyleEditor.setDisabled(True)
-            self.layerVisibility.setDisabled(True)
+            self.layerOpacity.setDisabled(True)
             # set status for view widget
             self.is_active = False
             self.parent_view.update()
@@ -104,6 +104,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         if style_editor_dlg.exec_():
             style_editor_dlg.apply()
 
+    @pyqtSlot()
     def set_render_layer(self, layer):
         #return
         #self.render_widget.crs = layer_to_edit.crs()
@@ -117,7 +118,9 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.layer = layer
         self.enable()
         self.render_widget.update_render_layers()
+        self.layerOpacity.setValue(int(self.layer.renderer().opacity()*100))
 
+    @pyqtSlot()
     def on_off_layer(self, checked):
         if checked and self.layer:
             self.enable()
@@ -126,6 +129,20 @@ class ActiveLayer(QWidget, FORM_CLASS):
 
         self.render_widget.update_render_layers()
 
-    def update_layer_visibility(self, visibility):
-        print(visibility)
+    @pyqtSlot(int)
+    def update_layer_opacity(self, opacity):
+        if self.layer:
+            self.layer.renderer().setOpacity(opacity/100.0)
+            #if hasattr(self.layer, "setCacheImage"):
+            #    self.layer.setCacheImage(None)
+            self.layer.triggerRepaint()
+
+            from ThRasE.gui.main_dialog import ThRasEDialog
+            same_layer_in_others_active_layer = \
+                [active_layer for active_layer in [al for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets] for al in als]
+                 if active_layer.is_active and active_layer != self and active_layer.layer == self.layer]
+
+            for active_layer in same_layer_in_others_active_layer:
+                with block_signals_to(active_layer.layerOpacity):
+                    active_layer.layerOpacity.setValue(opacity)
 

@@ -154,7 +154,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QSlider" name="layerVisibility">
+       <widget class="QSlider" name="layerOpacity">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -179,7 +179,7 @@
          </font>
         </property>
         <property name="toolTip">
-         <string>Visibility</string>
+         <string>Opacity</string>
         </property>
         <property name="maximum">
          <number>100</number>
