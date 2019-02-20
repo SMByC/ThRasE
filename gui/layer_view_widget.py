@@ -24,7 +24,7 @@ from pathlib import Path
 from qgis.core import QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget
-from qgis.PyQt.QtCore import Qt, pyqtSlot
+from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
 
 from ThRasE.utils.system_utils import block_signals_to
@@ -96,14 +96,21 @@ class LayerViewWidget(QWidget, FORM_CLASS):
             self.is_active = False
 
     def active_layers_widget(self):
-        # open to close
-        if self.widget_ActiveLayers.isVisible():
-            self.widget_ActiveLayers.setHidden(True)
-            self.QPBtn_ConfActiveLayers.setArrowType(Qt.DownArrow)
-        # close to open
-        else:
-            self.widget_ActiveLayers.setVisible(True)
-            self.QPBtn_ConfActiveLayers.setArrowType(Qt.UpArrow)
+        # open/close all active layers widgets
+        from ThRasE.gui.main_dialog import ThRasEDialog
+        for view_widget in ThRasEDialog.view_widgets:
+            # open to close
+            if view_widget.widget_ActiveLayers.isVisible():
+                view_widget.widget_ActiveLayers.setHidden(True)
+                view_widget.QPBtn_ConfActiveLayers.setArrowType(Qt.DownArrow)
+            # close to open
+            else:
+                view_widget.widget_ActiveLayers.setVisible(True)
+                view_widget.QPBtn_ConfActiveLayers.setArrowType(Qt.UpArrow)
+        # refresh all extents based on the first active view
+        actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
+        if actives_view_widget:
+            QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
 
     @pyqtSlot()
     def canvas_changed(self):
