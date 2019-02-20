@@ -21,10 +21,13 @@
 import os
 from pathlib import Path
 
+from qgis.core import QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsProject
+from qgis.PyQt.QtGui import QColor
+
+from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -37,10 +40,12 @@ class LayerViewWidget(QWidget, FORM_CLASS):
         self.id = None
         self.pc_id = None
         self.is_active = False
+        self.layer_to_edit = None  # TODO delete if use the class
+        self.active_layers = []  # for save the active layers instances
         self.setupUi(self)
-        self.component_analysis_dialog = None
         # init as unactivated render widget for new instances
         self.widget_ActiveLayers.setHidden(True)
+        self.disable()
 
     def setup_view_widget(self):
         self.render_widget.parent_view = self
@@ -48,20 +53,49 @@ class LayerViewWidget(QWidget, FORM_CLASS):
         self.QPBtn_ConfActiveLayers.clicked.connect(self.active_layers_widget)
 
         # ### init the three active layers ###
-        self.widget_ActiveLayer_1.setup_gui(1)
-        self.widget_ActiveLayer_2.setup_gui(2)
-        self.widget_ActiveLayer_3.setup_gui(3)
+        self.widget_ActiveLayer_1.setup_gui(1, self)
+        self.widget_ActiveLayer_2.setup_gui(2, self)
+        self.widget_ActiveLayer_3.setup_gui(3, self)
+        # save active layers in render widget
+        self.render_widget.active_layers = self.active_layers
 
     def clean(self):
-        # clean first the component analysis dialog of this view widget
-        if self.component_analysis_dialog is not None:
-            self.component_analysis_dialog.clean()
-            del self.component_analysis_dialog
         # clean this view widget and the layers loaded in PCs
         if self.pc_id is not None:
             for layer in self.render_widget.canvas.layers():
                 QgsProject.instance().removeMapLayer(layer.id())
         self.disable()
+
+    def update(self):
+        valid_layers = [active_layer.layer for active_layer in self.active_layers if active_layer.is_active]
+        if len(valid_layers) > 0:
+            self.enable()
+        else:
+            self.disable()
+        self.QPBtn_ConfActiveLayers.setText("{} active layers".format(len(valid_layers)))
+        self.render_widget.canvas.refresh()
+
+    def enable(self):
+        with block_signals_to(self.render_widget):
+            # activate some parts of this view
+            self.QLabel_ViewName.setEnabled(True)
+            self.render_widget.setEnabled(True)
+            self.render_widget.canvas.setCanvasColor(QColor(255, 255, 255))
+            # set status for view widget
+            self.is_active = True
+
+    def disable(self):
+        with block_signals_to(self.render_widget):
+            self.render_widget.canvas.setLayers([])
+            self.render_widget.canvas.clearCache()
+            self.render_widget.canvas.refresh()
+            self.render_widget.layer = None
+            # deactivate some parts of this view
+            self.QLabel_ViewName.setDisabled(True)
+            self.render_widget.setDisabled(True)
+            self.render_widget.canvas.setCanvasColor(QColor(245, 245, 245))
+            # set status for view widget
+            self.is_active = False
 
     def active_layers_widget(self):
         # open to close

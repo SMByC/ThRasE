@@ -31,6 +31,12 @@
    </property>
    <item>
     <widget class="QRadioButton" name="OnOffActiveLayer">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="font">
       <font>
        <pointsize>8</pointsize>
@@ -102,7 +108,7 @@
       <item>
        <widget class="QgsMapLayerComboBox" name="QCBox_RenderFile">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -148,7 +154,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QSlider" name="layerTransparency">
+       <widget class="QSlider" name="layerVisibility">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -173,7 +179,7 @@
          </font>
         </property>
         <property name="toolTip">
-         <string>Transparency</string>
+         <string>Visibility</string>
         </property>
         <property name="maximum">
          <number>100</number>
