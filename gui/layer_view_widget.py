@@ -73,7 +73,6 @@ class LayerViewWidget(QWidget, FORM_CLASS):
         else:
             self.disable()
         self.QPBtn_ConfActiveLayers.setText("{} active layers".format(len(valid_layers)))
-        self.render_widget.canvas.refresh()
 
     def enable(self):
         with block_signals_to(self.render_widget):

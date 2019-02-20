@@ -108,6 +108,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
 
         if not layer:
             self.disable()
+            self.render_widget.update_render_layers()
             return
 
         self.layer = layer
