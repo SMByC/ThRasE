@@ -120,7 +120,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.render_widget.update_render_layers()
         self.layerOpacity.setValue(int(self.layer.renderer().opacity()*100))
 
-    @pyqtSlot()
+    @pyqtSlot(bool)
     def on_off_layer(self, checked):
         if checked and self.layer:
             self.enable()
