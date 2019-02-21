@@ -28,7 +28,7 @@ from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog
 
 from ThRasE.gui.about_dialog import AboutDialog
-from ThRasE.gui.layer_view_widget import LayerViewWidget
+from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
 
 # plugin path
@@ -76,7 +76,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         view_widgets = []
         for row in range(grid_rows):
             for column in range(grid_columns):
-                new_view_widget = LayerViewWidget()
+                new_view_widget = ViewWidget()
                 views_layout.addWidget(new_view_widget, row, column)
                 view_widgets.append(new_view_widget)
 

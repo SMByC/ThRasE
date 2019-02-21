@@ -31,10 +31,10 @@ from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'layer_view_widget.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'view_widget.ui'))
 
 
-class LayerViewWidget(QWidget, FORM_CLASS):
+class ViewWidget(QWidget, FORM_CLASS):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.id = None
@@ -119,7 +119,7 @@ class LayerViewWidget(QWidget, FORM_CLASS):
             # update canvas for all view activated except this view
             from ThRasE.gui.main_dialog import ThRasEDialog
             for view_widget in ThRasEDialog.view_widgets:
-                # for layer view widget in main dialog
+                # for all view widgets in main dialog
                 if view_widget.is_active and view_widget != self:
                     view_widget.render_widget.update_canvas_to(new_extent)
 
