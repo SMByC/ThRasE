@@ -97,6 +97,21 @@
          </item>
          <item>
           <widget class="QComboBox" name="QCBox_BuildNavType">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>42</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">padding-left: 3px;padding-right: 3px;</string>
+           </property>
            <property name="sizeAdjustPolicy">
             <enum>QComboBox::AdjustToContents</enum>
            </property>
@@ -487,7 +502,7 @@
       <item>
        <widget class="QToolButton" name="CloseButton">
         <property name="text">
-         <string>Close</string>
+         <string>Cancel</string>
         </property>
         <property name="icon">
          <iconset>
@@ -557,6 +572,22 @@
     <hint type="destinationlabel">
      <x>576</x>
      <y>619</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>QPBtn_BuildNavigation</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>914</x>
+     <y>590</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1012</x>
+     <y>531</y>
     </hint>
    </hints>
   </connection>

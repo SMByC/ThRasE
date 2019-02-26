@@ -23,7 +23,7 @@ import os
 from pathlib import Path
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget, QFileDialog
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog
 from qgis.PyQt.QtCore import pyqtSlot
 
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
@@ -33,10 +33,10 @@ plugin_folder = os.path.dirname(os.path.dirname(__file__))
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'build_navigation.ui'))
 
 
-class BuildNavigation(QWidget, FORM_CLASS):
+class BuildNavigation(QDialog, FORM_CLASS):
 
     def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+        QDialog.__init__(self, parent)
         self.setupUi(self)
         self.thematic_to_edit = None
 

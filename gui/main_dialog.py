@@ -29,6 +29,7 @@ from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog
 from qgis.core import Qgis, QgsUnitTypes
 
 from ThRasE.gui.about_dialog import AboutDialog
+from ThRasE.gui.build_navigation import BuildNavigation
 from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in
 
@@ -63,10 +64,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_PluginInfo.setText("v{}".format(VERSION))
         self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
 
-        # ######### setup widgets and others ######### #
+        # ######### navigation ######### #
         self.NavigationBlockWidget.setHidden(True)
-        self.NavigationBlockWidget.setDisabled(True)
+        self.NavigationBlockWidgetControls.setDisabled(True)
         self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
+        self.build_navigation_dialog = BuildNavigation()
+        self.QPBtn_BuildNavigation.clicked.connect(self.open_build_navigation_dialog)
 
         # ######### build the view render widgets windows ######### #
         grid_rows = 2
@@ -128,12 +131,17 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def set_navigation_tool(self, nav_type):
         if nav_type == "free":
             self.NavigationBlockWidget.setHidden(True)
-        if nav_type == "by tiles throughout the image":
+        if nav_type == "by tiles":
             self.NavigationBlockWidget.setVisible(True)
-            self.NavTiles_widgetAOI.setHidden(True)
-        if nav_type == "by tiles throughout the AOI":
-            self.NavigationBlockWidget.setVisible(True)
-            self.NavTiles_widgetAOI.setVisible(True)
+
+    @pyqtSlot()
+    def open_build_navigation_dialog(self):
+        if self.build_navigation_dialog.exec_():
+            # Build Navigation button
+            pass
+        else:
+            # cancel button
+            pass
 
     def set_layer_to_edit(self):
         def clear_and_unset_the_layer_to_edit():

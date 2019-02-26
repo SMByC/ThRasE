@@ -74,15 +74,12 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>1000</width>
-          <height>0</height>
-         </size>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>3</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMaximumSize</enum>
          </property>
          <property name="leftMargin">
           <number>0</number>
@@ -98,7 +95,22 @@
          </property>
          <item>
           <widget class="QWidget" name="widget_2" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>42</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>42</height>
+            </size>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMaximumSize</enum>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -112,20 +124,13 @@
              <number>0</number>
             </property>
             <item>
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QLabel" name="label_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <weight>75</weight>
@@ -133,7 +138,7 @@
                </font>
               </property>
               <property name="text">
-               <string>                  Navigation</string>
+               <string>Navigation</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -142,6 +147,22 @@
             </item>
             <item>
              <widget class="QComboBox" name="QCBox_NavType">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>42</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">padding-left: 3px;
+padding-right: 3px;</string>
+              </property>
               <property name="sizeAdjustPolicy">
                <enum>QComboBox::AdjustToContents</enum>
               </property>
@@ -155,61 +176,34 @@
               </item>
               <item>
                <property name="text">
-                <string>by tiles throughout the image</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>by tiles throughout the AOI</string>
+                <string>by tiles</string>
                </property>
               </item>
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+             <widget class="QWidget" name="NavigationBlockWidget" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <property name="sizeHint" stdset="0">
+              <property name="minimumSize">
                <size>
-                <width>40</width>
-                <height>20</height>
+                <width>0</width>
+                <height>42</height>
                </size>
               </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="NavigationBlockWidget" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <property name="spacing">
-             <number>3</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QWidget" name="widget_4" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_3">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>42</height>
+               </size>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
                <property name="spacing">
-                <number>0</number>
+                <number>3</number>
                </property>
                <property name="leftMargin">
                 <number>0</number>
@@ -224,10 +218,10 @@
                 <number>0</number>
                </property>
                <item>
-                <widget class="QWidget" name="widget_7" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <widget class="QWidget" name="NavigationBlockWidgetControls" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_10">
                   <property name="spacing">
-                   <number>6</number>
+                   <number>3</number>
                   </property>
                   <property name="leftMargin">
                    <number>0</number>
@@ -242,33 +236,27 @@
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QToolButton" name="previousTile">
-                    <property name="font">
-                     <font>
-                      <pointsize>8</pointsize>
-                     </font>
+                   <spacer name="horizontalSpacer_13">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
                     </property>
-                    <property name="toolTip">
-                     <string>Go to the previous tile</string>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
                     </property>
-                    <property name="text">
-                     <string>Previous</string>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>6</width>
+                      <height>20</height>
+                     </size>
                     </property>
-                    <property name="icon">
-                     <iconset>
-                      <normaloff>:/plugins/thrase/icons/previous.svg</normaloff>:/plugins/thrase/icons/previous.svg</iconset>
-                    </property>
-                    <property name="toolButtonStyle">
-                     <enum>Qt::ToolButtonTextBesideIcon</enum>
-                    </property>
-                    <property name="autoRaise">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
+                   </spacer>
                   </item>
                   <item>
-                   <widget class="QWidget" name="widget_11" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_6">
+                   <widget class="QWidget" name="widget_7" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_4">
+                     <property name="spacing">
+                      <number>3</number>
+                     </property>
                      <property name="leftMargin">
                       <number>0</number>
                      </property>
@@ -282,34 +270,44 @@
                       <number>0</number>
                      </property>
                      <item>
-                      <spacer name="horizontalSpacer_8">
+                      <widget class="Line" name="line_7">
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_12">
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>
                        </property>
+                       <property name="sizeType">
+                        <enum>QSizePolicy::Fixed</enum>
+                       </property>
                        <property name="sizeHint" stdset="0">
                         <size>
-                         <width>40</width>
+                         <width>6</width>
                          <height>20</height>
                         </size>
                        </property>
                       </spacer>
                      </item>
                      <item>
-                      <widget class="QToolButton" name="currentTile">
+                      <widget class="QToolButton" name="previousTile">
                        <property name="font">
                         <font>
                          <pointsize>8</pointsize>
                         </font>
                        </property>
                        <property name="toolTip">
-                        <string>Go to current tile</string>
+                        <string>Go to the previous tile</string>
                        </property>
                        <property name="text">
-                        <string>Current Tile</string>
+                        <string>Previous</string>
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>:/plugins/thrase/icons/current_tile.svg</normaloff>:/plugins/thrase/icons/current_tile.svg</iconset>
+                         <normaloff>:/plugins/thrase/icons/previous.svg</normaloff>:/plugins/thrase/icons/previous.svg</iconset>
                        </property>
                        <property name="toolButtonStyle">
                         <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -320,451 +318,237 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLabel" name="statusCurrentTile">
-                       <property name="text">
-                        <string/>
-                       </property>
+                      <widget class="QWidget" name="widget_11" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_6">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item>
+                         <spacer name="horizontalSpacer_8">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QToolButton" name="currentTile">
+                          <property name="font">
+                           <font>
+                            <pointsize>8</pointsize>
+                           </font>
+                          </property>
+                          <property name="toolTip">
+                           <string>Go to current tile</string>
+                          </property>
+                          <property name="text">
+                           <string>Current Tile</string>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>:/plugins/thrase/icons/current_tile.svg</normaloff>:/plugins/thrase/icons/current_tile.svg</iconset>
+                          </property>
+                          <property name="toolButtonStyle">
+                           <enum>Qt::ToolButtonTextBesideIcon</enum>
+                          </property>
+                          <property name="autoRaise">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="statusCurrentTile">
+                          <property name="text">
+                           <string/>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_9">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
                       </widget>
                      </item>
                      <item>
-                      <spacer name="horizontalSpacer_9">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
+                      <widget class="QToolButton" name="nextTile">
+                       <property name="font">
+                        <font>
+                         <pointsize>8</pointsize>
+                        </font>
                        </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
+                       <property name="toolTip">
+                        <string>Go to the next tile</string>
                        </property>
-                      </spacer>
+                       <property name="layoutDirection">
+                        <enum>Qt::RightToLeft</enum>
+                       </property>
+                       <property name="text">
+                        <string>Next</string>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/next.svg</normaloff>:/plugins/thrase/icons/next.svg</iconset>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonTextBesideIcon</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
                      </item>
                     </layout>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QToolButton" name="nextTile">
+                   <spacer name="horizontalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>6</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="Line" name="line_5">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>6</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QProgressBar" name="QPBar_TilesNavigation">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="font">
                      <font>
                       <pointsize>8</pointsize>
                      </font>
                     </property>
-                    <property name="toolTip">
-                     <string>Go to the next tile</string>
+                    <property name="value">
+                     <number>24</number>
                     </property>
-                    <property name="layoutDirection">
-                     <enum>Qt::RightToLeft</enum>
-                    </property>
-                    <property name="text">
-                     <string>Next</string>
-                    </property>
-                    <property name="icon">
-                     <iconset>
-                      <normaloff>:/plugins/thrase/icons/next.svg</normaloff>:/plugins/thrase/icons/next.svg</iconset>
-                    </property>
-                    <property name="toolButtonStyle">
-                     <enum>Qt::ToolButtonTextBesideIcon</enum>
-                    </property>
-                    <property name="autoRaise">
-                     <bool>true</bool>
+                    <property name="format">
+                     <string>%v/%m</string>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_11">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>6</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="Line" name="line_6">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_10">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>6</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </widget>
                </item>
                <item>
-                <widget class="QProgressBar" name="QPBar_TilesNavigation">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
+                <widget class="QToolButton" name="QPBtn_BuildNavigation">
                  <property name="font">
                   <font>
                    <pointsize>8</pointsize>
                   </font>
                  </property>
-                 <property name="value">
-                  <number>24</number>
+                 <property name="text">
+                  <string>Build Navigation</string>
                  </property>
-                 <property name="format">
-                  <string>%v/%m</string>
+                 <property name="icon">
+                  <iconset>
+                   <normaloff>:/plugins/thrase/icons/run.svg</normaloff>:/plugins/thrase/icons/run.svg</iconset>
                  </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>6</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="Line" name="line_5">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>6</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QWidget" name="NavTiles_widgetAOI" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_4">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QWidget" name="widget_12" native="true">
-                 <layout class="QVBoxLayout" name="verticalLayout_6">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QWidget" name="widget_13" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_2">
-                     <property name="spacing">
-                      <number>3</number>
-                     </property>
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QLabel" name="label_4">
-                       <property name="font">
-                        <font>
-                         <pointsize>8</pointsize>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>Areas Of Interest:</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="countAOI">
-                       <property name="font">
-                        <font>
-                         <pointsize>8</pointsize>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>N</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="widget_14" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_7">
-                     <property name="spacing">
-                      <number>3</number>
-                     </property>
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QToolButton" name="AOI_Picker">
-                       <property name="font">
-                        <font>
-                         <pointsize>8</pointsize>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>AOI picker</string>
-                       </property>
-                       <property name="icon">
-                        <iconset>
-                         <normaloff>:/plugins/thrase/icons/aoi_picker.svg</normaloff>:/plugins/thrase/icons/aoi_picker.svg</iconset>
-                       </property>
-                       <property name="toolButtonStyle">
-                        <enum>Qt::ToolButtonTextBesideIcon</enum>
-                       </property>
-                       <property name="autoRaise">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QToolButton" name="UndoAOI">
-                       <property name="enabled">
-                        <bool>false</bool>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>8</pointsize>
-                        </font>
-                       </property>
-                       <property name="toolTip">
-                        <string>Undo the last AOI created</string>
-                       </property>
-                       <property name="icon">
-                        <iconset>
-                         <normaloff>:/plugins/thrase/icons/undo.svg</normaloff>:/plugins/thrase/icons/undo.svg</iconset>
-                       </property>
-                       <property name="toolButtonStyle">
-                        <enum>Qt::ToolButtonIconOnly</enum>
-                       </property>
-                       <property name="autoRaise">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QToolButton" name="DeleteAllAOI">
-                       <property name="enabled">
-                        <bool>false</bool>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>8</pointsize>
-                        </font>
-                       </property>
-                       <property name="toolTip">
-                        <string>Delete all AOI</string>
-                       </property>
-                       <property name="icon">
-                        <iconset>
-                         <normaloff>:/plugins/thrase/icons/trash.svg</normaloff>:/plugins/thrase/icons/trash.svg</iconset>
-                       </property>
-                       <property name="toolButtonStyle">
-                        <enum>Qt::ToolButtonIconOnly</enum>
-                       </property>
-                       <property name="autoRaise">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_11">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
+                 <property name="toolButtonStyle">
+                  <enum>Qt::ToolButtonTextBesideIcon</enum>
                  </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Fixed</enum>
+                 <property name="autoRaise">
+                  <bool>true</bool>
                  </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>6</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="Line" name="line_6">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_10">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>6</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QWidget" name="widget_5" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_4">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QWidget" name="widget_15" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_8">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label_3">
-                    <property name="font">
-                     <font>
-                      <pointsize>8</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Tile size:</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QDoubleSpinBox" name="tileSize">
-                    <property name="font">
-                     <font>
-                      <pointsize>8</pointsize>
-                     </font>
-                    </property>
-                    <property name="frame">
-                     <bool>false</bool>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QWidget" name="widget_16" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_9">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QToolButton" name="QPBtn_BuildNavigation">
-                    <property name="font">
-                     <font>
-                      <pointsize>8</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Build Navigation</string>
-                    </property>
-                    <property name="icon">
-                     <iconset>
-                      <normaloff>:/plugins/thrase/icons/run.svg</normaloff>:/plugins/thrase/icons/run.svg</iconset>
-                    </property>
-                    <property name="toolButtonStyle">
-                     <enum>Qt::ToolButtonTextBesideIcon</enum>
-                    </property>
-                    <property name="autoRaise">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
                 </widget>
                </item>
               </layout>
