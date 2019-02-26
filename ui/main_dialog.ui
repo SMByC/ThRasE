@@ -95,19 +95,10 @@
          </property>
          <item>
           <widget class="QWidget" name="widget_2" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>42</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>42</height>
-            </size>
-           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="spacing">
+             <number>3</number>
+            </property>
             <property name="sizeConstraint">
              <enum>QLayout::SetMaximumSize</enum>
             </property>
@@ -123,6 +114,22 @@
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <spacer name="horizontalSpacer_14">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>3</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
             <item>
              <widget class="QLabel" name="label_2">
               <property name="sizePolicy">
@@ -156,7 +163,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>42</height>
+                <height>34</height>
                </size>
               </property>
               <property name="styleSheet">
@@ -189,16 +196,10 @@ padding-right: 3px;</string>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>42</height>
-               </size>
-              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>42</height>
+                <height>34</height>
                </size>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -245,7 +246,7 @@ padding-right: 3px;</string>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>6</width>
+                      <width>3</width>
                       <height>20</height>
                      </size>
                     </property>
@@ -286,7 +287,7 @@ padding-right: 3px;</string>
                        </property>
                        <property name="sizeHint" stdset="0">
                         <size>
-                         <width>6</width>
+                         <width>3</width>
                          <height>20</height>
                         </size>
                        </property>
@@ -437,7 +438,7 @@ padding-right: 3px;</string>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>6</width>
+                      <width>3</width>
                       <height>20</height>
                      </size>
                     </property>
@@ -460,7 +461,7 @@ padding-right: 3px;</string>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>6</width>
+                      <width>3</width>
                       <height>20</height>
                      </size>
                     </property>
@@ -497,7 +498,7 @@ padding-right: 3px;</string>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>6</width>
+                      <width>3</width>
                       <height>20</height>
                      </size>
                     </property>
@@ -520,7 +521,7 @@ padding-right: 3px;</string>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>6</width>
+                      <width>3</width>
                       <height>20</height>
                      </size>
                     </property>
@@ -564,7 +565,7 @@ padding-right: 3px;</string>
        <widget class="QWidget" name="EditionBlock" native="true">
         <property name="minimumSize">
          <size>
-          <width>360</width>
+          <width>380</width>
           <height>0</height>
          </size>
         </property>
