@@ -26,14 +26,17 @@ from pathlib import Path
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog
-from qgis.core import Qgis, QgsUnitTypes
+from qgis.core import Qgis, QgsMapLayer
 
+from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.build_navigation import BuildNavigation
 from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in
 
 # plugin path
+from ThRasE.utils.system_utils import block_signals_to
+
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'main_dialog.ui'))
 
@@ -96,8 +99,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # ######### setup layer to edit ######### #
         self.QCBox_LayerToEdit.setCurrentIndex(-1)
-        # handle connect layer selection with render canvas
-        self.QCBox_LayerToEdit.currentIndexChanged.connect(self.set_layer_to_edit)
+        # handle connect layer selection
+        self.QCBox_LayerToEdit.layerChanged.connect(self.select_layer_to_edit)
+        self.QCBox_band_LayerToEdit.currentIndexChanged.connect(self.setup_layer_to_edit)
         # call to browse the render file
         self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
 
@@ -143,49 +147,36 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # cancel button
             pass
 
-    def set_layer_to_edit(self):
-        def clear_and_unset_the_layer_to_edit():
+    @pyqtSlot(QgsMapLayer)
+    def select_layer_to_edit(self, layer_selected):
+        # first check
+        if layer_selected is None or not valid_file_selected_in(self.QCBox_LayerToEdit, "thematic layer to edit"):
             self.NavigationBlockWidget.setDisabled(True)
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
-            self.QCBox_band_LayerToEdit.clear()
-
-        # first check
-        if not valid_file_selected_in(self.QCBox_LayerToEdit, "thematic layer to edit"):
-            clear_and_unset_the_layer_to_edit()
+            with block_signals_to(self.QCBox_band_LayerToEdit):
+                self.QCBox_band_LayerToEdit.clear()
             return
-        current_layer = self.QCBox_LayerToEdit.currentLayer()
         # check if thematic layer to edit has data type as integer or byte
-        if current_layer.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
-            clear_and_unset_the_layer_to_edit()
+        if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
             self.MsgBar.pushMessage("The thematic raster layer to edit must be byte or integer as data type",
                                     level=Qgis.Warning)
             return
         # set band count
-        self.QCBox_band_LayerToEdit.clear()
-        self.QCBox_band_LayerToEdit.addItems([str(x) for x in range(1, current_layer.bandCount() + 1)])
-        # set/update the units in tileSize item
-        layer_dist_unit = current_layer.crs().mapUnits()
-        str_unit = QgsUnitTypes.toString(layer_dist_unit)
-        abbr_unit = QgsUnitTypes.toAbbreviatedString(layer_dist_unit)
-        # Set the properties of the QdoubleSpinBox based on the QgsUnitTypes of the thematic layer
-        # https://qgis.org/api/classQgsUnitTypes.html
-        # SimpRS
-        self.tileSize.setSuffix(" {}".format(abbr_unit))
-        self.tileSize.setToolTip(
-            "The height/width for the tile size in {} (units based on layer to edit selected)".format(str_unit))
-        self.tileSize.setRange(0, 360 if layer_dist_unit == QgsUnitTypes.DistanceDegrees else 10e6)
-        self.tileSize.setDecimals(
-            4 if layer_dist_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
-                                     QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
-        self.tileSize.setSingleStep(
-            0.0001 if layer_dist_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
-                                          QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
-        default_tile_size = {QgsUnitTypes.DistanceMeters: 120, QgsUnitTypes.DistanceKilometers: 0.120,
-                             QgsUnitTypes.DistanceFeet: 393, QgsUnitTypes.DistanceNauticalMiles: 0.065,
-                             QgsUnitTypes.DistanceYards: 132, QgsUnitTypes.DistanceMiles: 0.075,
-                             QgsUnitTypes.DistanceDegrees: 0.0011, QgsUnitTypes.DistanceCentimeters: 12000,
-                             QgsUnitTypes.DistanceMillimeters: 120000}
-        self.tileSize.setValue(default_tile_size[layer_dist_unit])
+        with block_signals_to(self.QCBox_band_LayerToEdit):
+            self.QCBox_band_LayerToEdit.clear()
+            self.QCBox_band_LayerToEdit.addItems([str(x) for x in range(1, layer_selected.bandCount() + 1)])
+
+        self.setup_layer_to_edit()
+
+    def setup_layer_to_edit(self):
+        layer = self.QCBox_LayerToEdit.currentLayer()
+        band = int(self.QCBox_band_LayerToEdit.currentText())
+
+        if (layer.id(), band) in LayerToEdit.instances:
+            layer_to_edit = LayerToEdit.instances[(layer.id(), band)]
+        else:
+            layer_to_edit = LayerToEdit(layer, band)
+
 
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
