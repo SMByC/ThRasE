@@ -95,7 +95,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>:/plugins/pca4cd/icons/layer_properties.svg</normaloff>:/plugins/pca4cd/icons/layer_properties.svg</iconset>
+          <normaloff>:/plugins/thrase/icons/layer_properties.svg</normaloff>:/plugins/thrase/icons/layer_properties.svg</iconset>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonIconOnly</enum>

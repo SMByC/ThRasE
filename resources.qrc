@@ -10,5 +10,6 @@
         <file>icons/next.svg</file>
         <file>icons/previous.svg</file>
         <file>icons/current_tile.svg</file>
+        <file>icons/layer_properties.svg</file>
     </qresource>
 </RCC>
