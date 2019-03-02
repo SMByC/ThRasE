@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1456</width>
-    <height>918</height>
+    <width>1293</width>
+    <height>798</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -565,17 +565,20 @@ padding-right: 3px;</string>
        <widget class="QWidget" name="EditionBlock" native="true">
         <property name="minimumSize">
          <size>
-          <width>380</width>
+          <width>340</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>380</width>
+          <width>340</width>
           <height>16777215</height>
          </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>4</number>
+         </property>
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -623,6 +626,9 @@ padding-right: 3px;</string>
             </size>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <property name="spacing">
+             <number>3</number>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -652,7 +658,7 @@ padding-right: 3px;</string>
              <widget class="QComboBox" name="QCBox_band_LayerToEdit">
               <property name="maximumSize">
                <size>
-                <width>46</width>
+                <width>35</width>
                 <height>16777215</height>
                </size>
               </property>
@@ -675,6 +681,22 @@ padding-right: 3px;</string>
           </widget>
          </item>
          <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>8</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QLabel" name="label_3">
            <property name="text">
             <string>Recode Pixel Values:</string>
@@ -685,13 +707,7 @@ padding-right: 3px;</string>
           </widget>
          </item>
          <item>
-          <widget class="QTableWidget" name="recodePixelTable">
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
-          </widget>
+          <widget class="QTableWidget" name="recodePixelTable"/>
          </item>
          <item>
           <spacer name="verticalSpacer">
@@ -704,7 +720,7 @@ padding-right: 3px;</string>
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>16</height>
+             <height>8</height>
             </size>
            </property>
           </spacer>

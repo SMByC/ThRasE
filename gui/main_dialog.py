@@ -193,12 +193,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.recodePixelTable.setColumnCount(0)
             return
 
-        header = ["", "Old Value", "New Value", "On"]
+        header = ["", "old value", "new value", "on"]
         row_length = len(layer_to_edit.pixel_table["Value"])
         # init table
         self.recodePixelTable.setRowCount(row_length)
         self.recodePixelTable.setColumnCount(4)
-        self.recodePixelTable.horizontalHeader().setMinimumSectionSize(45)
+        self.recodePixelTable.horizontalHeader().setMinimumSectionSize(40)
         # hidden row labels
         self.recodePixelTable.verticalHeader().setVisible(False)
         # add Header
@@ -214,18 +214,18 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                                                     layer_to_edit.pixel_table["Blue"][m],
                                                     layer_to_edit.pixel_table["Alpha"][m]))
                     self.recodePixelTable.setItem(m, n, item_table)
-            if h == "Old Value":
+            if h == "old value":
                 for m, item in enumerate(layer_to_edit.pixel_table["Value"]):
                     item_table = QTableWidgetItem(str(item))
                     item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                     item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
                     self.recodePixelTable.setItem(m, n, item_table)
-            if h == "New Value":
+            if h == "new value":
                 for m, item in enumerate(layer_to_edit.pixel_table["Value"]):
                     item_table = QTableWidgetItem("")
                     item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
                     self.recodePixelTable.setItem(m, n, item_table)
-            if h == "On":
+            if h == "on":
                 for m in range(row_length):
                     item_table = QTableWidgetItem()
                     item_table.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
@@ -240,8 +240,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.recodePixelTable.resizeColumnsToContents()
         self.recodePixelTable.resizeRowsToContents()
         # adjust the editor block based on table content
-        table_width = self.recodePixelTable.horizontalHeader().length() + 50
-        if table_width > 380:
-            self.EditionBlock.setMaximumWidth(table_width)
-            self.EditionBlock.setMinimumWidth(table_width)
+        table_width = self.recodePixelTable.horizontalHeader().length() + 30
+        self.EditionBlock.setMaximumWidth(table_width)
+        self.EditionBlock.setMinimumWidth(table_width)
 
