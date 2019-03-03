@@ -27,7 +27,7 @@ from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem
 from qgis.core import Qgis, QgsMapLayer
-from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtGui import QColor, QFont
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
@@ -70,6 +70,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # ######### navigation ######### #
         self.NavigationBlockWidget.setHidden(True)
+        self.NavigationBlockWidget.setDisabled(True)
         self.NavigationBlockWidgetControls.setDisabled(True)
         self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
         self.build_navigation_dialog = BuildNavigation()
@@ -105,6 +106,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QCBox_band_LayerToEdit.currentIndexChanged.connect(self.setup_layer_to_edit)
         # call to browse the render file
         self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
+        # update recode pixel table
+        self.recodePixelTable.itemChanged.connect(self.update_recode_pixel_table)
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -159,6 +162,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
             with block_signals_to(self.QCBox_band_LayerToEdit):
                 self.QCBox_band_LayerToEdit.clear()
+            LayerToEdit.current = None
             return
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
@@ -181,66 +185,106 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             layer_to_edit = LayerToEdit(layer, band)
 
-        self.setup_recode_pixel_table(layer_to_edit)
+        LayerToEdit.current = layer_to_edit
+        self.setup_recode_pixel_table()
 
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
 
-    def setup_recode_pixel_table(self, layer_to_edit):
-        if layer_to_edit.pixel_table is None:
+    def update_recode_pixel_table(self):
+        layer_to_edit = LayerToEdit.current
+        if not layer_to_edit or layer_to_edit.pixels is None:
+            return
+
+        for row_idx, pixel in enumerate(layer_to_edit.pixels):
+            # assign the new value
+            new_value = self.recodePixelTable.item(row_idx, 2).text()
+            try:
+                if new_value == "":
+                    pixel["new_value"] = None
+                elif float(new_value) == int(new_value):
+                    pixel["new_value"] = int(new_value)
+            except:
+                pass
+            # assign the on state
+            on = self.recodePixelTable.item(row_idx, 3)
+            if on.checkState() == 2:
+                pixel["on"] = True
+            if on.checkState() == 0:
+                pixel["on"] = False
+
+        self.setup_recode_pixel_table()
+
+    def setup_recode_pixel_table(self):
+        layer_to_edit = LayerToEdit.current
+
+        if not layer_to_edit or layer_to_edit.pixels is None:
             # clear table
             self.recodePixelTable.setRowCount(0)
             self.recodePixelTable.setColumnCount(0)
             return
 
-        header = ["", "old value", "new value", "on"]
-        row_length = len(layer_to_edit.pixel_table["Value"])
-        # init table
-        self.recodePixelTable.setRowCount(row_length)
-        self.recodePixelTable.setColumnCount(4)
-        self.recodePixelTable.horizontalHeader().setMinimumSectionSize(40)
-        # hidden row labels
-        self.recodePixelTable.verticalHeader().setVisible(False)
-        # add Header
-        self.recodePixelTable.setHorizontalHeaderLabels(header)
-        # insert items
-        for n, h in enumerate(header):
-            if h == "":
-                for m in range(row_length):
-                    item_table = QTableWidgetItem()
-                    item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                    item_table.setBackground(QColor(layer_to_edit.pixel_table["Red"][m],
-                                                    layer_to_edit.pixel_table["Green"][m],
-                                                    layer_to_edit.pixel_table["Blue"][m],
-                                                    layer_to_edit.pixel_table["Alpha"][m]))
-                    self.recodePixelTable.setItem(m, n, item_table)
-            if h == "old value":
-                for m, item in enumerate(layer_to_edit.pixel_table["Value"]):
-                    item_table = QTableWidgetItem(str(item))
-                    item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                    item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                    self.recodePixelTable.setItem(m, n, item_table)
-            if h == "new value":
-                for m, item in enumerate(layer_to_edit.pixel_table["Value"]):
-                    item_table = QTableWidgetItem("")
-                    item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                    self.recodePixelTable.setItem(m, n, item_table)
-            if h == "on":
-                for m in range(row_length):
-                    item_table = QTableWidgetItem()
-                    item_table.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-                    item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                    if True:
-                        item_table.setCheckState(Qt.Checked)
-                    else:
-                        item_table.setCheckState(Qt.Unchecked)
-                    self.recodePixelTable.setItem(m, n, item_table)
+        with block_signals_to(self.recodePixelTable):
+            header = ["", "old value", "new value", "on"]
+            row_length = len(layer_to_edit.pixels)
+            # init table
+            self.recodePixelTable.setRowCount(row_length)
+            self.recodePixelTable.setColumnCount(4)
+            self.recodePixelTable.horizontalHeader().setMinimumSectionSize(40)
+            # hidden row labels
+            self.recodePixelTable.verticalHeader().setVisible(False)
+            # add Header
+            self.recodePixelTable.setHorizontalHeaderLabels(header)
+            # insert items
+            for col_idx, header in enumerate(header):
+                if header == "":
+                    for row_idx, pixel in enumerate(layer_to_edit.pixels):
+                        item_table = QTableWidgetItem()
+                        item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
+                                                        pixel["color"]["B"], pixel["color"]["A"]))
+                        self.recodePixelTable.setItem(row_idx, col_idx, item_table)
+                if header == "old value":
+                    for row_idx, pixel in enumerate(layer_to_edit.pixels):
+                        item_table = QTableWidgetItem(str(pixel["value"]))
+                        item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+                        if not pixel["on"]:
+                            item_table.setForeground(QColor("lightGrey"))
+                            item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        if pixel["new_value"] and pixel["new_value"] != pixel["value"]:
+                            font = QFont()
+                            font.setBold(True)
+                            item_table.setFont(font)
+                        self.recodePixelTable.setItem(row_idx, col_idx, item_table)
+                if header == "new value":
+                    for row_idx, pixel in enumerate(layer_to_edit.pixels):
+                        item_table = QTableWidgetItem(str(pixel["new_value"]) if pixel["new_value"] else "")
+                        item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+                        if not pixel["on"]:
+                            item_table.setForeground(QColor("lightGrey"))
+                            item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        if pixel["new_value"] and pixel["new_value"] != pixel["value"]:
+                            font = QFont()
+                            font.setBold(True)
+                            item_table.setFont(font)
+                        self.recodePixelTable.setItem(row_idx, col_idx, item_table)
+                if header == "on":
+                    for row_idx, pixel in enumerate(layer_to_edit.pixels):
+                        item_table = QTableWidgetItem()
+                        item_table.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+                        item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+                        if pixel["on"]:
+                            item_table.setCheckState(Qt.Checked)
+                        else:
+                            item_table.setCheckState(Qt.Unchecked)
+                        self.recodePixelTable.setItem(row_idx, col_idx, item_table)
 
-        # adjust size of Table
-        self.recodePixelTable.resizeColumnsToContents()
-        self.recodePixelTable.resizeRowsToContents()
-        # adjust the editor block based on table content
-        table_width = self.recodePixelTable.horizontalHeader().length() + 30
-        self.EditionBlock.setMaximumWidth(table_width)
-        self.EditionBlock.setMinimumWidth(table_width)
+            # adjust size of Table
+            self.recodePixelTable.resizeColumnsToContents()
+            self.recodePixelTable.resizeRowsToContents()
+            # adjust the editor block based on table content
+            table_width = self.recodePixelTable.horizontalHeader().length() + 30
+            self.EditionBlock.setMaximumWidth(table_width)
+            self.EditionBlock.setMinimumWidth(table_width)
 
