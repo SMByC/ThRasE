@@ -45,12 +45,14 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.setupUi(self)
         # init as unactivated render widget for new instances
         self.widget_ActiveLayers.setHidden(True)
+        self.widget_EditionTools.setHidden(True)
         self.disable()
 
     def setup_view_widget(self):
         self.render_widget.parent_view = self
         # settings the ActiveLayers widget
         self.QPBtn_ConfActiveLayers.clicked.connect(self.active_layers_widget)
+        self.QPBtn_EditionTools.clicked.connect(self.edition_tools_widget)
 
         # ### init the three active layers ###
         self.widget_ActiveLayer_1.setup_gui(1, self)
@@ -95,6 +97,7 @@ class ViewWidget(QWidget, FORM_CLASS):
             # set status for view widget
             self.is_active = False
 
+    @pyqtSlot()
     def active_layers_widget(self):
         # open/close all active layers widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
@@ -107,6 +110,26 @@ class ViewWidget(QWidget, FORM_CLASS):
             else:
                 view_widget.widget_ActiveLayers.setVisible(True)
                 view_widget.QPBtn_ConfActiveLayers.setArrowType(Qt.UpArrow)
+
+        # refresh all extents based on the first active view
+        actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
+        if actives_view_widget:
+            QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
+
+    @pyqtSlot()
+    def edition_tools_widget(self):
+        # open/close all active layers widgets
+        from ThRasE.gui.main_dialog import ThRasEDialog
+        for view_widget in ThRasEDialog.view_widgets:
+            # open to close
+            if view_widget.widget_EditionTools.isVisible():
+                view_widget.widget_EditionTools.setHidden(True)
+                view_widget.QPBtn_EditionTools.setArrowType(Qt.DownArrow)
+            # close to open
+            else:
+                view_widget.widget_EditionTools.setVisible(True)
+                view_widget.QPBtn_EditionTools.setArrowType(Qt.UpArrow)
+
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
         if actives_view_widget:

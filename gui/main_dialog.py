@@ -230,7 +230,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # init table
             self.recodePixelTable.setRowCount(row_length)
             self.recodePixelTable.setColumnCount(4)
-            self.recodePixelTable.horizontalHeader().setMinimumSectionSize(40)
+            self.recodePixelTable.horizontalHeader().setMinimumSectionSize(45)
             # hidden row labels
             self.recodePixelTable.verticalHeader().setVisible(False)
             # add Header
@@ -284,7 +284,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.recodePixelTable.resizeColumnsToContents()
             self.recodePixelTable.resizeRowsToContents()
             # adjust the editor block based on table content
-            table_width = self.recodePixelTable.horizontalHeader().length() + 30
+            table_width = self.recodePixelTable.horizontalHeader().length() + 40
             self.EditionBlock.setMaximumWidth(table_width)
             self.EditionBlock.setMinimumWidth(table_width)
 
