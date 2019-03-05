@@ -77,7 +77,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_BuildNavigation.clicked.connect(self.open_build_navigation_dialog)
 
         # ######### build the view render widgets windows ######### #
-        grid_rows = 2
+        grid_rows = 1
         grid_columns = 2
         # configure the views layout
         views_layout = QGridLayout()
