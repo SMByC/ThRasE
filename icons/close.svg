@@ -10,8 +10,8 @@
    viewBox="0 0 16 16"
    version="1.1"
    id="svg6"
-   sodipodi:docname="window-close.svg"
-   inkscape:version="0.92.2 2405546, 2018-03-11">
+   sodipodi:docname="close.svg"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14">
   <metadata
      id="metadata10">
     <rdf:RDF>
@@ -32,15 +32,15 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="2560"
-     inkscape:window-height="1404"
+     inkscape:window-width="1600"
+     inkscape:window-height="1150"
      id="namedview8"
      showgrid="false"
      inkscape:zoom="29.5"
-     inkscape:cx="7.9315186"
+     inkscape:cx="2.4908406"
      inkscape:cy="8.3106293"
      inkscape:window-x="0"
-     inkscape:window-y="36"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg6" />
   <defs
@@ -59,7 +59,7 @@
   <path
      style="color:#da4453;fill:currentColor;fill-opacity:1;stroke:none;stroke-width:0.99999994"
      class="ColorScheme-NegativeText"
-     d="M 7.9999998,0.779661 A 7.2203388,7.2203388 0 0 0 0.779661,7.9999998 7.2203388,7.2203388 0 0 0 7.9999998,15.220339 7.2203388,7.2203388 0 0 0 15.220339,7.9999998 7.2203388,7.2203388 0 0 0 7.9999998,0.779661 Z M 5.2406631,4.3898304 7.9999998,7.1491671 10.759337,4.3898304 11.610169,5.2406631 8.8508325,7.9999998 11.610169,10.759337 10.759337,11.610169 7.9999998,8.8508325 5.2406631,11.610169 4.3898304,10.759337 7.1491671,7.9999998 4.3898304,5.2406631 Z"
+     d="M 7.9999998,1.5 A 6.4999998,6.4999998 0 0 0 1.5,7.9999998 6.4999998,6.4999998 0 0 0 7.9999998,14.5 6.4999998,6.4999998 0 0 0 14.5,7.9999998 6.4999998,6.4999998 0 0 0 7.9999998,1.5 Z M 5.5159491,4.7499999 7.9999998,7.2340507 10.484051,4.7499999 11.25,5.5159491 8.765949,7.9999998 11.25,10.484051 10.484051,11.25 7.9999998,8.765949 5.5159491,11.25 4.7499999,10.484051 7.2340507,7.9999998 4.7499999,5.5159491 Z"
      id="path4"
      inkscape:connector-curvature="0" />
 </svg>

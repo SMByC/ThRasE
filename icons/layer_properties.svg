@@ -13,7 +13,7 @@
    version="1.1"
    id="svg57"
    sodipodi:docname="layer_properties.svg"
-   inkscape:version="0.92.2 5c3e80d, 2017-08-06">
+   inkscape:version="0.92.4 5da689c313, 2019-01-14">
   <metadata
      id="metadata63">
     <rdf:RDF>
@@ -22,7 +22,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -37,17 +37,17 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="2256"
-     inkscape:window-height="1222"
+     inkscape:window-width="1600"
+     inkscape:window-height="1150"
      id="namedview59"
      showgrid="false"
-     inkscape:zoom="10.429825"
-     inkscape:cx="8.0001172"
-     inkscape:cy="27.56933"
+     inkscape:zoom="5.2149125"
+     inkscape:cx="25.575048"
+     inkscape:cy="21.331474"
      inkscape:window-x="0"
-     inkscape:window-y="36"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
-     inkscape:current-layer="svg57" />
+     inkscape:current-layer="g33" />
   <linearGradient
      id="a"
      gradientTransform="rotate(43.47495,8.3343766,288.28166)"
@@ -84,7 +84,7 @@
   </linearGradient>
   <linearGradient
      id="c"
-     gradientTransform="matrix(0.9837838,0,0,1,-0.08938991,0.09453092)"
+     gradientTransform="matrix(0.92386957,0,0,0.93909817,0.39549328,17.41194)"
      gradientUnits="userSpaceOnUse"
      x1="5.0081882"
      x2="0.89769715"
@@ -102,7 +102,7 @@
   </linearGradient>
   <linearGradient
      id="d"
-     gradientTransform="matrix(0.98378379,0,0,1,-0.08938989,3.004935)"
+     gradientTransform="matrix(0.92386956,0,0,0.93909817,0.3954933,20.145096)"
      gradientUnits="userSpaceOnUse"
      x1="5.0081882"
      x2="0.89769715"
@@ -120,7 +120,7 @@
   </linearGradient>
   <linearGradient
      id="e"
-     gradientTransform="matrix(0.98378379,0,0,1,-0.08938989,5.9153515)"
+     gradientTransform="matrix(0.92386956,0,0,0.93909817,0.3954933,22.878262)"
      gradientUnits="userSpaceOnUse"
      x1="5.0081882"
      x2="0.89769715"
@@ -144,26 +144,26 @@
        id="g33"
        style="fill-rule:evenodd;stroke-width:1.06186366">
       <path
-         d="M 0.79374999,280.86041 H 11.1125 v 2.91042 H 0.79374999 Z"
+         d="m 1.2248483,281.07867 h 9.6903187 v 2.73316 H 1.2248483 Z"
          overflow="visible"
          id="path27"
-         style="overflow:visible;fill:url(#c)"
+         style="overflow:visible;fill:url(#c);stroke-width:0.99719417"
          inkscape:connector-curvature="0" />
       <path
-         d="M 0.79374999,283.77081 H 11.1125 v 2.91042 H 0.79374999 Z"
+         d="m 1.2248483,283.81181 h 9.6903187 v 2.73318 H 1.2248483 Z"
          overflow="visible"
          id="path29"
-         style="overflow:visible;fill:url(#d)"
+         style="overflow:visible;fill:url(#d);stroke-width:0.99719417"
          inkscape:connector-curvature="0" />
       <path
-         d="M 0.79374999,286.68124 H 11.1125 v 2.91042 H 0.79374999 Z"
+         d="m 1.2248483,286.545 h 9.6903187 v 2.73316 H 1.2248483 Z"
          overflow="visible"
          id="path31"
-         style="overflow:visible;fill:url(#e)"
+         style="overflow:visible;fill:url(#e);stroke-width:0.99719417"
          inkscape:connector-curvature="0" />
     </g>
     <g
-       transform="translate(2.9291492,-0.4645356)"
+       transform="matrix(0.93909817,0,0,0.93909817,3.2585245,17.152532)"
        id="g53"
        style="stroke:#976009">
       <path
