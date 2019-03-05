@@ -298,20 +298,27 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="status_PixelsPicker">
+             <widget class="QToolButton" name="status_PixelsPicker">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="font">
                <font>
                 <pointsize>8</pointsize>
                </font>
               </property>
-              <property name="styleSheet">
-               <string notr="true">color: &quot;gray&quot;;</string>
-              </property>
               <property name="text">
-               <string>editing</string>
+               <string>rec</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/record.svg</normaloff>:/plugins/thrase/icons/record.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -491,20 +498,27 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="status_LinesPicker">
+             <widget class="QToolButton" name="status_LinesPicker">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="font">
                <font>
                 <pointsize>8</pointsize>
                </font>
               </property>
-              <property name="styleSheet">
-               <string notr="true">color: &quot;gray&quot;;</string>
-              </property>
               <property name="text">
-               <string>editing</string>
+               <string>rec</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/record.svg</normaloff>:/plugins/thrase/icons/record.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -709,20 +723,27 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="status_PolygonsPicker">
+             <widget class="QToolButton" name="status_PolygonsPicker">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="font">
                <font>
                 <pointsize>8</pointsize>
                </font>
               </property>
-              <property name="styleSheet">
-               <string notr="true">color: &quot;gray&quot;;</string>
-              </property>
               <property name="text">
-               <string>editing</string>
+               <string>rec</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/record.svg</normaloff>:/plugins/thrase/icons/record.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
               </property>
              </widget>
             </item>

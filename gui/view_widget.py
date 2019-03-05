@@ -21,12 +21,14 @@
 import os
 from pathlib import Path
 
-from qgis.core import QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
+from qgis.core import QgsProject, QgsRaster
+from qgis.gui import QgsMapCanvas, QgsMapTool, QgsRubberBand
 
+from ThRasE.core.edition import LayerToEdit
 from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
@@ -60,6 +62,10 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.widget_ActiveLayer_3.setup_gui(3, self)
         # save active layers in render widget
         self.render_widget.active_layers = self.active_layers
+
+        # ### init the edition tools ###
+        # picker pixel tool edit
+        self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
 
     def clean(self):
         # clean this view widget and the layers loaded in PCs
@@ -117,6 +123,17 @@ class ViewWidget(QWidget, FORM_CLASS):
             QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
 
     @pyqtSlot()
+    def canvas_changed(self):
+        if self.is_active:
+            new_extent = self.render_widget.canvas.extent()
+            # update canvas for all view activated except this view
+            from ThRasE.gui.main_dialog import ThRasEDialog
+            for view_widget in ThRasEDialog.view_widgets:
+                # for all view widgets in main dialog
+                if view_widget.is_active and view_widget != self:
+                    view_widget.render_widget.update_canvas_to(new_extent)
+
+    @pyqtSlot()
     def edition_tools_widget(self):
         # open/close all active layers widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
@@ -136,13 +153,39 @@ class ViewWidget(QWidget, FORM_CLASS):
             QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
 
     @pyqtSlot()
-    def canvas_changed(self):
-        if self.is_active:
-            new_extent = self.render_widget.canvas.extent()
-            # update canvas for all view activated except this view
-            from ThRasE.gui.main_dialog import ThRasEDialog
-            for view_widget in ThRasEDialog.view_widgets:
-                # for all view widgets in main dialog
-                if view_widget.is_active and view_widget != self:
-                    view_widget.render_widget.update_canvas_to(new_extent)
+    def use_pixels_picker_for_edit(self):
+        self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
 
+
+class PickerPixelTool(QgsMapTool):
+    def __init__(self, view_widget):
+        QgsMapTool.__init__(self, view_widget.render_widget.canvas)
+        self.view_widget = view_widget
+        self.render_widget = view_widget.render_widget
+        self.view_widget.status_PixelsPicker.setEnabled(True)
+        self.view_widget.status_PixelsPicker.clicked.connect(self.finish)
+
+    def finish(self):
+        self.view_widget.status_PixelsPicker.setDisabled(True)
+        # restart point tool
+        self.clean()
+        self.render_widget.canvas.unsetMapTool(self)
+        QTimer.singleShot(180, lambda: self.render_widget.canvas.setMapTool(self.render_widget.pan_zoom_tool))
+
+    def edit_pixel(self, event):
+        x = event.pos().x()
+        y = event.pos().y()
+        point = self.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+        pixel_value = LayerToEdit.current.get_pixel_value_from_pnt(point)
+        if pixel_value is not None:
+            print(pixel_value)
+            #self.picker_widget.setValue(pixel_value)
+
+    def canvasPressEvent(self, event):
+        # edit the pixel over pointer mouse on left-click
+        if event.button() == Qt.LeftButton:
+            self.edit_pixel(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.finish()

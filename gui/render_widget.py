@@ -26,28 +26,6 @@ from qgis.gui import QgsMapToolPan, QgsMapCanvas
 from ThRasE.utils.system_utils import block_signals_to
 
 
-class PanAndZoomPointTool(QgsMapToolPan):
-    def __init__(self, render_widget):
-        QgsMapToolPan.__init__(self, render_widget.canvas)
-        self.render_widget = render_widget
-
-    def update_canvas(self):
-        self.render_widget.parent_view.canvas_changed()
-
-    def canvasReleaseEvent(self, event):
-        if event.button() != Qt.RightButton:
-            QgsMapToolPan.canvasReleaseEvent(self, event)
-            self.update_canvas()
-
-    def wheelEvent(self, event):
-        QgsMapToolPan.wheelEvent(self, event)
-        QTimer.singleShot(10, self.update_canvas)
-
-    def canvasPressEvent(self, event):
-        if event.button() != Qt.RightButton:
-            QgsMapToolPan.canvasPressEvent(self, event)
-
-
 class RenderWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
@@ -102,26 +80,24 @@ class RenderWidget(QWidget):
             self.canvas.setExtent(new_extent)
             self.canvas.refresh()
 
-    def set_detection_layer(self, detection_layer):
-        self.detection_layer = detection_layer
-        self.show_detection_layer()
-        # hide the detection layer in combobox menu
-        from pca4cd.gui.main_analysis_dialog import MainAnalysisDialog
-        detection_layers = [view_widget.render_widget.detection_layer for view_widget in MainAnalysisDialog.view_widgets
-                            if view_widget.pc_id is not None and view_widget.render_widget.detection_layer is not None
-                            and view_widget.id != self.parent_view.id] + ([self.detection_layer] if self.detection_layer
-                            else [])
-        for view_widget in MainAnalysisDialog.view_widgets:
-            if view_widget.pc_id is None:
-                view_widget.QCBox_RenderFile.setExceptedLayerList(MainAnalysisDialog.pca_layers + detection_layers)
 
-    def show_detection_layer(self):
-        if self.layer:
-            self.canvas.setLayers([self.detection_layer, self.layer] if self.detection_layer else [self.layer])
-            self.canvas.refreshAllLayers()
+class PanAndZoomPointTool(QgsMapToolPan):
+    def __init__(self, render_widget):
+        QgsMapToolPan.__init__(self, render_widget.canvas)
+        self.render_widget = render_widget
 
-    def hide_detection_layer(self):
-        if self.layer:
-            self.canvas.setLayers([self.layer])
-            self.canvas.refresh()
+    def update_canvas(self):
+        self.render_widget.parent_view.canvas_changed()
 
+    def canvasReleaseEvent(self, event):
+        if event.button() != Qt.RightButton:
+            QgsMapToolPan.canvasReleaseEvent(self, event)
+            self.update_canvas()
+
+    def wheelEvent(self, event):
+        QgsMapToolPan.wheelEvent(self, event)
+        QTimer.singleShot(10, self.update_canvas)
+
+    def canvasPressEvent(self, event):
+        if event.button() != Qt.RightButton:
+            QgsMapToolPan.canvasPressEvent(self, event)
