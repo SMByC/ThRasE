@@ -49,6 +49,7 @@ HOMEPAGE = cfg.get('general', 'homepage')
 
 class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     closingPlugin = pyqtSignal()
+    instance = None
     view_widgets = []
 
     def __init__(self, parent=None):
@@ -61,6 +62,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.setup_gui()
+        # save instance
+        ThRasEDialog.instance = self
 
     def setup_gui(self):
         # ######### plugin info ######### #
@@ -186,7 +189,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             layer_to_edit = LayerToEdit(layer, band)
 
         LayerToEdit.current = layer_to_edit
-        self.setup_recode_pixel_table()
+        self.set_recode_pixel_table()
 
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
@@ -213,9 +216,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             if on.checkState() == 0:
                 pixel["on"] = False
 
-        self.setup_recode_pixel_table()
+        self.set_recode_pixel_table()
 
-    def setup_recode_pixel_table(self):
+    def set_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current
 
         if not layer_to_edit or layer_to_edit.pixels is None:
