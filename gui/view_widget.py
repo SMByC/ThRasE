@@ -176,10 +176,7 @@ class PickerPixelTool(QgsMapTool):
         x = event.pos().x()
         y = event.pos().y()
         point = self.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
-        pixel_value = LayerToEdit.current.get_pixel_value_from_pnt(point)
-        if pixel_value is not None:
-            print(pixel_value)
-            #self.picker_widget.setValue(pixel_value)
+        LayerToEdit.current.edit_from_pixel_picker(point)
 
     def canvasPressEvent(self, event):
         # edit the pixel over pointer mouse on left-click
