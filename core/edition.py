@@ -18,13 +18,14 @@
  *                                                                         *
  ***************************************************************************/
 """
+import numpy as np
 
-from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis
+from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 
-from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.core.navigation import Navigation
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import get_file_path_of_layer
+from ThRasE.utils.system_utils import wait_process
 
 
 class LayerToEdit(object):
@@ -89,7 +90,7 @@ class LayerToEdit(object):
         else:
             return False
 
-    def edit_from_pixel_picker(self, point):
+    def edit_pixel(self, point):
         if not self.check_point_inside_layer(point) and not self.pixels:
             return
         # check if the new value is valid and different
@@ -97,25 +98,47 @@ class LayerToEdit(object):
         if not new_value:
             return
 
-        px = int((point.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())
-        py = int((self.bounds[3] - point.y()) / self.qgs_layer.rasterUnitsPerPixelY())
+        px = int((point.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())  # num column position in x
+        py = int((self.bounds[3] - point.y()) / self.qgs_layer.rasterUnitsPerPixelY())  # num row position in y
 
         if not self.data_provider.isEditable():
             success = self.data_provider.setEditable(True)
             if not success:
-                ThRasEDialog.instance.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster",
-                                                         level=Qgis.Warning)
+                from ThRasE.thrase import ThRasE
+                ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Warning)
                 return
 
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
         success = self.data_provider.writeBlock(rblock, self.band, px, py)
         if not success:
-            ThRasEDialog.instance.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster",
-                                                     level=Qgis.Warning)
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Warning)
             return
 
         self.data_provider.setEditable(False)
+
+    def edit_from_pixel_picker(self, point):
+        self.edit_pixel(point)
         self.qgs_layer.triggerRepaint()
 
+    @wait_process
+    def edit_from_polygon_picker(self, polygon_feature):
+        if polygon_feature is None:
+            return
+
+        box = polygon_feature.geometry().boundingBox()
+        ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
+        ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
+
+        for x in np.arange(box.xMinimum()+ps_x/2, box.xMaximum(), ps_x):
+            for y in np.arange(box.yMinimum()+ps_y/2, box.yMaximum(), ps_y):
+                pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x)*ps_x + ps_x/2  # locate the pixel centroid in x
+                pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y)*ps_y - ps_y/2  # locate the pixel centroid in y
+
+                point = QgsPointXY(pc_x, pc_y)
+                if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(point)):
+                    self.edit_pixel(point)
+
+        self.qgs_layer.triggerRepaint()
 

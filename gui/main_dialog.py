@@ -49,7 +49,6 @@ HOMEPAGE = cfg.get('general', 'homepage')
 
 class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     closingPlugin = pyqtSignal()
-    instance = None
     view_widgets = []
 
     def __init__(self, parent=None):
@@ -62,8 +61,6 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.setup_gui()
-        # save instance
-        ThRasEDialog.instance = self
 
     def setup_gui(self):
         # ######### plugin info ######### #

@@ -25,8 +25,8 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsProject, QgsRaster
-from qgis.gui import QgsMapCanvas, QgsMapTool, QgsRubberBand
+from qgis.core import QgsProject, QgsWkbTypes, QgsFeature
+from qgis.gui import QgsMapTool, QgsRubberBand
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.utils.system_utils import block_signals_to
@@ -66,6 +66,10 @@ class ViewWidget(QWidget, FORM_CLASS):
         # ### init the edition tools ###
         # picker pixel tool edit
         self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
+        # picker polygon tool edit
+        self.polygons_drawn = []
+        self.aux_polygons_drawn = []
+        self.PolygonsPicker.clicked.connect(self.use_polygons_picker_for_edit)
 
     def clean(self):
         # clean this view widget and the layers loaded in PCs
@@ -156,12 +160,15 @@ class ViewWidget(QWidget, FORM_CLASS):
     def use_pixels_picker_for_edit(self):
         self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
 
+    @pyqtSlot()
+    def use_polygons_picker_for_edit(self):
+        self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
+
 
 class PickerPixelTool(QgsMapTool):
     def __init__(self, view_widget):
         QgsMapTool.__init__(self, view_widget.render_widget.canvas)
         self.view_widget = view_widget
-        self.render_widget = view_widget.render_widget
         self.view_widget.status_PixelsPicker.setEnabled(True)
         self.view_widget.status_PixelsPicker.clicked.connect(self.finish)
 
@@ -169,20 +176,111 @@ class PickerPixelTool(QgsMapTool):
         self.view_widget.status_PixelsPicker.setDisabled(True)
         # restart point tool
         self.clean()
-        self.render_widget.canvas.unsetMapTool(self)
-        QTimer.singleShot(180, lambda: self.render_widget.canvas.setMapTool(self.render_widget.pan_zoom_tool))
+        self.view_widget.render_widget.canvas.unsetMapTool(self)
+        QTimer.singleShot(180, lambda: self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.pan_zoom_tool))
 
-    def edit_pixel(self, event):
+    def edit(self, event):
         x = event.pos().x()
         y = event.pos().y()
-        point = self.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+        point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
         LayerToEdit.current.edit_from_pixel_picker(point)
+        self.view_widget.render_widget.canvas.clearCache()
+        self.view_widget.render_widget.canvas.refresh()
 
     def canvasPressEvent(self, event):
         # edit the pixel over pointer mouse on left-click
         if event.button() == Qt.LeftButton:
-            self.edit_pixel(event)
+            self.edit(event)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.finish()
+
+
+class PickerPolygonTool(QgsMapTool):
+    def __init__(self, view_widget):
+        QgsMapTool.__init__(self, view_widget.render_widget.canvas)
+        self.view_widget = view_widget
+        # status rec icon
+        self.view_widget.status_PolygonsPicker.setEnabled(True)
+        self.view_widget.status_PolygonsPicker.clicked.connect(self.finish)
+
+        self.start_new_polygon()
+
+    def start_new_polygon(self):
+        # set rubber band style
+        color = QColor("red")
+        color.setAlpha(50)
+        # create the main polygon rubber band
+        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band.setColor(color)
+        self.rubber_band.setWidth(3)
+        # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
+        self.aux_rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band.setColor(color)
+        self.aux_rubber_band.setWidth(3)
+        self.aux_rubber_band.setLineStyle(Qt.DotLine)
+
+    def finish(self):
+        if self.rubber_band:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        if self.aux_rubber_band:
+            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = None
+        self.aux_rubber_band = None
+        self.view_widget.status_PolygonsPicker.setDisabled(True)
+        # restart point tool
+        self.clean()
+        self.view_widget.render_widget.canvas.unsetMapTool(self)
+        self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.pan_zoom_tool)
+
+    def edit(self, new_feature):
+        LayerToEdit.current.edit_from_polygon_picker(new_feature)
+        self.view_widget.render_widget.canvas.clearCache()
+        self.view_widget.render_widget.canvas.refresh()
+
+    def canvasMoveEvent(self, event):
+        if self.aux_rubber_band is None:
+            return
+        if self.aux_rubber_band and self.aux_rubber_band.numberOfVertices():
+            x = event.pos().x()
+            y = event.pos().y()
+            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            self.aux_rubber_band.removeLastPoint()
+            self.aux_rubber_band.addPoint(point)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
+            self.rubber_band.removeLastPoint()
+            self.aux_rubber_band.removeLastPoint()
+        if event.key() == Qt.Key_Escape:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.finish()
+
+    def canvasPressEvent(self, event):
+        if self.rubber_band is None:
+            self.finish()
+            return
+        # new point on polygon
+        if event.button() == Qt.LeftButton:
+            x = event.pos().x()
+            y = event.pos().y()
+            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            self.rubber_band.addPoint(point)
+            self.aux_rubber_band.addPoint(point)
+        # save polygon
+        if event.button() == Qt.RightButton:
+            if self.rubber_band and self.rubber_band.numberOfVertices():
+                if self.rubber_band.numberOfVertices() < 3:
+                    return
+                self.aux_rubber_band.removeLastPoint()
+                new_feature = QgsFeature()
+                new_feature.setGeometry(self.rubber_band.asGeometry())
+                self.view_widget.polygons_drawn.append(self.rubber_band)
+                self.view_widget.aux_polygons_drawn.append(self.aux_rubber_band)
+                # edit pixels inside polygon
+                QTimer.singleShot(180, lambda: self.edit(new_feature))
+
+                self.start_new_polygon()
+
