@@ -168,8 +168,10 @@ class PickerPixelTool(QgsMapTool):
     def __init__(self, view_widget):
         QgsMapTool.__init__(self, view_widget.render_widget.canvas)
         self.view_widget = view_widget
+        # status rec icon and focus
         self.view_widget.status_PixelsPicker.setEnabled(True)
         self.view_widget.status_PixelsPicker.clicked.connect(self.finish)
+        self.view_widget.render_widget.canvas.setFocus()
 
     def finish(self):
         self.view_widget.status_PixelsPicker.setDisabled(True)
@@ -208,9 +210,10 @@ class PickerPolygonTool(QgsMapTool):
     def __init__(self, view_widget):
         QgsMapTool.__init__(self, view_widget.render_widget.canvas)
         self.view_widget = view_widget
-        # status rec icon
+        # status rec icon and focus
         self.view_widget.status_PolygonsPicker.setEnabled(True)
         self.view_widget.status_PolygonsPicker.clicked.connect(self.finish)
+        self.view_widget.render_widget.canvas.setFocus()
 
         self.start_new_polygon()
 
