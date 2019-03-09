@@ -252,19 +252,19 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         if not pixel["on"]:
                             item_table.setForeground(QColor("lightGrey"))
                             item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                        if pixel["new_value"] and pixel["new_value"] != pixel["value"]:
+                        if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
                 if header == "new value":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
-                        item_table = QTableWidgetItem(str(pixel["new_value"]) if pixel["new_value"] else "")
+                        item_table = QTableWidgetItem(str(pixel["new_value"]) if pixel["new_value"] is not None else "")
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
                         if not pixel["on"]:
                             item_table.setForeground(QColor("lightGrey"))
                             item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                        if pixel["new_value"] and pixel["new_value"] != pixel["value"]:
+                        if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
                             item_table.setFont(font)
