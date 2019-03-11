@@ -193,11 +193,21 @@ class ViewWidget(QWidget, FORM_CLASS):
 
     @pyqtSlot()
     def use_pixels_picker_for_edit(self):
-        self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
+        if isinstance(self.render_widget.canvas.mapTool(), PickerPixelTool):
+            # disable edit and return to normal map tool
+            self.render_widget.canvas.mapTool().finish()
+        else:
+            # enable edit
+            self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
 
     @pyqtSlot()
     def use_polygons_picker_for_edit(self):
-        self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
+        if isinstance(self.render_widget.canvas.mapTool(), PickerPolygonTool):
+            # disable edit and return to normal map tool
+            self.render_widget.canvas.mapTool().finish()
+        else:
+            # enable edit
+            self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
 
 
 class PickerPixelTool(QgsMapTool):
