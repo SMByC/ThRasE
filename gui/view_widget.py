@@ -29,7 +29,7 @@ from qgis.core import QgsProject, QgsWkbTypes, QgsFeature
 from qgis.gui import QgsMapTool, QgsRubberBand
 
 from ThRasE.core.edition import LayerToEdit
-from ThRasE.utils.system_utils import block_signals_to
+from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -69,6 +69,13 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.polygons_drawn = []
         self.aux_polygons_drawn = []
         self.PolygonsPicker.clicked.connect(self.use_polygons_picker_for_edit)
+        # undo/redo
+        self.UndoPixel.clicked.connect(lambda: self.go_to_history("undo", "pixel"))
+        self.RedoPixel.clicked.connect(lambda: self.go_to_history("redo", "pixel"))
+        self.UndoLine.clicked.connect(lambda: self.go_to_history("undo", "line"))
+        self.RedoLine.clicked.connect(lambda: self.go_to_history("redo", "line"))
+        self.UndoPolygon.clicked.connect(lambda: self.go_to_history("undo", "polygon"))
+        self.RedoPolygon.clicked.connect(lambda: self.go_to_history("redo", "polygon"))
 
     def clean(self):
         # clean this view widget and the layers loaded in PCs
@@ -105,6 +112,35 @@ class ViewWidget(QWidget, FORM_CLASS):
             self.render_widget.canvas.setCanvasColor(QColor(245, 245, 245))
             # set status for view widget
             self.is_active = False
+
+    @wait_process
+    def go_to_history(self, action, from_edit_tool):
+        if from_edit_tool == "pixel":
+            if action == "undo":
+                point, value = LayerToEdit.current.history_pixels.undo()
+            if action == "redo":
+                point, value = LayerToEdit.current.history_pixels.redo()
+            # make action
+            LayerToEdit.current.edit_pixel(point, value)
+            # update status of undo/redo buttons
+            self.UndoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_undone())
+            self.RedoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_redone())
+
+        if from_edit_tool == "polygon":
+            if action == "undo":
+                items = LayerToEdit.current.history_polygons.undo()
+            if action == "redo":
+                items = LayerToEdit.current.history_polygons.redo()
+            # make action
+            for point, value in items:
+                LayerToEdit.current.edit_pixel(point, value)
+            # update status of undo/redo buttons
+            self.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
+            self.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
+
+        LayerToEdit.current.qgs_layer.triggerRepaint()
+        self.render_widget.canvas.clearCache()
+        self.render_widget.canvas.refresh()
 
     @pyqtSlot()
     def active_layers_widget(self):
@@ -184,9 +220,13 @@ class PickerPixelTool(QgsMapTool):
         x = event.pos().x()
         y = event.pos().y()
         point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
-        LayerToEdit.current.edit_from_pixel_picker(point)
-        self.view_widget.render_widget.canvas.clearCache()
-        self.view_widget.render_widget.canvas.refresh()
+        status = LayerToEdit.current.edit_from_pixel_picker(point)
+        if status:
+            self.view_widget.render_widget.canvas.clearCache()
+            self.view_widget.render_widget.canvas.refresh()
+            # update status of undo/redo buttons
+            self.view_widget.UndoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_undone())
+            self.view_widget.RedoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_redone())
 
     def canvasPressEvent(self, event):
         # edit the pixel over pointer mouse on left-click
@@ -245,9 +285,13 @@ class PickerPolygonTool(QgsMapTool):
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
 
     def edit(self, new_feature):
-        LayerToEdit.current.edit_from_polygon_picker(new_feature)
-        self.view_widget.render_widget.canvas.clearCache()
-        self.view_widget.render_widget.canvas.refresh()
+        status = LayerToEdit.current.edit_from_polygon_picker(new_feature)
+        if status:
+            self.view_widget.render_widget.canvas.clearCache()
+            self.view_widget.render_widget.canvas.refresh()
+            # update status of undo/redo buttons
+            self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
+            self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
 
     def canvasMoveEvent(self, event):
         if self.aux_rubber_band is None:

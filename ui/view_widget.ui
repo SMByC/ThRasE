@@ -354,6 +354,31 @@
              </widget>
             </item>
             <item>
+             <widget class="QToolButton" name="RedoPixel">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Undo the last pixel changed</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/redo.svg</normaloff>:/plugins/thrase/icons/redo.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonIconOnly</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer_4">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -535,7 +560,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="UndoLines">
+             <widget class="QToolButton" name="UndoLine">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -550,6 +575,31 @@
               <property name="icon">
                <iconset>
                 <normaloff>:/plugins/thrase/icons/undo.svg</normaloff>:/plugins/thrase/icons/undo.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonIconOnly</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="RedoLine">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Undo the last pixel changed</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/redo.svg</normaloff>:/plugins/thrase/icons/redo.svg</iconset>
               </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonIconOnly</enum>
@@ -766,7 +816,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="UndoAOI">
+             <widget class="QToolButton" name="UndoPolygon">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -781,6 +831,31 @@
               <property name="icon">
                <iconset>
                 <normaloff>:/plugins/thrase/icons/undo.svg</normaloff>:/plugins/thrase/icons/undo.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonIconOnly</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="RedoPolygon">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Undo the last pixel changed</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/redo.svg</normaloff>:/plugins/thrase/icons/redo.svg</iconset>
               </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonIconOnly</enum>

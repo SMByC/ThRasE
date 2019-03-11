@@ -42,8 +42,12 @@ class LayerToEdit(object):
         # store pixels: value, color, new_value, on/off
         #  -> [{"value", "color": {"R", "G", "B", "A"}, "new_value": int, "on": bool}, ...]
         self.pixels = None
-
+        # init data for recode pixel table
         self.setup_pixel_table()
+        # save editions of the layer using the picker edition tools
+        self.history_pixels = History("pixels")
+        self.history_lines = History("lines")
+        self.history_polygons = History("polygons")
 
         LayerToEdit.instances[(layer.id(), band)] = self
 
@@ -90,13 +94,15 @@ class LayerToEdit(object):
         else:
             return False
 
-    def edit_pixel(self, point):
+    def edit_pixel(self, point, new_value=None):
         if not self.check_point_inside_layer(point) and not self.pixels:
             return
-        # check if the new value is valid and different
-        new_value = self.get_the_new_pixel_value(point)
-        if not new_value:
-            return
+
+        if new_value is None:
+            new_value = self.get_the_new_pixel_value(point)
+            # check if the new value is valid and different
+            if new_value is None:
+                return
 
         px = int((point.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())  # num column position in x
         py = int((self.bounds[3] - point.y()) / self.qgs_layer.rasterUnitsPerPixelY())  # num row position in y
@@ -115,12 +121,21 @@ class LayerToEdit(object):
             from ThRasE.thrase import ThRasE
             ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Warning)
             return
-
         self.data_provider.setEditable(False)
 
+        return True
+
+    @wait_process
     def edit_from_pixel_picker(self, point):
-        self.edit_pixel(point)
-        self.qgs_layer.triggerRepaint()
+        # get the pixel and value before edit it for save in history pixels class
+        history_item = (point, self.get_pixel_value_from_pnt(point))
+        # edit
+        edit_status = self.edit_pixel(point)
+        if edit_status:  # the pixel was edited
+            self.qgs_layer.triggerRepaint()
+            # save history item
+            self.history_pixels.add(history_item)
+            return True
 
     @wait_process
     def edit_from_polygon_picker(self, polygon_feature):
@@ -131,6 +146,9 @@ class LayerToEdit(object):
         ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
         ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
 
+        # all the pixel and value before edit it for save in history polygons class
+        history_items = []  # (point, self.get_pixel_value_from_pnt(point))
+
         for x in np.arange(box.xMinimum()+ps_x/2, box.xMaximum(), ps_x):
             for y in np.arange(box.yMinimum()+ps_y/2, box.yMaximum(), ps_y):
                 pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x)*ps_x + ps_x/2  # locate the pixel centroid in x
@@ -138,7 +156,64 @@ class LayerToEdit(object):
 
                 point = QgsPointXY(pc_x, pc_y)
                 if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(point)):
-                    self.edit_pixel(point)
+                    # get the pixel and value before edit it for save in history pixels class
+                    history_item = (point, self.get_pixel_value_from_pnt(point))
+                    # edit
+                    edit_status = self.edit_pixel(point)
+                    if edit_status:  # the pixel was edited
+                        history_items.append(history_item)
 
-        self.qgs_layer.triggerRepaint()
+        if history_items:
+            self.qgs_layer.triggerRepaint()
+            # save history item
+            self.history_polygons.add(history_items)
+            return True
+
+
+class History:
+    """Class for store the items (pixels, lines or polygons) with the
+    purpose to go undo or redo the edit actions by user
+    """
+
+    max_history_items = 5
+
+    def __init__(self, type):
+        self.type = type
+        self.undos = []
+        self.redos = []
+
+    def can_be_undone(self):
+        return len(self.undos) > 0
+
+    def can_be_redone(self):
+        return len(self.redos) > 0
+
+    def get_current_status(self, item):
+        if self.type == "pixels":
+            point = item[0]
+            value = LayerToEdit.current.get_pixel_value_from_pnt(point)
+            return point, value
+        if self.type == "polygons":
+            items = []
+            for point, value in item:
+                items.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
+            return items
+
+    def undo(self):
+        if self.can_be_undone():
+            item = self.undos.pop()
+            self.redos.append(self.get_current_status(item))
+            return item
+
+    def redo(self):
+        if self.can_be_redone():
+            item = self.redos.pop()
+            self.undos.append(self.get_current_status(item))
+            return item
+
+    def add(self, item):
+        self.undos.append(item)
+        if len(self.undos) > History.max_history_items:
+            del self.undos[0]
+        self.redos = []
 
