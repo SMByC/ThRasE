@@ -68,7 +68,6 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
         # picker polygon tool edit
         self.polygons_drawn = []
-        self.aux_polygons_drawn = []
         self.PolygonsPicker.clicked.connect(self.use_polygons_picker_for_edit)
         # undo/redo
         self.UndoPixel.clicked.connect(lambda: self.go_to_history("undo", "pixel"))
@@ -267,16 +266,15 @@ class PickerPolygonTool(QgsMapTool):
     def start_new_polygon(self):
         # set rubber band style
         color = QColor("red")
-        color.setAlpha(50)
+        color.setAlpha(25)
         # create the main polygon rubber band
         self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
         self.rubber_band.setColor(color)
-        self.rubber_band.setWidth(3)
+        self.rubber_band.setWidth(2)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
         self.aux_rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
         self.aux_rubber_band.setColor(color)
-        self.aux_rubber_band.setWidth(3)
-        self.aux_rubber_band.setLineStyle(Qt.DotLine)
+        self.aux_rubber_band.setWidth(2)
 
     def finish(self):
         if self.rubber_band:
@@ -324,11 +322,17 @@ class PickerPolygonTool(QgsMapTool):
             if self.rubber_band and self.rubber_band.numberOfVertices():
                 if self.rubber_band.numberOfVertices() < 3:
                     return
-                self.aux_rubber_band.removeLastPoint()
+                # clean the aux rubber band
+                self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                self.aux_rubber_band = None
+                # adjust the color
+                color = QColor("red")
+                color.setAlpha(50)
+                self.rubber_band.setColor(color)
+                # save
                 new_feature = QgsFeature()
                 new_feature.setGeometry(self.rubber_band.asGeometry())
                 self.view_widget.polygons_drawn.append(self.rubber_band)
-                self.view_widget.aux_polygons_drawn.append(self.aux_rubber_band)
                 # edit pixels inside polygon
                 QTimer.singleShot(180, lambda: self.edit(new_feature))
 
