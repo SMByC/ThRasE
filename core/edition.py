@@ -175,10 +175,10 @@ class History:
     purpose to go undo or redo the edit actions by user
     """
 
-    max_history_items = 5
+    max_history_items = 10
 
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, edit_type):
+        self.edit_type = edit_type
         self.undos = []
         self.redos = []
 
@@ -189,11 +189,11 @@ class History:
         return len(self.redos) > 0
 
     def get_current_status(self, item):
-        if self.type == "pixels":
+        if self.edit_type == "pixels":
             point = item[0]
             value = LayerToEdit.current.get_pixel_value_from_pnt(point)
             return point, value
-        if self.type == "polygons":
+        if self.edit_type == "polygons":
             items = []
             for point, value in item:
                 items.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
