@@ -156,18 +156,29 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # first clear table
         self.recodePixelTable.setRowCount(0)
         self.recodePixelTable.setColumnCount(0)
-        # first check
-        if layer_selected is None or not valid_file_selected_in(self.QCBox_LayerToEdit, "thematic layer to edit"):
+
+        # disable and clear if layer selected is wrong
+        def disable():
             self.NavigationBlockWidget.setDisabled(True)
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
             with block_signals_to(self.QCBox_band_LayerToEdit):
                 self.QCBox_band_LayerToEdit.clear()
             LayerToEdit.current = None
+            [view_widget.widget_EditionTools.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
+
+        # first check
+        if layer_selected is None:
+            disable()
+            return
+        if not valid_file_selected_in(self.QCBox_LayerToEdit):
+            self.MsgBar.pushMessage("The thematic raster layer to edit is not valid", level=Qgis.Warning)
+            disable()
             return
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
             self.MsgBar.pushMessage("The thematic raster layer to edit must be byte or integer as data type",
                                     level=Qgis.Warning)
+            disable()
             return
         # set band count
         with block_signals_to(self.QCBox_band_LayerToEdit):
@@ -190,6 +201,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
+        [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
 
     def update_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current

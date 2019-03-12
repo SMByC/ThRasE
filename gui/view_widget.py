@@ -64,6 +64,7 @@ class ViewWidget(QWidget, FORM_CLASS):
 
         # ### init the edition tools ###
         # picker pixel tool edit
+        self.widget_EditionTools.setEnabled(False)
         self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
         # picker polygon tool edit
         self.polygons_drawn = []
@@ -113,6 +114,17 @@ class ViewWidget(QWidget, FORM_CLASS):
             # set status for view widget
             self.is_active = False
 
+    @pyqtSlot()
+    def canvas_changed(self):
+        if self.is_active:
+            new_extent = self.render_widget.canvas.extent()
+            # update canvas for all view activated except this view
+            from ThRasE.gui.main_dialog import ThRasEDialog
+            for view_widget in ThRasEDialog.view_widgets:
+                # for all view widgets in main dialog
+                if view_widget.is_active and view_widget != self:
+                    view_widget.render_widget.update_canvas_to(new_extent)
+
     @wait_process
     def go_to_history(self, action, from_edit_tool):
         if from_edit_tool == "pixel":
@@ -160,17 +172,6 @@ class ViewWidget(QWidget, FORM_CLASS):
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
         if actives_view_widget:
             QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
-
-    @pyqtSlot()
-    def canvas_changed(self):
-        if self.is_active:
-            new_extent = self.render_widget.canvas.extent()
-            # update canvas for all view activated except this view
-            from ThRasE.gui.main_dialog import ThRasEDialog
-            for view_widget in ThRasEDialog.view_widgets:
-                # for all view widgets in main dialog
-                if view_widget.is_active and view_widget != self:
-                    view_widget.render_widget.update_canvas_to(new_extent)
 
     @pyqtSlot()
     def edition_tools_widget(self):

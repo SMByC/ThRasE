@@ -31,16 +31,11 @@ from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, Qgis, QgsStyle
 from qgis.utils import iface
 
 
-def valid_file_selected_in(combo_box, combobox_name=False):
+def valid_file_selected_in(combo_box):
     try:
         combo_box.currentLayer().dataProvider().dataSourceUri()
         return True
     except:
-        # if not empty (valid selected) and combobox name given
-        if combo_box.currentText() and combobox_name:
-            iface.messageBar().pushMessage("ThRasE", "Error, please browse/select a valid file in "
-                                           + combobox_name, level=Qgis.Warning)
-
         combo_box.setCurrentIndex(-1)
         return False
 
