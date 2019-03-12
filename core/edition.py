@@ -147,7 +147,7 @@ class LayerToEdit(object):
         ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
 
         # all the pixel and value before edit it for save in history polygons class
-        history_items = []  # (point, self.get_pixel_value_from_pnt(point))
+        points_and_values = []  # (point, self.get_pixel_value_from_pnt(point))
 
         for x in np.arange(box.xMinimum()+ps_x/2, box.xMaximum(), ps_x):
             for y in np.arange(box.yMinimum()+ps_y/2, box.yMaximum(), ps_y):
@@ -157,22 +157,29 @@ class LayerToEdit(object):
                 point = QgsPointXY(pc_x, pc_y)
                 if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(point)):
                     # get the pixel and value before edit it for save in history pixels class
-                    history_item = (point, self.get_pixel_value_from_pnt(point))
+                    point_and_value = (point, self.get_pixel_value_from_pnt(point))
                     # edit
                     edit_status = self.edit_pixel(point)
                     if edit_status:  # the pixel was edited
-                        history_items.append(history_item)
+                        points_and_values.append(point_and_value)
 
-        if history_items:
+        if points_and_values:
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_polygons.add(history_items)
+            self.history_polygons.add((polygon_feature, points_and_values))
             return True
 
 
 class History:
     """Class for store the items (pixels, lines or polygons) with the
     purpose to go undo or redo the edit actions by user
+
+    For pixels:
+        [(point, value), ...]
+
+    for polygons:
+        [(polygon_feature, ((point, value), ...)), ...]
+
     """
 
     max_history_items = 10
@@ -191,13 +198,15 @@ class History:
     def get_current_status(self, item):
         if self.edit_type == "pixels":
             point = item[0]
-            value = LayerToEdit.current.get_pixel_value_from_pnt(point)
-            return point, value
+            curr_value = LayerToEdit.current.get_pixel_value_from_pnt(point)
+            return point, curr_value
         if self.edit_type == "polygons":
-            items = []
-            for point, value in item:
-                items.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
-            return items
+            polygon_feature = item[0]
+            points_and_values = item[1]
+            curr_points_and_values = []
+            for point, value in points_and_values:
+                curr_points_and_values.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
+            return polygon_feature, curr_points_and_values
 
     def undo(self):
         if self.can_be_undone():
