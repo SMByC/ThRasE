@@ -76,6 +76,8 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.RedoLine.clicked.connect(lambda: self.go_to_history("redo", "line"))
         self.UndoPolygon.clicked.connect(lambda: self.go_to_history("undo", "polygon"))
         self.RedoPolygon.clicked.connect(lambda: self.go_to_history("redo", "polygon"))
+        # clean actions
+        self.CleanAllPolygons.clicked.connect(self.clean_all_polygons_drawn)
 
     def clean(self):
         # clean this view widget and the layers loaded in PCs
@@ -141,9 +143,11 @@ class ViewWidget(QWidget, FORM_CLASS):
             if action == "undo":
                 polygon_feature, points_and_values = LayerToEdit.current.history_polygons.undo()
                 # delete the rubber band
-                rubber_band = next(rb for rb in self.polygons_drawn if rb.asGeometry().equals(polygon_feature.geometry()))
-                rubber_band.reset(QgsWkbTypes.PolygonGeometry)
-                self.polygons_drawn.remove(rubber_band)
+                rubber_band = next((rb for rb in self.polygons_drawn if
+                                    rb.asGeometry().equals(polygon_feature.geometry())), None)
+                if rubber_band:
+                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    self.polygons_drawn.remove(rubber_band)
             if action == "redo":
                 polygon_feature, points_and_values = LayerToEdit.current.history_polygons.redo()
                 # create, repaint and save the rubber band to redo
@@ -160,6 +164,7 @@ class ViewWidget(QWidget, FORM_CLASS):
             # update status of undo/redo buttons
             self.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
             self.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
+            self.CleanAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
 
         LayerToEdit.current.qgs_layer.triggerRepaint()
 
@@ -218,6 +223,13 @@ class ViewWidget(QWidget, FORM_CLASS):
         else:
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
+
+    def clean_all_polygons_drawn(self):
+        # clean/reset all rubber bands
+        for rubber_band in self.polygons_drawn:
+            rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.polygons_drawn = []
+        self.CleanAllPolygons.setEnabled(False)
 
 
 class PickerPixelTool(QgsMapTool):
@@ -304,9 +316,10 @@ class PickerPolygonTool(QgsMapTool):
     def edit(self, new_feature):
         status = LayerToEdit.current.edit_from_polygon_picker(new_feature)
         if status:
-            # update status of undo/redo buttons
+            # update status of undo/redo/clean buttons
             self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
             self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
+            self.view_widget.CleanAllPolygons.setEnabled(len(self.view_widget.polygons_drawn) > 0)
 
     def canvasMoveEvent(self, event):
         if self.aux_rubber_band is None:

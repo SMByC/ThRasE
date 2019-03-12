@@ -364,7 +364,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Undo the last pixel changed</string>
+               <string>Redo the last pixel undo</string>
               </property>
               <property name="icon">
                <iconset>
@@ -595,7 +595,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Undo the last pixel changed</string>
+               <string>Redo the last line undo</string>
               </property>
               <property name="icon">
                <iconset>
@@ -610,7 +610,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="DeleteAllLines">
+             <widget class="QToolButton" name="CleanAllLines">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -851,7 +851,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Undo the last pixel changed</string>
+               <string>Redo the last polygon undo</string>
               </property>
               <property name="icon">
                <iconset>
@@ -866,7 +866,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="DeleteAllPolygons">
+             <widget class="QToolButton" name="CleanAllPolygons">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -876,7 +876,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Delete all polygons</string>
+               <string>Clean all drawn polygons, this action does not undo the changes made</string>
               </property>
               <property name="icon">
                <iconset>
