@@ -215,7 +215,7 @@ class History:
 
     """
 
-    max_history_items = 10
+    max_history_items = 20
 
     def __init__(self, edit_type):
         self.edit_type = edit_type
