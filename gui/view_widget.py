@@ -66,6 +66,13 @@ class ViewWidget(QWidget, FORM_CLASS):
         # picker pixel tool edit
         self.widget_EditionTools.setEnabled(False)
         self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
+
+        # picker line tool edit
+        self.lines_drawn = []
+        self.LinesPicker.clicked.connect(self.use_lines_picker_for_edit)
+        # clean actions
+        self.CleanAllLines.clicked.connect(self.clean_all_lines_drawn)
+
         # picker polygon tool edit
         self.polygons_drawn = []
         self.PolygonsPicker.clicked.connect(self.use_polygons_picker_for_edit)
@@ -138,6 +145,33 @@ class ViewWidget(QWidget, FORM_CLASS):
             # update status of undo/redo buttons
             self.UndoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_undone())
             self.RedoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_redone())
+
+        if from_edit_tool == "line":
+            if action == "undo":
+                line_feature, points_and_values = LayerToEdit.current.history_lines.undo()
+                # delete the line
+                rubber_band = next((rb for rb in self.lines_drawn if
+                                    rb.asGeometry().equals(line_feature.geometry())), None)
+                if rubber_band:
+                    rubber_band.reset(QgsWkbTypes.LineGeometry)
+                    self.lines_drawn.remove(rubber_band)
+            if action == "redo":
+                line_feature, points_and_values = LayerToEdit.current.history_lines.redo()
+                # create, repaint and save the rubber band to redo
+                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
+                color = QColor("red")
+                color.setAlpha(80)
+                rubber_band.setColor(color)
+                rubber_band.setWidth(3)
+                rubber_band.addGeometry(line_feature.geometry())
+                self.lines_drawn.append(rubber_band)
+            # make action
+            for point, value in points_and_values:
+                LayerToEdit.current.edit_pixel(point, value)
+            # update status of undo/redo/clean buttons
+            self.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
+            self.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
+            self.CleanAllLines.setEnabled(len(self.lines_drawn) > 0)
 
         if from_edit_tool == "polygon":
             if action == "undo":
@@ -216,6 +250,15 @@ class ViewWidget(QWidget, FORM_CLASS):
             self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
 
     @pyqtSlot()
+    def use_lines_picker_for_edit(self):
+        if isinstance(self.render_widget.canvas.mapTool(), PickerLineTool):
+            # disable edit and return to normal map tool
+            self.render_widget.canvas.mapTool().finish()
+        else:
+            # enable edit
+            self.render_widget.canvas.setMapTool(PickerLineTool(self), clean=True)
+
+    @pyqtSlot()
     def use_polygons_picker_for_edit(self):
         if isinstance(self.render_widget.canvas.mapTool(), PickerPolygonTool):
             # disable edit and return to normal map tool
@@ -223,6 +266,13 @@ class ViewWidget(QWidget, FORM_CLASS):
         else:
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
+
+    def clean_all_lines_drawn(self):
+        # clean/reset all rubber bands
+        for rubber_band in self.lines_drawn:
+            rubber_band.reset(QgsWkbTypes.LineGeometry)
+        self.lines_drawn = []
+        self.CleanAllLines.setEnabled(False)
 
     def clean_all_polygons_drawn(self):
         # clean/reset all rubber bands
@@ -269,6 +319,113 @@ class PickerPixelTool(QgsMapTool):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
+            self.finish()
+
+    def keyReleaseEvent(self, event):
+        if event.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Right, Qt.Key_Left, Qt.Key_PageUp, Qt.Key_PageDown]:
+            QTimer.singleShot(10, self.view_widget.canvas_changed)
+
+
+class PickerLineTool(QgsMapTool):
+    def __init__(self, view_widget):
+        QgsMapTool.__init__(self, view_widget.render_widget.canvas)
+        self.view_widget = view_widget
+        # status rec icon and focus
+        self.view_widget.status_LinesPicker.setEnabled(True)
+        self.view_widget.status_LinesPicker.clicked.connect(self.finish)
+        self.view_widget.render_widget.canvas.setFocus()
+
+        self.start_new_line()
+
+    def start_new_line(self):
+        # set rubber band style
+        color = QColor("red")
+        color.setAlpha(40)
+        # create the main line
+        self.line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.LineGeometry)
+        self.line.setColor(color)
+        self.line.setWidth(3)
+        # create the mouse/tmp line, this is main line + current mouse position
+        self.aux_line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.LineGeometry)
+        self.aux_line.setColor(color)
+        self.aux_line.setWidth(3)
+
+    def finish(self):
+        if self.line:
+            self.line.reset(QgsWkbTypes.LineGeometry)
+        if self.aux_line:
+            self.aux_line.reset(QgsWkbTypes.LineGeometry)
+        self.line = None
+        self.aux_line = None
+        self.view_widget.status_LinesPicker.setDisabled(True)
+        # restart point tool
+        self.clean()
+        self.view_widget.render_widget.canvas.unsetMapTool(self)
+        self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
+
+    def edit(self, new_feature):
+        line_buffer = float(self.view_widget.LineBuffer.currentText())
+        status = LayerToEdit.current.edit_from_line_picker(new_feature, line_buffer)
+        if status:
+            # update status of undo/redo/clean buttons
+            self.view_widget.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
+            self.view_widget.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
+            self.view_widget.CleanAllLines.setEnabled(len(self.view_widget.lines_drawn) > 0)
+
+    def canvasMoveEvent(self, event):
+        if self.aux_line is None:
+            return
+        if self.aux_line and self.aux_line.numberOfVertices():
+            x = event.pos().x()
+            y = event.pos().y()
+            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            self.aux_line.removeLastPoint()
+            self.aux_line.addPoint(point)
+
+    def canvasPressEvent(self, event):
+        if self.line is None:
+            self.finish()
+            return
+        # new point on line
+        if event.button() == Qt.LeftButton:
+            x = event.pos().x()
+            y = event.pos().y()
+            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            self.line.addPoint(point)
+            self.aux_line.addPoint(point)
+        # save line
+        if event.button() == Qt.RightButton:
+            if self.line and self.line.numberOfVertices():
+                if self.line.numberOfVertices() < 2:
+                    return
+                # clean the aux line
+                self.aux_line.reset(QgsWkbTypes.LineGeometry)
+                self.aux_line = None
+                # adjust the color
+                color = QColor("red")
+                color.setAlpha(80)
+                self.line.setColor(color)
+                self.line.setWidth(3)
+                # save
+                new_feature = QgsFeature()
+                new_feature.setGeometry(self.line.asGeometry())
+                self.view_widget.lines_drawn.append(self.line)
+                # edit pixels in line
+                QTimer.singleShot(180, lambda: self.edit(new_feature))
+
+                self.start_new_line()
+
+    def wheelEvent(self, event):
+        QgsMapTool.wheelEvent(self, event)
+        QTimer.singleShot(10, self.view_widget.canvas_changed)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
+            self.line.removeLastPoint()
+            self.aux_line.removeLastPoint()
+        if event.key() == Qt.Key_Escape:
+            self.line.reset(QgsWkbTypes.LineGeometry)
+            self.aux_line.reset(QgsWkbTypes.LineGeometry)
             self.finish()
 
     def keyReleaseEvent(self, event):
@@ -354,6 +511,7 @@ class PickerPolygonTool(QgsMapTool):
                 color = QColor("red")
                 color.setAlpha(50)
                 self.rubber_band.setColor(color)
+                self.rubber_band.setWidth(2)
                 # save
                 new_feature = QgsFeature()
                 new_feature.setGeometry(self.rubber_band.asGeometry())

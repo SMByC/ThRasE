@@ -138,6 +138,39 @@ class LayerToEdit(object):
             return True
 
     @wait_process
+    def edit_from_line_picker(self, line_feature, line_buffer):
+        if line_feature is None:
+            return
+
+        box = line_feature.geometry().boundingBox()
+        ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
+        ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
+        ps_avg = (ps_x + ps_y) / 2  # average of the pixel size, when the pixel is not square
+
+        # all the pixel and value before edit it for save in history polygons class
+        points_and_values = []  # (point, self.get_pixel_value_from_pnt(point))
+
+        for x in np.arange(box.xMinimum()-ps_x*line_buffer, box.xMaximum()+ps_x*line_buffer, ps_x):
+            for y in np.arange(box.yMinimum()-ps_y*line_buffer, box.yMaximum()+ps_y*line_buffer, ps_y):
+                pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x)*ps_x + ps_x/2  # locate the pixel centroid in x
+                pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y)*ps_y - ps_y/2  # locate the pixel centroid in y
+
+                point = QgsPointXY(pc_x, pc_y)
+                if line_feature.geometry().distance(QgsGeometry.fromPointXY(point)) <= ps_avg*line_buffer:
+                    # get the pixel and value before edit it for save in history pixels class
+                    point_and_value = (point, self.get_pixel_value_from_pnt(point))
+                    # edit
+                    edit_status = self.edit_pixel(point)
+                    if edit_status:  # the pixel was edited
+                        points_and_values.append(point_and_value)
+
+        if points_and_values:
+            self.qgs_layer.triggerRepaint()
+            # save history item
+            self.history_lines.add((line_feature, points_and_values))
+            return True
+
+    @wait_process
     def edit_from_polygon_picker(self, polygon_feature):
         if polygon_feature is None:
             return
@@ -200,13 +233,13 @@ class History:
             point = item[0]
             curr_value = LayerToEdit.current.get_pixel_value_from_pnt(point)
             return point, curr_value
-        if self.edit_type == "polygons":
-            polygon_feature = item[0]
+        if self.edit_type in ["lines", "polygons"]:
+            feature = item[0]
             points_and_values = item[1]
             curr_points_and_values = []
             for point, value in points_and_values:
                 curr_points_and_values.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
-            return polygon_feature, curr_points_and_values
+            return feature, curr_points_and_values
 
     def undo(self):
         if self.can_be_undone():

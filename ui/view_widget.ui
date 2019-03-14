@@ -482,6 +482,70 @@
              </widget>
             </item>
             <item>
+             <widget class="QComboBox" name="LineBuffer">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>The N times the pixel size for defining the buffer around the line</string>
+              </property>
+              <property name="sizeAdjustPolicy">
+               <enum>QComboBox::AdjustToContents</enum>
+              </property>
+              <property name="frame">
+               <bool>false</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string>1.0</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>1.5</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>2.0</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>2.5</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>3.5</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>4.0</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>4.5</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>5.0</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer_6">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -620,7 +684,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Delete all lines</string>
+               <string>Clean all drawn lines, this action does not undo the changes made</string>
               </property>
               <property name="icon">
                <iconset>
