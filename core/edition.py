@@ -132,6 +132,7 @@ class LayerToEdit(object):
         # edit
         edit_status = self.edit_pixel(point)
         if edit_status:  # the pixel was edited
+            self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
             self.history_pixels.add(history_item)
@@ -165,6 +166,7 @@ class LayerToEdit(object):
                         points_and_values.append(point_and_value)
 
         if points_and_values:
+            self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
             self.history_lines.add((line_feature, points_and_values))
@@ -197,6 +199,7 @@ class LayerToEdit(object):
                         points_and_values.append(point_and_value)
 
         if points_and_values:
+            self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
             self.history_polygons.add((polygon_feature, points_and_values))
@@ -214,7 +217,6 @@ class History:
         [(polygon_feature, ((point, value), ...)), ...]
 
     """
-
     max_history_items = 20
 
     def __init__(self, edit_type):
