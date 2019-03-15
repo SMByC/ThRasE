@@ -368,6 +368,24 @@ class PickerLineTool(QgsMapTool):
         self.view_widget.render_widget.canvas.unsetMapTool(self)
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
 
+    def define_line(self):
+        # clean the aux line
+        self.aux_line.reset(QgsWkbTypes.LineGeometry)
+        self.aux_line = None
+        # adjust the color
+        color = QColor("red")
+        color.setAlpha(80)
+        self.line.setColor(color)
+        self.line.setWidth(3)
+        # save
+        new_feature = QgsFeature()
+        new_feature.setGeometry(self.line.asGeometry())
+        self.view_widget.lines_drawn.append(self.line)
+        # edit pixels in line
+        QTimer.singleShot(180, lambda: self.edit(new_feature))
+
+        self.start_new_line()
+
     def edit(self, new_feature):
         line_buffer = float(self.view_widget.LineBuffer.currentText())
         status = LayerToEdit.current.edit_from_line_picker(new_feature, line_buffer)
@@ -389,6 +407,10 @@ class PickerLineTool(QgsMapTool):
             self.aux_line.removeLastPoint()
             self.aux_line.addPoint(point)
 
+    def wheelEvent(self, event):
+        QgsMapTool.wheelEvent(self, event)
+        QTimer.singleShot(10, self.view_widget.canvas_changed)
+
     def canvasPressEvent(self, event):
         if self.line is None:
             self.finish()
@@ -400,36 +422,27 @@ class PickerLineTool(QgsMapTool):
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
             self.line.addPoint(point)
             self.aux_line.addPoint(point)
-        # save line
+        # edit
         if event.button() == Qt.RightButton:
             if self.line and self.line.numberOfVertices():
                 if self.line.numberOfVertices() < 2:
                     return
-                # clean the aux line
-                self.aux_line.reset(QgsWkbTypes.LineGeometry)
-                self.aux_line = None
-                # adjust the color
-                color = QColor("red")
-                color.setAlpha(80)
-                self.line.setColor(color)
-                self.line.setWidth(3)
-                # save
-                new_feature = QgsFeature()
-                new_feature.setGeometry(self.line.asGeometry())
-                self.view_widget.lines_drawn.append(self.line)
-                # edit pixels in line
-                QTimer.singleShot(180, lambda: self.edit(new_feature))
-
-                self.start_new_line()
-
-    def wheelEvent(self, event):
-        QgsMapTool.wheelEvent(self, event)
-        QTimer.singleShot(10, self.view_widget.canvas_changed)
+                # save line and edit
+                self.define_line()
 
     def keyPressEvent(self, event):
+        # edit
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            if self.line and self.line.numberOfVertices():
+                if self.line.numberOfVertices() < 2:
+                    return
+                # save line and edit
+                self.define_line()
+        # delete last point
         if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
             self.line.removeLastPoint()
             self.aux_line.removeLastPoint()
+        # delete and finish
         if event.key() == Qt.Key_Escape:
             self.line.reset(QgsWkbTypes.LineGeometry)
             self.aux_line.reset(QgsWkbTypes.LineGeometry)
@@ -477,6 +490,24 @@ class PickerPolygonTool(QgsMapTool):
         self.view_widget.render_widget.canvas.unsetMapTool(self)
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
 
+    def define_polygon(self):
+        # clean the aux rubber band
+        self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band = None
+        # adjust the color
+        color = QColor("red")
+        color.setAlpha(50)
+        self.rubber_band.setColor(color)
+        self.rubber_band.setWidth(2)
+        # save
+        new_feature = QgsFeature()
+        new_feature.setGeometry(self.rubber_band.asGeometry())
+        self.view_widget.polygons_drawn.append(self.rubber_band)
+        # edit pixels inside polygon
+        QTimer.singleShot(180, lambda: self.edit(new_feature))
+
+        self.start_new_polygon()
+
     def edit(self, new_feature):
         status = LayerToEdit.current.edit_from_polygon_picker(new_feature)
         if status:
@@ -497,6 +528,10 @@ class PickerPolygonTool(QgsMapTool):
             self.aux_rubber_band.removeLastPoint()
             self.aux_rubber_band.addPoint(point)
 
+    def wheelEvent(self, event):
+        QgsMapTool.wheelEvent(self, event)
+        QTimer.singleShot(10, self.view_widget.canvas_changed)
+
     def canvasPressEvent(self, event):
         if self.rubber_band is None:
             self.finish()
@@ -508,36 +543,27 @@ class PickerPolygonTool(QgsMapTool):
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
             self.rubber_band.addPoint(point)
             self.aux_rubber_band.addPoint(point)
-        # save polygon
+        # edit
         if event.button() == Qt.RightButton:
             if self.rubber_band and self.rubber_band.numberOfVertices():
                 if self.rubber_band.numberOfVertices() < 3:
                     return
-                # clean the aux rubber band
-                self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
-                self.aux_rubber_band = None
-                # adjust the color
-                color = QColor("red")
-                color.setAlpha(50)
-                self.rubber_band.setColor(color)
-                self.rubber_band.setWidth(2)
-                # save
-                new_feature = QgsFeature()
-                new_feature.setGeometry(self.rubber_band.asGeometry())
-                self.view_widget.polygons_drawn.append(self.rubber_band)
-                # edit pixels inside polygon
-                QTimer.singleShot(180, lambda: self.edit(new_feature))
-
-                self.start_new_polygon()
-
-    def wheelEvent(self, event):
-        QgsMapTool.wheelEvent(self, event)
-        QTimer.singleShot(10, self.view_widget.canvas_changed)
+                # save polygon and edit
+                self.define_polygon()
 
     def keyPressEvent(self, event):
+        # edit
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            if self.rubber_band and self.rubber_band.numberOfVertices():
+                if self.rubber_band.numberOfVertices() < 3:
+                    return
+                # save polygon and edit
+                self.define_polygon()
+        # delete last point
         if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
             self.rubber_band.removeLastPoint()
             self.aux_rubber_band.removeLastPoint()
+        # delete and finish
         if event.key() == Qt.Key_Escape:
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
