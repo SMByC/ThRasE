@@ -81,6 +81,9 @@
           <pointsize>8</pointsize>
          </font>
         </property>
+        <property name="toolTip">
+         <string>Show/hide the active layers config</string>
+        </property>
         <property name="text">
          <string>0 active layers</string>
         </property>
@@ -107,6 +110,9 @@
          <font>
           <pointsize>8</pointsize>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>Show/hide the edition tools</string>
         </property>
         <property name="text">
          <string>edition</string>
@@ -345,7 +351,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Undo the last pixel changed</string>
+               <string>Undo the last pixel changed (limited to 20)</string>
               </property>
               <property name="icon">
                <iconset>
@@ -504,7 +510,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>The N times the pixel size for defining the buffer around the line</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The N times the pixel size for defining the buffer around the line&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="sizeAdjustPolicy">
                <enum>QComboBox::AdjustToContents</enum>
@@ -651,7 +657,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Undo the last line created</string>
+               <string>Undo the last line created (limited to 20)</string>
               </property>
               <property name="icon">
                <iconset>
@@ -701,7 +707,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Clean all drawn lines, this action does not undo the changes made</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all drawn lines, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="icon">
                <iconset>
@@ -913,7 +919,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Undo the last polygon created</string>
+               <string>Undo the last polygon created (limited to 20)</string>
               </property>
               <property name="icon">
                <iconset>
@@ -963,7 +969,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Clean all drawn polygons, this action does not undo the changes made</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all drawn polygons, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="icon">
                <iconset>
