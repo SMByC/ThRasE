@@ -249,6 +249,9 @@ class ViewWidget(QWidget, FORM_CLASS):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
         else:
+            # finish the other picker activation
+            if isinstance(self.render_widget.canvas.mapTool(), (PickerLineTool, PickerPolygonTool)):
+                self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
 
@@ -258,6 +261,9 @@ class ViewWidget(QWidget, FORM_CLASS):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
         else:
+            # finish the other picker activation
+            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerPolygonTool)):
+                self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerLineTool(self), clean=True)
 
@@ -267,6 +273,9 @@ class ViewWidget(QWidget, FORM_CLASS):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
         else:
+            # finish the other picker activation
+            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool)):
+                self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
 
