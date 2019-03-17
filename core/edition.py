@@ -172,10 +172,14 @@ class LayerToEdit(object):
                 if edit_status:  # the pixel was edited
                     return point_and_value
 
-        # build dask process for edit pixels
-        process_pixels = [delayed(edit_pixel_in)(x, y)
-                          for y in np.arange(box.yMinimum()-ps_y*line_buffer, box.yMaximum()+ps_y*line_buffer, ps_y)
-                          for x in np.arange(box.xMinimum()-ps_x*line_buffer, box.xMaximum()+ps_x*line_buffer, ps_x)]
+        # build dask process for edit pixels, edit line by segments of box of pair pixel consecutive
+        points = line_feature.geometry().asPolyline()
+        process_pixels = []
+        for p1, p2 in zip(points[:-1], points[1:]):
+            process_pixels += [
+                delayed(edit_pixel_in)(x, y)
+                for y in np.arange(min(p1.y(), p2.y())-ps_y*line_buffer, max(p1.y(), p2.y())+ps_y*line_buffer, ps_y)
+                for x in np.arange(min(p1.x(), p2.x())-ps_x*line_buffer, max(p1.x(), p2.x())+ps_x*line_buffer, ps_x)]
 
         # compute with dask
         # the return all the pixel and value before edit it, for save in history class
