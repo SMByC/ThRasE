@@ -18,7 +18,9 @@
  *                                                                         *
  ***************************************************************************/
 """
+import functools
 import numpy as np
+from dask import compute, delayed
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 
@@ -26,6 +28,25 @@ from ThRasE.core.navigation import Navigation
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import get_file_path_of_layer
 from ThRasE.utils.system_utils import wait_process
+
+
+def edit_layer(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # set layer for edit
+        if not LayerToEdit.current.data_provider.isEditable():
+            success = LayerToEdit.current.data_provider.setEditable(True)
+            if not success:
+                from ThRasE.thrase import ThRasE
+                ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Critical)
+                return False
+        # do
+        obj_returned = func(*args, **kwargs)
+        # close edition
+        LayerToEdit.current.data_provider.setEditable(False)
+        # finally return the object of func
+        return obj_returned
+    return wrapper
 
 
 class LayerToEdit(object):
@@ -107,25 +128,13 @@ class LayerToEdit(object):
         px = int((point.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())  # num column position in x
         py = int((self.bounds[3] - point.y()) / self.qgs_layer.rasterUnitsPerPixelY())  # num row position in y
 
-        if not self.data_provider.isEditable():
-            success = self.data_provider.setEditable(True)
-            if not success:
-                from ThRasE.thrase import ThRasE
-                ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Warning)
-                return
-
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
-        success = self.data_provider.writeBlock(rblock, self.band, px, py)
-        if not success:
-            from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Warning)
-            return
-        self.data_provider.setEditable(False)
-
-        return True
+        write_status = self.data_provider.writeBlock(rblock, self.band, px, py)
+        return write_status
 
     @wait_process
+    @edit_layer
     def edit_from_pixel_picker(self, point):
         # get the pixel and value before edit it for save in history pixels class
         history_item = (point, self.get_pixel_value_from_pnt(point))
@@ -139,6 +148,7 @@ class LayerToEdit(object):
             return True
 
     @wait_process
+    @edit_layer
     def edit_from_line_picker(self, line_feature, line_buffer):
         if line_feature is None:
             return
@@ -148,22 +158,29 @@ class LayerToEdit(object):
         ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
         ps_avg = (ps_x + ps_y) / 2  # average of the pixel size, when the pixel is not square
 
-        # all the pixel and value before edit it for save in history polygons class
-        points_and_values = []  # (point, self.get_pixel_value_from_pnt(point))
+        # function for edit each pixel in parallel process
+        def edit_pixel_in(x, y):
+            pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x)*ps_x + ps_x/2  # locate the pixel centroid in x
+            pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y)*ps_y - ps_y/2  # locate the pixel centroid in y
 
-        for x in np.arange(box.xMinimum()-ps_x*line_buffer, box.xMaximum()+ps_x*line_buffer, ps_x):
-            for y in np.arange(box.yMinimum()-ps_y*line_buffer, box.yMaximum()+ps_y*line_buffer, ps_y):
-                pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x)*ps_x + ps_x/2  # locate the pixel centroid in x
-                pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y)*ps_y - ps_y/2  # locate the pixel centroid in y
+            point = QgsPointXY(pc_x, pc_y)
+            if line_feature.geometry().distance(QgsGeometry.fromPointXY(point)) <= ps_avg*line_buffer:
+                # get the pixel and value before edit it for save in history pixels class
+                point_and_value = (point, self.get_pixel_value_from_pnt(point))
+                # edit
+                edit_status = self.edit_pixel(point)
+                if edit_status:  # the pixel was edited
+                    return point_and_value
 
-                point = QgsPointXY(pc_x, pc_y)
-                if line_feature.geometry().distance(QgsGeometry.fromPointXY(point)) <= ps_avg*line_buffer:
-                    # get the pixel and value before edit it for save in history pixels class
-                    point_and_value = (point, self.get_pixel_value_from_pnt(point))
-                    # edit
-                    edit_status = self.edit_pixel(point)
-                    if edit_status:  # the pixel was edited
-                        points_and_values.append(point_and_value)
+        # build dask process for edit pixels
+        process_pixels = [delayed(edit_pixel_in)(x, y)
+                          for y in np.arange(box.yMinimum()-ps_y*line_buffer, box.yMaximum()+ps_y*line_buffer, ps_y)
+                          for x in np.arange(box.xMinimum()-ps_x*line_buffer, box.xMaximum()+ps_x*line_buffer, ps_x)]
+
+        # compute with dask
+        # the return all the pixel and value before edit it, for save in history class
+        points_and_values = compute(*process_pixels, scheduler='threads')
+        points_and_values = [item for item in points_and_values if item]  # clean None, unedited pixels
 
         if points_and_values:
             self.qgs_layer.reload()
@@ -173,6 +190,7 @@ class LayerToEdit(object):
             return True
 
     @wait_process
+    @edit_layer
     def edit_from_polygon_picker(self, polygon_feature):
         if polygon_feature is None:
             return
@@ -181,22 +199,29 @@ class LayerToEdit(object):
         ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
         ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
 
-        # all the pixel and value before edit it for save in history polygons class
-        points_and_values = []  # (point, self.get_pixel_value_from_pnt(point))
+        # function for edit each pixel in parallel process
+        def edit_pixel_in(x, y):
+            pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x) * ps_x + ps_x / 2  # locate the pixel centroid in x
+            pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y) * ps_y - ps_y / 2  # locate the pixel centroid in y
 
-        for x in np.arange(box.xMinimum()+ps_x/2, box.xMaximum(), ps_x):
-            for y in np.arange(box.yMinimum()+ps_y/2, box.yMaximum(), ps_y):
-                pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x)*ps_x + ps_x/2  # locate the pixel centroid in x
-                pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y)*ps_y - ps_y/2  # locate the pixel centroid in y
+            point = QgsPointXY(pc_x, pc_y)
+            if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(point)):
+                # get the pixel and value before edit it for save in history pixels class
+                point_and_value = (point, self.get_pixel_value_from_pnt(point))
+                # edit
+                edit_status = self.edit_pixel(point)
+                if edit_status:  # the pixel was edited
+                    return point_and_value
 
-                point = QgsPointXY(pc_x, pc_y)
-                if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(point)):
-                    # get the pixel and value before edit it for save in history pixels class
-                    point_and_value = (point, self.get_pixel_value_from_pnt(point))
-                    # edit
-                    edit_status = self.edit_pixel(point)
-                    if edit_status:  # the pixel was edited
-                        points_and_values.append(point_and_value)
+        # build dask process for edit pixels
+        process_pixels = [delayed(edit_pixel_in)(x, y)
+                          for y in np.arange(box.yMinimum()+ps_y/2, box.yMaximum(), ps_y)
+                          for x in np.arange(box.xMinimum()+ps_x/2, box.xMaximum(), ps_x)]
+
+        # compute with dask
+        # the return all the pixel and value before edit it, for save in history class
+        points_and_values = compute(*process_pixels, scheduler='threads')
+        points_and_values = [item for item in points_and_values if item]  # clean None, unedited pixels
 
         if points_and_values:
             self.qgs_layer.reload()

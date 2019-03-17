@@ -28,7 +28,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsWkbTypes, QgsFeature
 from qgis.gui import QgsMapTool, QgsRubberBand
 
-from ThRasE.core.edition import LayerToEdit
+from ThRasE.core.edition import LayerToEdit, edit_layer
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
@@ -134,6 +134,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                     view_widget.render_widget.update_canvas_to(new_extent)
 
     @wait_process
+    @edit_layer
     def go_to_history(self, action, from_edit_tool):
         if from_edit_tool == "pixel":
             if action == "undo":
