@@ -180,6 +180,33 @@
        <number>3</number>
       </property>
       <item>
+       <widget class="QToolButton" name="mousePixelValue2Table">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight the current pixel value in the recode table from mouse position when one of the three tool edition is enable&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>:/plugins/thrase/icons/mouse_pixel_value.svg</normaloff>:/plugins/thrase/icons/mouse_pixel_value.svg</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonIconOnly</enum>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QWidget" name="EditionWidget_ByPixel" native="true">
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">

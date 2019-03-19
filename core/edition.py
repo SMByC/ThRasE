@@ -61,7 +61,7 @@ class LayerToEdit(object):
         self.bounds = layer.extent().toRectF().getCoords()
         self.navigation = Navigation()
         # store pixels: value, color, new_value, on/off
-        #  -> [{"value", "color": {"R", "G", "B", "A"}, "new_value": int, "on": bool}, ...]
+        #  -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "on": bool}, ...]
         self.pixels = None
         # init data for recode pixel table
         self.setup_pixel_table()
@@ -107,6 +107,12 @@ class LayerToEdit(object):
         new_value = [i["new_value"] for i in self.pixels if i["value"] == old_value and i["on"]]
         if new_value and new_value[0] is not None and old_value != new_value[0]:
             return new_value[0]
+
+    def select_value_in_recode_pixel_table(self, value_to_select):
+        """Highlight the current pixel value from mouse picker"""
+        from ThRasE.thrase import ThRasE
+        row_idx = next((idx for idx, i in enumerate(self.pixels) if i["value"] == value_to_select), None)
+        ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 1)
 
     def check_point_inside_layer(self, point):
         # check if the point is within active raster bounds
