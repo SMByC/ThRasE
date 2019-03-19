@@ -300,12 +300,10 @@ class PickerPixelTool(QgsMapTool):
         QgsMapTool.__init__(self, view_widget.render_widget.canvas)
         self.view_widget = view_widget
         # status rec icon and focus
-        self.view_widget.status_PixelsPicker.setEnabled(True)
-        self.view_widget.status_PixelsPicker.clicked.connect(self.finish)
         self.view_widget.render_widget.canvas.setFocus()
 
     def finish(self):
-        self.view_widget.status_PixelsPicker.setDisabled(True)
+        self.view_widget.PixelsPicker.setChecked(False)
         # restart point tool
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
@@ -354,8 +352,6 @@ class PickerLineTool(QgsMapTool):
         QgsMapTool.__init__(self, view_widget.render_widget.canvas)
         self.view_widget = view_widget
         # status rec icon and focus
-        self.view_widget.status_LinesPicker.setEnabled(True)
-        self.view_widget.status_LinesPicker.clicked.connect(self.finish)
         self.view_widget.render_widget.canvas.setFocus()
 
         self.start_new_line()
@@ -380,7 +376,7 @@ class PickerLineTool(QgsMapTool):
             self.aux_line.reset(QgsWkbTypes.LineGeometry)
         self.line = None
         self.aux_line = None
-        self.view_widget.status_LinesPicker.setDisabled(True)
+        self.view_widget.LinesPicker.setChecked(False)
         # restart point tool
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
@@ -483,8 +479,6 @@ class PickerPolygonTool(QgsMapTool):
         QgsMapTool.__init__(self, view_widget.render_widget.canvas)
         self.view_widget = view_widget
         # status rec icon and focus
-        self.view_widget.status_PolygonsPicker.setEnabled(True)
-        self.view_widget.status_PolygonsPicker.clicked.connect(self.finish)
         self.view_widget.render_widget.canvas.setFocus()
 
         self.start_new_polygon()
@@ -509,7 +503,7 @@ class PickerPolygonTool(QgsMapTool):
             self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.rubber_band = None
         self.aux_rubber_band = None
-        self.view_widget.status_PolygonsPicker.setDisabled(True)
+        self.view_widget.PolygonsPicker.setChecked(False)
         # restart point tool
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)

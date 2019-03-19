@@ -278,6 +278,9 @@
                <iconset>
                 <normaloff>:/plugins/thrase/icons/pixel_picker.svg</normaloff>:/plugins/thrase/icons/pixel_picker.svg</iconset>
               </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
@@ -338,34 +341,6 @@
                </size>
               </property>
              </spacer>
-            </item>
-            <item>
-             <widget class="QToolButton" name="status_PixelsPicker">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Record changes using pixels picker, click to stop.</string>
-              </property>
-              <property name="text">
-               <string>rec</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/record.svg</normaloff>:/plugins/thrase/icons/record.svg</iconset>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
-             </widget>
             </item>
             <item>
              <widget class="QToolButton" name="UndoPixel">
@@ -515,6 +490,9 @@
                <iconset>
                 <normaloff>:/plugins/thrase/icons/line_picker.svg</normaloff>:/plugins/thrase/icons/line_picker.svg</iconset>
               </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
@@ -644,34 +622,6 @@
                </size>
               </property>
              </spacer>
-            </item>
-            <item>
-             <widget class="QToolButton" name="status_LinesPicker">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Record changes using lines picker, click to stop.</string>
-              </property>
-              <property name="text">
-               <string>rec</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/record.svg</normaloff>:/plugins/thrase/icons/record.svg</iconset>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
-             </widget>
             </item>
             <item>
              <widget class="QToolButton" name="UndoLine">
@@ -846,6 +796,9 @@
                <iconset>
                 <normaloff>:/plugins/thrase/icons/polygon_picker.svg</normaloff>:/plugins/thrase/icons/polygon_picker.svg</iconset>
               </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
@@ -906,34 +859,6 @@
                </size>
               </property>
              </spacer>
-            </item>
-            <item>
-             <widget class="QToolButton" name="status_PolygonsPicker">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Record changes using polygons picker, click to stop.</string>
-              </property>
-              <property name="text">
-               <string>rec</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/record.svg</normaloff>:/plugins/thrase/icons/record.svg</iconset>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
-             </widget>
             </item>
             <item>
              <widget class="QToolButton" name="UndoPolygon">
