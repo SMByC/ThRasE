@@ -111,8 +111,15 @@ class LayerToEdit(object):
     def select_value_in_recode_pixel_table(self, value_to_select):
         """Highlight the current pixel value from mouse picker"""
         from ThRasE.thrase import ThRasE
+        if value_to_select is None:
+            ThRasE.dialog.recodePixelTable.clearSelection()
+            return
+
         row_idx = next((idx for idx, i in enumerate(self.pixels) if i["value"] == value_to_select), None)
-        ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 1)
+        if row_idx is not None:
+            ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 1)
+        else:
+            ThRasE.dialog.recodePixelTable.clearSelection()
 
     def check_point_inside_layer(self, point):
         # check if the point is within active raster bounds
