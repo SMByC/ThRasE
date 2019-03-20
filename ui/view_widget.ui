@@ -182,7 +182,7 @@
       <item>
        <widget class="QToolButton" name="mousePixelValue2Table">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight the current pixel value in the recode table from mouse position when one of the three tool edition is enable&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight the current pixel value from the mouse position in the recode table when one of the edit tool is activated (values of the thematic raster selected)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="icon">
          <iconset>
