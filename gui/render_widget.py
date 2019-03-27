@@ -22,6 +22,7 @@ from qgis.PyQt.QtCore import Qt, QTimer, QSettings
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QWidget, QGridLayout
 from qgis.gui import QgsMapToolPan, QgsMapCanvas
+from qgis.utils import iface
 
 from ThRasE.utils.system_utils import block_signals_to
 
@@ -49,11 +50,19 @@ class RenderWidget(QWidget):
 
         gridLayout.addWidget(self.canvas)
 
+    def set_crs(self, crs):
+        self.crs = crs
+        self.update_render_layers()
+
     def update_render_layers(self):
         with block_signals_to(self):
             # set the CRS of the canvas view
             if self.crs:
+                # use the crs of thematic raster to edit
                 self.canvas.setDestinationCrs(self.crs)
+            else:
+                # use the crs set in Qgis
+                self.canvas.setDestinationCrs(iface.mapCanvas().mapSettings().destinationCrs())
             # get all valid activated layers
             valid_layers = [active_layer.layer for active_layer in self.active_layers if active_layer.is_active]
             if len(valid_layers) == 0:

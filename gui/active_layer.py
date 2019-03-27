@@ -106,9 +106,6 @@ class ActiveLayer(QWidget, FORM_CLASS):
 
     @pyqtSlot()
     def set_render_layer(self, layer):
-        #return
-        #self.render_widget.crs = layer_to_edit.crs()
-
         if not layer:
             self.disable()
             self.layer = None

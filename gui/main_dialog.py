@@ -204,8 +204,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             layer_to_edit = LayerToEdit(layer, band)
 
         LayerToEdit.current = layer_to_edit
-        self.set_recode_pixel_table()
 
+        # set the CRS of all canvas view based on current thematic layer to edit
+        [view_widget.render_widget.set_crs(layer_to_edit.qgs_layer.crs()) for view_widget in ThRasEDialog.view_widgets]
+        # create the recode table
+        self.set_recode_pixel_table()
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
