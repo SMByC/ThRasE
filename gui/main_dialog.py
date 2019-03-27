@@ -77,8 +77,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_BuildNavigation.clicked.connect(self.open_build_navigation_dialog)
 
         # ######### build the view render widgets windows ######### #
-        grid_rows = 1
-        grid_columns = 2
+        render_view_config = RenderViewConfig()
+        if render_view_config.exec_():
+            grid_rows = render_view_config.grid_rows.value()
+            grid_columns = render_view_config.grid_columns.value()
+        else:
+            # by default
+            grid_rows = 1
+            grid_columns = 1
+
         # configure the views layout
         views_layout = QGridLayout()
         views_layout.setSpacing(0)
@@ -299,4 +306,13 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             table_width = self.recodePixelTable.horizontalHeader().length() + 40
             self.EditionBlock.setMaximumWidth(table_width)
             self.EditionBlock.setMinimumWidth(table_width)
+
+
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'render_view_config_dialog.ui'))
+
+
+class RenderViewConfig(QtWidgets.QDialog, FORM_CLASS):
+    def __init__(self):
+        QtWidgets.QDialog.__init__(self)
+        self.setupUi(self)
 
