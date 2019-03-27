@@ -24,15 +24,15 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="2560"
-     inkscape:window-height="1406"
+     inkscape:window-width="1600"
+     inkscape:window-height="1150"
      id="namedview13"
      showgrid="false"
-     inkscape:zoom="45.254834"
-     inkscape:cx="9.4231531"
-     inkscape:cy="11.046394"
+     inkscape:zoom="16"
+     inkscape:cx="20.054391"
+     inkscape:cy="12.251356"
      inkscape:window-x="0"
-     inkscape:window-y="34"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
@@ -106,6 +106,40 @@
         color:#da4453;
       }
       </style>
+    <style
+       id="current-color-scheme-367"
+       type="text/css">
+      .ColorScheme-Text {
+        color:#4d4d4d;
+      }
+      .ColorScheme-Highlight {
+        color:#3daee9;
+      }
+      </style>
+    <style
+       type="text/css"
+       id="current-color-scheme-6-5">
+      .ColorScheme-Text {
+        color:#232629;
+      }
+      </style>
+    <style
+       type="text/css"
+       id="current-color-scheme-67-3">
+      .ColorScheme-Text {
+        color:#4d4d4d;
+      }
+      </style>
+    <style
+       id="current-color-scheme-56"
+       type="text/css">
+      .ColorScheme-Text {
+        color:#4d4d4d;
+      }
+      .ColorScheme-Highlight {
+        color:#3daee9;
+      }
+      </style>
   </defs>
   <metadata
      id="metadata3874">
@@ -123,33 +157,33 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="matrix(1 0 0 1 -326 -534.3622)">
+    <rect
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#22a7f0;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect836"
+       width="17"
+       height="17"
+       x="328.5"
+       y="536.86218"
+       ry="0"
+       rx="0" />
     <g
-       id="g911"
-       transform="translate(-0.06207275,-0.09828021)">
+       id="g4619"
+       transform="translate(0,-0.12498262)">
       <rect
          id="rect4120"
-         style="fill:#22a7f0;fill-opacity:1;stroke-width:0.99999988"
+         style="fill:#22a7f0;fill-opacity:1;stroke-width:1.33333313"
          height="3"
-         y="539.38684"
-         x="335.56207"
+         y="539.36218"
+         x="335.5"
          width="3" />
       <rect
          id="rect4124"
-         style="fill:#22a7f0;fill-opacity:1;stroke-width:0.99999994"
-         height="7.8362436"
-         y="543.69788"
-         x="335.56207"
+         style="fill:#22a7f0;fill-opacity:1;stroke-width:1.16670322"
+         height="7"
+         y="544.61218"
+         x="335.5"
          width="3" />
     </g>
-    <rect
-       style="opacity:1;fill:none;fill-opacity:1;stroke:#22a7f0;stroke-width:1.39999998;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-       id="rect836"
-       width="16.6"
-       height="16.85"
-       x="328.70001"
-       y="536.93719"
-       ry="0"
-       rx="0" />
     <rect
        width="0"
        x="318.27991"
