@@ -20,7 +20,6 @@
 """
 import functools
 import numpy as np
-from dask import compute, delayed
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 
