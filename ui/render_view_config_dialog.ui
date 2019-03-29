@@ -9,9 +9,8 @@
    <item>
     <widget class="QLabel" name="label_30">
      <property name="text">
-      <string>First configure the grid of render views for the
-ThRasE edit dialog, setting the number of
-columns and rows:</string>
+      <string>First configure the number of render views
+windows for theThRasE edit dialog:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -82,6 +81,35 @@ columns and rows:</string>
        </spacer>
       </item>
       <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap>:/plugins/thrase/icons/render_view_config.svg</pixmap>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>16</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QLabel" name="label_29">
         <property name="text">
          <string>Columns:</string>
@@ -100,7 +128,7 @@ columns and rows:</string>
          <number>1</number>
         </property>
         <property name="maximum">
-         <number>30</number>
+         <number>12</number>
         </property>
         <property name="value">
          <number>1</number>
@@ -142,7 +170,7 @@ columns and rows:</string>
          <number>1</number>
         </property>
         <property name="maximum">
-         <number>30</number>
+         <number>12</number>
         </property>
         <property name="value">
          <number>1</number>

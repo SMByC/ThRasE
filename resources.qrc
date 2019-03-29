@@ -15,5 +15,6 @@
         <file>icons/previous.svg</file>
         <file>icons/current_tile.svg</file>
         <file>icons/layer_properties.svg</file>
+        <file>icons/render_view_config.svg</file>
     </qresource>
 </RCC>
