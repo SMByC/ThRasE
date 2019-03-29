@@ -25,7 +25,7 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsProject, QgsWkbTypes, QgsFeature, QgsRaster
+from qgis.core import QgsProject, QgsWkbTypes, QgsFeature, QgsRaster, Qgis
 from qgis.gui import QgsMapTool, QgsRubberBand
 
 from ThRasE.core.edition import LayerToEdit, edit_layer
@@ -403,13 +403,22 @@ class PickerLineTool(QgsMapTool):
     def edit(self, new_feature):
         line_buffer = float(self.view_widget.LineBuffer.currentText())
         status = LayerToEdit.current.edit_from_line_picker(new_feature, line_buffer)
-        if status:
+        if status:  # at least one pixel was edited
             self.view_widget.render_widget.canvas.clearCache()
             self.view_widget.render_widget.canvas.refresh()
             # update status of undo/redo/clean buttons
             self.view_widget.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
             self.view_widget.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
             self.view_widget.CleanAllLines.setEnabled(len(self.view_widget.lines_drawn) > 0)
+        else:
+            self.line.reset(QgsWkbTypes.LineGeometry)
+            rubber_band = self.view_widget.lines_drawn[-1]
+            if rubber_band:
+                rubber_band.reset(QgsWkbTypes.LineGeometry)
+                self.view_widget.lines_drawn.remove(rubber_band)
+            # inform to the user
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn line", level=Qgis.Info)
 
     def canvasMoveEvent(self, event):
         # highlight the current pixel value from mouse picker
@@ -529,13 +538,22 @@ class PickerPolygonTool(QgsMapTool):
 
     def edit(self, new_feature):
         status = LayerToEdit.current.edit_from_polygon_picker(new_feature)
-        if status:
+        if status:  # at least one pixel was edited
             self.view_widget.render_widget.canvas.clearCache()
             self.view_widget.render_widget.canvas.refresh()
             # update status of undo/redo/clean buttons
             self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
             self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
             self.view_widget.CleanAllPolygons.setEnabled(len(self.view_widget.polygons_drawn) > 0)
+        else:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            rubber_band = self.view_widget.polygons_drawn[-1]
+            if rubber_band:
+                rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                self.view_widget.polygons_drawn.remove(rubber_band)
+            # inform to the user
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn polygon", level=Qgis.Info)
 
     def canvasMoveEvent(self, event):
         # highlight the current pixel value from mouse picker
