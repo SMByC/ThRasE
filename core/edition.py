@@ -104,9 +104,9 @@ class LayerToEdit(object):
     def get_the_new_pixel_value(self, point):
         old_value = self.get_pixel_value_from_pnt(point)
         # get the new value set in the recode pixel table by user
-        new_value = [i["new_value"] for i in self.pixels if i["value"] == old_value and i["on"]]
-        if new_value and new_value[0] is not None and old_value != new_value[0]:
-            return new_value[0]
+        new_value = next((i["new_value"] for i in self.pixels if i["value"] == old_value and i["on"]), None)
+        if old_value != new_value:
+            return new_value
 
     def select_value_in_recode_pixel_table(self, value_to_select):
         """Highlight the current pixel value from mouse picker"""
