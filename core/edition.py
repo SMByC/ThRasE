@@ -226,29 +226,31 @@ class LayerToEdit(object):
         ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
         ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
 
-        # function for edit each pixel in parallel process
-        def edit_pixel_in(x, y):
-            pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x) * ps_x + ps_x / 2  # locate the pixel centroid in x
-            pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y) * ps_y - ps_y / 2  # locate the pixel centroid in y
-
-            point = QgsPointXY(pc_x, pc_y)
-            if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(point)):
-                # get the pixel and value before edit it for save in history pixels class
-                point_and_value = (point, self.get_pixel_value_from_pnt(point))
-                # edit
-                edit_status = self.edit_pixel(point)
-                if edit_status:  # the pixel was edited
-                    return point_and_value
-
-        # build dask process for edit pixels
+        # locate the pixel centroid in x and y for the pixel in min/max in the extent
+        y_min = self.bounds[3] - int((self.bounds[3] - box.yMinimum()) / ps_y) * ps_y - ps_y / 2
+        y_max = self.bounds[3] - int((self.bounds[3] - box.yMaximum()) / ps_y) * ps_y - ps_y / 2
+        x_min = self.bounds[0] + int((box.xMinimum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
+        x_max = self.bounds[0] + int((box.xMaximum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
+        # analysis all pixel if is inside the polygon drawn
         pixels_to_process = \
-            [delayed(edit_pixel_in)(x, y)
-             for y in np.arange(box.yMinimum()+ps_y/2, box.yMaximum(), ps_y)
-             for x in np.arange(box.xMinimum()+ps_x/2, box.xMaximum(), ps_x)]
+            [QgsPointXY(x, y)
+             for y in np.arange(y_min, y_max + ps_y, ps_y)
+             for x in np.arange(x_min, x_max + ps_x, ps_x)
+             if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(QgsPointXY(x, y)))]
+        # clean None and duplicates
+        pixels_to_process = set([item for item in pixels_to_process if item])
 
-        # compute with dask
-        # the return all the pixel and value before edit it, for save in history class
-        points_and_values = compute(*pixels_to_process, scheduler='threads')
+        # function for edit each pixel in parallel process
+        def edit_pixel(pixel_point):
+            # get the pixel and value before edit it for save in history pixels class
+            point_and_value = (pixel_point, self.get_pixel_value_from_pnt(pixel_point))
+            # edit
+            edit_status = self.edit_pixel(pixel_point)
+            if edit_status:  # the pixel was edited
+                return point_and_value
+
+        # edit and return all the pixel and value before edit it, for save in history class
+        points_and_values = [edit_pixel(pixel_point) for pixel_point in pixels_to_process]
         points_and_values = [item for item in points_and_values if item]  # clean None, unedited pixels
 
         if points_and_values:
