@@ -59,32 +59,42 @@
          <set>Qt::AlignCenter</set>
         </property>
         <property name="placeholderText">
-         <string>View Name</string>
+         <string>view name</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QToolButton" name="QPBtn_ConfActiveLayers">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
           <height>28</height>
          </size>
         </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
         <property name="toolTip">
          <string>Show/hide the active layers config</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>0 active layers</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>:/plugins/thrase/icons/active_layers_tool.svg</normaloff>:/plugins/thrase/icons/active_layers_tool.svg</iconset>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
         </property>
         <property name="autoRaise">
          <bool>true</bool>
-        </property>
-        <property name="arrowType">
-         <enum>Qt::DownArrow</enum>
         </property>
        </widget>
       </item>
@@ -96,20 +106,27 @@
           <height>28</height>
          </size>
         </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
         <property name="toolTip">
          <string>Show/hide the edition tools</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>edition</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>:/plugins/thrase/icons/edit_tool.svg</normaloff>:/plugins/thrase/icons/edit_tool.svg</iconset>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
         </property>
         <property name="autoRaise">
          <bool>true</bool>
-        </property>
-        <property name="arrowType">
-         <enum>Qt::DownArrow</enum>
         </property>
        </widget>
       </item>
@@ -166,6 +183,9 @@
       </property>
       <item>
        <widget class="QToolButton" name="mousePixelValue2Table">
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight the current pixel value from the mouse position in the recode table when one of the edit tool is activated (values of the thematic raster selected)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -247,6 +267,9 @@
                 <width>16777215</width>
                 <height>26</height>
                </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit the clicked pixel, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: change the pixel clicked&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -332,6 +355,9 @@
                 <pointsize>8</pointsize>
                </font>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Undo the last pixel changed (limited to 20)</string>
               </property>
@@ -356,6 +382,9 @@
                <font>
                 <pointsize>8</pointsize>
                </font>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
                <string>Redo the last pixel undo</string>
@@ -454,6 +483,9 @@
                 <width>16777215</width>
                 <height>26</height>
                </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels around lines using buffer value, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the line&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current line&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -603,6 +635,9 @@
                 <pointsize>8</pointsize>
                </font>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Undo the last line created (limited to 20)</string>
               </property>
@@ -628,6 +663,9 @@
                 <pointsize>8</pointsize>
                </font>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Redo the last line undo</string>
               </property>
@@ -652,6 +690,9 @@
                <font>
                 <pointsize>8</pointsize>
                </font>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all drawn lines, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -751,6 +792,9 @@
                 <height>26</height>
                </size>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels inside the polygon, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the polygon&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current polygon&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -835,6 +879,9 @@
                 <pointsize>8</pointsize>
                </font>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Undo the last polygon created (limited to 20)</string>
               </property>
@@ -860,6 +907,9 @@
                 <pointsize>8</pointsize>
                </font>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Redo the last polygon undo</string>
               </property>
@@ -884,6 +934,9 @@
                <font>
                 <pointsize>8</pointsize>
                </font>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all drawn polygons, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
