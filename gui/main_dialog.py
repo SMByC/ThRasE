@@ -262,18 +262,19 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 if header == "":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
-                        item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
                                                         pixel["color"]["B"], pixel["color"]["A"]))
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
                 if header == "old value":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem(str(pixel["value"]))
-                        item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsEditable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
                         if not pixel["on"]:
                             item_table.setForeground(QColor("lightGrey"))
-                            item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                            item_table.setFlags(item_table.flags() & Qt.ItemIsSelectable)
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
@@ -282,10 +283,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 if header == "new value":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem(str(pixel["new_value"]) if pixel["new_value"] is not None else "")
+                        item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled | Qt.ItemIsEditable)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
                         if not pixel["on"]:
                             item_table.setForeground(QColor("lightGrey"))
-                            item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
@@ -294,7 +296,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 if header == "on":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
-                        item_table.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+                        item_table.setFlags(item_table.flags() | Qt.ItemIsUserCheckable)
+                        item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
                         if pixel["on"]:
                             item_table.setCheckState(Qt.Checked)

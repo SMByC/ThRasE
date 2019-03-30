@@ -63,6 +63,9 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.render_widget.active_layers = self.active_layers
 
         # ### init the edition tools ###
+        # unselect items in recode pixel table
+        self.mousePixelValue2Table.clicked.connect(self.unhighlight_cells_in_recode_pixel_table)
+
         # picker pixel tool edit
         self.widget_EditionTools.setEnabled(False)
         self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
@@ -92,6 +95,13 @@ class ViewWidget(QWidget, FORM_CLASS):
             for layer in self.render_widget.canvas.layers():
                 QgsProject.instance().removeMapLayer(layer.id())
         self.disable()
+
+    @staticmethod
+    def unhighlight_cells_in_recode_pixel_table():
+        from ThRasE.thrase import ThRasE
+        with block_signals_to(ThRasE.dialog.recodePixelTable):
+            [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white)
+             for idx in range(len(LayerToEdit.current.pixels))]
 
     def update(self):
         valid_layers = [active_layer.layer for active_layer in self.active_layers if active_layer.is_active]
@@ -304,6 +314,7 @@ class PickerPixelTool(QgsMapTool):
 
     def finish(self):
         self.view_widget.PixelsPicker.setChecked(False)
+        self.view_widget.unhighlight_cells_in_recode_pixel_table()
         # restart point tool
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
@@ -327,7 +338,7 @@ class PickerPixelTool(QgsMapTool):
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
             pixel_value_to_select = \
                 LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
-            LayerToEdit.current.select_value_in_recode_pixel_table(pixel_value_to_select)
+            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
 
     def canvasPressEvent(self, event):
         # edit the pixel over pointer mouse on left-click
@@ -377,6 +388,7 @@ class PickerLineTool(QgsMapTool):
         self.line = None
         self.aux_line = None
         self.view_widget.LinesPicker.setChecked(False)
+        self.view_widget.unhighlight_cells_in_recode_pixel_table()
         # restart point tool
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
@@ -426,7 +438,7 @@ class PickerLineTool(QgsMapTool):
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
             pixel_value_to_select = \
                 LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
-            LayerToEdit.current.select_value_in_recode_pixel_table(pixel_value_to_select)
+            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
         # draw the auxiliary line
         if self.aux_line is None:
             return
@@ -513,6 +525,7 @@ class PickerPolygonTool(QgsMapTool):
         self.rubber_band = None
         self.aux_rubber_band = None
         self.view_widget.PolygonsPicker.setChecked(False)
+        self.view_widget.unhighlight_cells_in_recode_pixel_table()
         # restart point tool
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
@@ -561,7 +574,7 @@ class PickerPolygonTool(QgsMapTool):
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
             pixel_value_to_select = \
                 LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
-            LayerToEdit.current.select_value_in_recode_pixel_table(pixel_value_to_select)
+            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
         # draw the auxiliary rubber band
         if self.aux_rubber_band is None:
             return

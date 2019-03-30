@@ -22,11 +22,12 @@ import functools
 import numpy as np
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
+from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import get_file_path_of_layer
-from ThRasE.utils.system_utils import wait_process
+from ThRasE.utils.system_utils import wait_process, block_signals_to
 
 
 def edit_layer(func):
@@ -107,8 +108,8 @@ class LayerToEdit(object):
         if old_value != new_value:
             return new_value
 
-    def select_value_in_recode_pixel_table(self, value_to_select):
-        """Highlight the current pixel value from mouse picker"""
+    def highlight_value_in_recode_pixel_table(self, value_to_select):
+        """Highlight the current pixel value from mouse pointer on canvas"""
         from ThRasE.thrase import ThRasE
         if value_to_select is None:
             ThRasE.dialog.recodePixelTable.clearSelection()
@@ -116,9 +117,16 @@ class LayerToEdit(object):
 
         row_idx = next((idx for idx, i in enumerate(self.pixels) if i["value"] == value_to_select), None)
         if row_idx is not None:
+            # select
             ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 1)
+            # set background
+            with block_signals_to(ThRasE.dialog.recodePixelTable):
+                [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white) for idx in range(len(self.pixels))]
+                ThRasE.dialog.recodePixelTable.item(row_idx, 1).setBackground(Qt.yellow)
         else:
             ThRasE.dialog.recodePixelTable.clearSelection()
+            with block_signals_to(ThRasE.dialog.recodePixelTable):
+                [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white) for idx in range(len(self.pixels))]
 
     def check_point_inside_layer(self, point):
         # check if the point is within active raster bounds
