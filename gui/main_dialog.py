@@ -25,7 +25,7 @@ from pathlib import Path
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot
-from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem
+from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
 from qgis.core import Qgis, QgsMapLayer
 from qgis.PyQt.QtGui import QColor, QFont
 
@@ -115,6 +115,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
         # update recode pixel table
         self.recodePixelTable.itemChanged.connect(self.update_recode_pixel_table)
+        # for change the class color
+        self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -271,7 +273,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
-                        item_table.setToolTip("Color for this class")
+                        item_table.setToolTip("Color for this class, click to edit.\n"
+                                              "Info: edit the color is only temporarily")
                         item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
                                                         pixel["color"]["B"], pixel["color"]["A"]))
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
@@ -320,6 +323,26 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             table_width = self.recodePixelTable.horizontalHeader().length() + 40
             self.EditionBlock.setMaximumWidth(table_width)
             self.EditionBlock.setMinimumWidth(table_width)
+
+    def table_item_clicked(self, table_item):
+        if table_item.text() == "none":
+            return
+        # set color
+        if table_item.column() == 0:
+            remember_color = table_item.background().color()
+            color = QColorDialog.getColor(remember_color, self)
+            if color.isValid():
+                # update recode table
+                with block_signals_to(self.recodePixelTable):
+                    self.recodePixelTable.item(table_item.row(), 0).setBackground(color)
+                # update pixels var
+                LayerToEdit.current.pixels[table_item.row()]["color"] = \
+                    {"R": color.red(), "G": color.green(), "B": color.blue(), "A": color.alpha()}
+                # apply to layer
+                LayerToEdit.current.symbology[table_item.row()] = \
+                    LayerToEdit.current.symbology[table_item.row()][0:2] + \
+                    ((color.red(), color.green(), color.blue(), color.alpha()),)
+                apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
 
 
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'render_view_config_dialog.ui'))
