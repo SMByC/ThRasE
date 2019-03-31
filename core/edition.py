@@ -26,7 +26,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
 from ThRasE.utils.others_utils import get_xml_style
-from ThRasE.utils.qgis_utils import get_file_path_of_layer
+from ThRasE.utils.qgis_utils import get_file_path_of_layer, apply_symbology
 from ThRasE.utils.system_utils import wait_process, block_signals_to
 
 
@@ -61,8 +61,11 @@ class LayerToEdit(object):
         self.bounds = layer.extent().toRectF().getCoords()
         self.navigation = Navigation()
         # store pixels: value, color, new_value, on/off
-        #  -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "on": bool}, ...]
+        #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool}, ...]
         self.pixels = None
+        # user personalization of value-color table of class pixels
+        #   -> [("name", value, (R, G, B, A)), ...]
+        self.symbology = None
         # init data for recode pixel table
         self.setup_pixel_table()
         # save editions of the layer using the picker edition tools
@@ -90,7 +93,7 @@ class LayerToEdit(object):
 
             self.pixels = []
             for xml_item in xml_style_items:
-                pixel = {"value": int(xml_item.get("value")), "color": {}, "new_value": None, "on": True}
+                pixel = {"value": int(xml_item.get("value")), "color": {}, "new_value": None, "s/h": True}
 
                 item_color = xml_item.get("color").lstrip('#')
                 item_color = tuple(int(item_color[i:i + 2], 16) for i in (0, 2, 4))
@@ -101,10 +104,21 @@ class LayerToEdit(object):
 
                 self.pixels.append(pixel)
 
+            # init the symbology table
+            self.setup_symbology()
+
+    def setup_symbology(self):
+        # fill/restart the symbology based on the real pixel-color values from file
+        self.symbology = \
+            [(str(item["value"]), item["value"], (item["color"]["R"], item["color"]["G"], item["color"]["B"], item["color"]["A"]))
+             for item in self.pixels]
+
+        apply_symbology(self.qgs_layer, self.band, self.symbology)
+
     def get_the_new_pixel_value(self, point):
         old_value = self.get_pixel_value_from_pnt(point)
         # get the new value set in the recode pixel table by user
-        new_value = next((i["new_value"] for i in self.pixels if i["value"] == old_value and i["on"]), None)
+        new_value = next((i["new_value"] for i in self.pixels if i["value"] == old_value), None)
         if old_value != new_value:
             return new_value
 

@@ -33,7 +33,7 @@ from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.build_navigation import BuildNavigation
 from ThRasE.gui.view_widget import ViewWidget
-from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in
+from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology
 
 # plugin path
 from ThRasE.utils.system_utils import block_signals_to
@@ -231,10 +231,18 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # assign the on state
             on = self.recodePixelTable.item(row_idx, 3)
             if on.checkState() == 2:
-                pixel["on"] = True
+                pixel["s/h"] = True
             if on.checkState() == 0:
-                pixel["on"] = False
+                pixel["s/h"] = False
 
+        # update pixel class visibility
+        pixel_class_visibility = [255 if self.recodePixelTable.item(row_idx, 3).checkState() == 2 else 0
+                                  for row_idx in range(len(layer_to_edit.pixels))]
+        new_symbology = [(row[0], row[1], (row[2][0], row[2][1], row[2][2], pcv))
+                         for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility)]
+        apply_symbology(layer_to_edit.qgs_layer, layer_to_edit.band, new_symbology)
+
+        # update table
         self.set_recode_pixel_table()
 
     def set_recode_pixel_table(self):
@@ -247,7 +255,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             return
 
         with block_signals_to(self.recodePixelTable):
-            header = ["", "old value", "new value", "on"]
+            header = ["", "old value", "new value", "s/h"]
             row_length = len(layer_to_edit.pixels)
             # init table
             self.recodePixelTable.setRowCount(row_length)
@@ -263,6 +271,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
+                        item_table.setToolTip("Color for this class")
                         item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
                                                         pixel["color"]["B"], pixel["color"]["A"]))
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
@@ -272,9 +281,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsEditable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        if not pixel["on"]:
-                            item_table.setForeground(QColor("lightGrey"))
-                            item_table.setFlags(item_table.flags() & Qt.ItemIsSelectable)
+                        item_table.setToolTip("The current value for this class")
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
@@ -286,21 +293,21 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled | Qt.ItemIsEditable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        if not pixel["on"]:
-                            item_table.setForeground(QColor("lightGrey"))
+                        item_table.setToolTip("Set the new value for this class")
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "on":
+                if header == "s/h":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() | Qt.ItemIsUserCheckable)
                         item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        if pixel["on"]:
+                        item_table.setToolTip("Show/hide the pixel class value")
+                        if pixel["s/h"]:
                             item_table.setCheckState(Qt.Checked)
                         else:
                             item_table.setCheckState(Qt.Unchecked)
