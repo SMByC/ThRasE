@@ -245,9 +245,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # update pixel class visibility
         pixel_class_visibility = [255 if self.recodePixelTable.item(row_idx, 3).checkState() == 2 else 0
                                   for row_idx in range(len(layer_to_edit.pixels))]
-        new_symbology = [(row[0], row[1], (row[2][0], row[2][1], row[2][2], pcv))
-                         for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility)]
-        apply_symbology(layer_to_edit.qgs_layer, layer_to_edit.band, new_symbology)
+        layer_to_edit.symbology = [(row[0], row[1], (row[2][0], row[2][1], row[2][2], pcv))
+                                   for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility)]
+        apply_symbology(layer_to_edit.qgs_layer, layer_to_edit.band, layer_to_edit.symbology)
 
         # update table
         self.set_recode_pixel_table()
