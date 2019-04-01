@@ -21,6 +21,7 @@
 
 import os
 import configparser
+from copy import deepcopy
 from pathlib import Path
 
 from qgis.PyQt import QtWidgets, uic
@@ -117,6 +118,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.recodePixelTable.itemChanged.connect(self.update_recode_pixel_table)
         # for change the class color
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
+
+        # ######### others ######### #
+        self.QPBtn_RestoreRecodeTable.clicked.connect(self.restore_recode_table)
+        self.QGBox_GlobalEditTools.setHidden(True)
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -252,8 +257,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         if not layer_to_edit or layer_to_edit.pixels is None:
             # clear table
-            self.recodePixelTable.setRowCount(0)
-            self.recodePixelTable.setColumnCount(0)
+            self.recodePixelTable.clear()
             return
 
         with block_signals_to(self.recodePixelTable):
@@ -335,7 +339,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 # update recode table
                 with block_signals_to(self.recodePixelTable):
                     self.recodePixelTable.item(table_item.row(), 0).setBackground(color)
-                # update pixels var
+                # update pixels variable
                 LayerToEdit.current.pixels[table_item.row()]["color"] = \
                     {"R": color.red(), "G": color.green(), "B": color.blue(), "A": color.alpha()}
                 # apply to layer
@@ -343,6 +347,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     LayerToEdit.current.symbology[table_item.row()][0:2] + \
                     ((color.red(), color.green(), color.blue(), color.alpha()),)
                 apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
+
+    def restore_recode_table(self):
+        # restore the pixels and symbology variables
+        LayerToEdit.current.pixels = deepcopy(LayerToEdit.current.pixels_backup)
+        LayerToEdit.current.setup_symbology()
+        # restore table
+        self.set_recode_pixel_table()
+        # update pixel class visibility
+        apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
 
 
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'render_view_config_dialog.ui'))

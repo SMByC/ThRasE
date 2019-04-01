@@ -589,24 +589,11 @@ padding-right: 3px;</string>
           <widget class="QTableWidget" name="recodePixelTable"/>
          </item>
          <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>8</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <widget class="QWidget" name="widget_3" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -620,13 +607,112 @@ padding-right: 3px;</string>
              <number>0</number>
             </property>
             <item>
-             <widget class="QToolButton" name="QPBtn_ChangeViewsConfig">
+             <widget class="QToolButton" name="QPBtn_RestoreRecodeTable">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Restore to original values and reset table</string>
+              </property>
               <property name="text">
-               <string>Change views config</string>
+               <string>Restore recode table</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/restore.svg</normaloff>:/plugins/thrase/icons/restore.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
               <property name="autoRaise">
                <bool>true</bool>
               </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>Global edit tools</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QWidget" name="QGBox_GlobalEditTools" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <property name="leftMargin">
+                <number>3</number>
+               </property>
+               <property name="topMargin">
+                <number>3</number>
+               </property>
+               <property name="rightMargin">
+                <number>3</number>
+               </property>
+               <property name="bottomMargin">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QPushButton" name="pushButton_2">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                 <property name="flat">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                 <property name="flat">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
            </layout>
@@ -760,12 +846,28 @@ padding-right: 3px;</string>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1361</x>
-     <y>873</y>
+     <x>1327</x>
+     <y>641</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1412</x>
-     <y>841</y>
+     <x>1330</x>
+     <y>644</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>groupBox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>QGBox_GlobalEditTools</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1074</x>
+     <y>447</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1052</x>
+     <y>476</y>
     </hint>
    </hints>
   </connection>

@@ -20,6 +20,7 @@
 """
 import functools
 import numpy as np
+from copy import deepcopy
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
@@ -62,6 +63,7 @@ class LayerToEdit(object):
         self.navigation = Navigation()
         # store pixels: value, color, new_value, on/off
         #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool}, ...]
+        self.pixels_backup = None  # backup for save the original values
         self.pixels = None
         # user personalization of value-color table of class pixels
         #   -> [("name", value, (R, G, B, A)), ...]
@@ -84,8 +86,8 @@ class LayerToEdit(object):
     def get_pixel_value_from_pnt(self, point):
         return self.qgs_layer.dataProvider().identify(point, QgsRaster.IdentifyFormatValue).results()[self.band]
 
-    def setup_pixel_table(self):
-        if self.pixels is None:
+    def setup_pixel_table(self, force_update=False):
+        if self.pixels is None or force_update is True:
             xml_style_items = get_xml_style(self.qgs_layer, self.band)
             if xml_style_items is None:
                 self.pixels = None
@@ -104,6 +106,8 @@ class LayerToEdit(object):
 
                 self.pixels.append(pixel)
 
+            # save backup
+            self.pixels_backup = deepcopy(self.pixels)
             # init the symbology table
             self.setup_symbology()
 

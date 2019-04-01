@@ -18,5 +18,6 @@
         <file>icons/render_view_config.svg</file>
         <file>icons/edit_tool.svg</file>
         <file>icons/active_layers_tool.svg</file>
+        <file>icons/restore.svg</file>
     </qresource>
 </RCC>
