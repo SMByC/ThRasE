@@ -59,7 +59,7 @@ class LayerToEdit(object):
         self.data_provider = layer.dataProvider()
         self.file_path = get_file_path_of_layer(layer)
         self.band = band
-        self.bounds = layer.extent().toRectF().getCoords()
+        self.bounds = layer.extent().toRectF().getCoords()  # (xmin , ymin, xmax, ymax)
         self.navigation = Navigation()
         # store pixels: value, color, new_value, on/off
         #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool}, ...]
@@ -284,6 +284,26 @@ class LayerToEdit(object):
             # save history item
             self.history_polygons.add((polygon_feature, points_and_values))
             return True
+
+    @wait_process
+    @edit_layer
+    def edit_whole_image(self):
+        ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
+        ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
+
+        # define x and y min/max in the extent
+        y_min = self.bounds[1] + ps_y / 2
+        y_max = self.bounds[3] - ps_y / 2
+        x_min = self.bounds[0] + ps_x / 2
+        x_max = self.bounds[2] - ps_x / 2
+
+        # edit all the pixel using recode table
+        [self.edit_pixel(QgsPointXY(x, y))
+         for y in np.arange(y_min, y_max + ps_y, ps_y)
+         for x in np.arange(x_min, x_max + ps_x, ps_x)]
+
+        self.qgs_layer.reload()
+        self.qgs_layer.triggerRepaint()
 
 
 class History:

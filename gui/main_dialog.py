@@ -122,6 +122,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # ######### others ######### #
         self.QPBtn_RestoreRecodeTable.clicked.connect(self.restore_recode_table)
         self.QGBox_GlobalEditTools.setHidden(True)
+        self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -356,6 +357,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_recode_pixel_table()
         # update pixel class visibility
         apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
+
+    def apply_whole_image(self):
+        # first prompt
+        quit_msg = "This action apply the recode pixels changes in the whole image, this cannot undone."
+        reply = QMessageBox.question(None, 'Applying changes in the whole image...',
+                                     quit_msg, QMessageBox.Ok, QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            LayerToEdit.current.edit_whole_image()
 
 
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'render_view_config_dialog.ui'))

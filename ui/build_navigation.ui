@@ -523,7 +523,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>:/plugins/thrase/icons/run.svg</normaloff>:/plugins/thrase/icons/run.svg</iconset>
+          <normaloff>:/plugins/thrase/icons/run_nav.svg</normaloff>:/plugins/thrase/icons/run_nav.svg</iconset>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
