@@ -104,6 +104,11 @@ class LayerToEdit(object):
                 pixel["color"]["B"] = item_color[2]
                 pixel["color"]["A"] = int(xml_item.get("alpha"))
 
+                # for pixels style that come with transparency
+                if pixel["color"]["A"] < 255:
+                    pixel["color"]["A"] = 255
+                    pixel["s/h"] = False
+
                 self.pixels.append(pixel)
 
             # save backup
@@ -114,8 +119,9 @@ class LayerToEdit(object):
     def setup_symbology(self):
         # fill/restart the symbology based on the real pixel-color values from file
         self.symbology = \
-            [(str(item["value"]), item["value"], (item["color"]["R"], item["color"]["G"], item["color"]["B"], item["color"]["A"]))
-             for item in self.pixels]
+            [(str(pixel["value"]), pixel["value"], (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"],
+                                                    255 if pixel["s/h"] else 0))
+             for pixel in self.pixels]
 
         apply_symbology(self.qgs_layer, self.band, self.symbology)
 
