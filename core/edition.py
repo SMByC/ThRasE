@@ -137,6 +137,8 @@ class LayerToEdit(object):
         from ThRasE.thrase import ThRasE
         if value_to_select is None:
             ThRasE.dialog.recodePixelTable.clearSelection()
+            with block_signals_to(ThRasE.dialog.recodePixelTable):
+                [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white) for idx in range(len(self.pixels))]
             return
 
         row_idx = next((idx for idx, i in enumerate(self.pixels) if i["value"] == value_to_select), None)
