@@ -76,6 +76,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
         self.build_navigation_dialog = BuildNavigation()
         self.QPBtn_BuildNavigation.clicked.connect(self.open_build_navigation_dialog)
+        self.QPBtn_RestoreRecodeTable.setDisabled(True)
+        self.Widget_GlobalEditTools.setDisabled(True)
 
         # ######### build the view render widgets windows ######### #
         render_view_config = RenderViewConfig()
@@ -175,6 +177,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # disable and clear if layer selected is wrong
         def disable():
             self.NavigationBlockWidget.setDisabled(True)
+            self.QPBtn_RestoreRecodeTable.setDisabled(True)
+            self.Widget_GlobalEditTools.setDisabled(True)
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
             with block_signals_to(self.QCBox_band_LayerToEdit):
                 self.QCBox_band_LayerToEdit.clear()
@@ -220,6 +224,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
+        self.QPBtn_RestoreRecodeTable.setEnabled(True)
+        self.Widget_GlobalEditTools.setEnabled(True)
 
     def update_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current

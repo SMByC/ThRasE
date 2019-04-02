@@ -636,7 +636,7 @@ padding-right: 3px;</string>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox">
+          <widget class="QGroupBox" name="Widget_GlobalEditTools">
            <property name="title">
             <string>Global edit tools</string>
            </property>
@@ -858,7 +858,7 @@ padding-right: 3px;</string>
    </hints>
   </connection>
   <connection>
-   <sender>groupBox</sender>
+   <sender>Widget_GlobalEditTools</sender>
    <signal>clicked(bool)</signal>
    <receiver>QGBox_GlobalEditTools</receiver>
    <slot>setVisible(bool)</slot>
