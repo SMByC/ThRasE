@@ -68,6 +68,8 @@ class LayerToEdit(object):
         # user personalization of value-color table of class pixels
         #   -> [("name", value, (R, G, B, A)), ...]
         self.symbology = None
+        # dictionary for quick search the new value based on the old value in the recode table
+        self.old_new_value = {}
         # init data for recode pixel table
         self.setup_pixel_table()
         # save editions of the layer using the picker edition tools
@@ -81,10 +83,10 @@ class LayerToEdit(object):
         return self.qgs_layer.extent()
 
     def get_pixel_value_from_xy(self, x, y):
-        return self.qgs_layer.dataProvider().identify(QgsPointXY(x, y), QgsRaster.IdentifyFormatValue).results()[self.band]
+        return self.data_provider.identify(QgsPointXY(x, y), QgsRaster.IdentifyFormatValue).results()[self.band]
 
     def get_pixel_value_from_pnt(self, point):
-        return self.qgs_layer.dataProvider().identify(point, QgsRaster.IdentifyFormatValue).results()[self.band]
+        return self.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[self.band]
 
     def setup_pixel_table(self, force_update=False):
         if self.pixels is None or force_update is True:
@@ -127,10 +129,8 @@ class LayerToEdit(object):
 
     def get_the_new_pixel_value(self, point):
         old_value = self.get_pixel_value_from_pnt(point)
-        # get the new value set in the recode pixel table by user
-        new_value = next((i["new_value"] for i in self.pixels if i["value"] == old_value), None)
-        if old_value != new_value:
-            return new_value
+        return self.old_new_value[old_value] \
+            if old_value in self.old_new_value and self.old_new_value[old_value] != old_value else None
 
     def highlight_value_in_recode_pixel_table(self, value_to_select):
         """Highlight the current pixel value from mouse pointer on canvas"""
@@ -154,13 +154,11 @@ class LayerToEdit(object):
 
     def check_point_inside_layer(self, point):
         # check if the point is within active raster bounds
-        if self.bounds[0] <= point.x() <= self.bounds[2] and self.bounds[1] <= point.y() <= self.bounds[3]:
-            return True
-        else:
-            return False
+        return True if self.bounds[0] <= point.x() <= self.bounds[2] \
+                       and self.bounds[1] <= point.y() <= self.bounds[3] else False
 
-    def edit_pixel(self, point, new_value=None):
-        if not self.check_point_inside_layer(point) and not self.pixels:
+    def edit_pixel(self, point, new_value=None, check_bounds=True):
+        if check_bounds and not self.check_point_inside_layer(point):
             return
 
         if new_value is None:
@@ -298,7 +296,7 @@ class LayerToEdit(object):
         x_max = self.bounds[2] - ps_x / 2
 
         # edit all the pixel using recode table
-        [self.edit_pixel(QgsPointXY(x, y))
+        [self.edit_pixel(QgsPointXY(x, y), check_bounds=False)
          for y in np.arange(y_min, y_max + ps_y, ps_y)
          for x in np.arange(x_min, x_max + ps_x, ps_x)]
 

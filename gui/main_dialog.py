@@ -223,6 +223,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def update_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current
+        layer_to_edit.old_new_value = {}
         if not layer_to_edit or layer_to_edit.pixels is None:
             return
 
@@ -234,6 +235,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     pixel["new_value"] = None
                 elif float(new_value) == int(new_value):
                     pixel["new_value"] = int(new_value)
+                    layer_to_edit.old_new_value[pixel["value"]] = pixel["new_value"]
             except:
                 pass
             # assign the on state
