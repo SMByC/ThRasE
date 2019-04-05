@@ -70,8 +70,6 @@ class LayerToEdit(object):
         self.symbology = None
         # dictionary for quick search the new value based on the old value in the recode table
         self.old_new_value = {}
-        # init data for recode pixel table
-        self.setup_pixel_table()
         # save editions of the layer using the picker edition tools
         self.history_pixels = History("pixels")
         self.history_lines = History("lines")
@@ -93,7 +91,7 @@ class LayerToEdit(object):
             xml_style_items = get_xml_style(self.qgs_layer, self.band)
             if xml_style_items is None:
                 self.pixels = None
-                return
+                return False
 
             self.pixels = []
             for xml_item in xml_style_items:

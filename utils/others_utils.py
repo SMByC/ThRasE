@@ -57,12 +57,14 @@ def get_xml_style(layer, band):
         # for unique values
         xml_style_items = xml_style.findall('pipe/rasterrenderer[@band="{}"]/colorPalette/paletteEntry'.format(band))
 
-    if not xml_style_items:
-        msg = "The layer selected \"{}\" {}doesn't have an appropiate color style for ThRasE, " \
+    check_int_values = [int(float(xml_item.get("value"))) == float(xml_item.get("value")) for xml_item in xml_style_items]
+
+    if not xml_style_items or False in check_int_values:
+        msg = "The selected layer \"{}\" {}doesn't have an appropriate colors/values style for ThRasE, " \
               "it must be unique values or singleband pseudocolor with integer values. " \
-              "<a href='https://smbyc.bitbucket.io/qgisplugins/acatama/how_to_use/#types-of-thematic-rasters-accepted-in-acatama'>" \
+              "<a href='https://smbyc.bitbucket.io/qgisplugins/thrase/how_to_use/#valid-types-of-thematic-rasters'>" \
               "See more</a>.".format(layer.name(), "in the band {} ".format(band) if layer.bandCount() > 1 else "")
-        QMessageBox.warning(None, 'Error reading the pixel color style...', msg)
+        QMessageBox.warning(None, 'Reading the symbology layer style...', msg)
         return
     return xml_style_items
 

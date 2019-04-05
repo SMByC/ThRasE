@@ -214,7 +214,16 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if (layer.id(), band) in LayerToEdit.instances:
             layer_to_edit = LayerToEdit.instances[(layer.id(), band)]
         else:
+            # create new instance
             layer_to_edit = LayerToEdit(layer, band)
+            # init data for recode pixel table
+            recode_pixel_table_status = layer_to_edit.setup_pixel_table()
+            if recode_pixel_table_status is False:  # wrong style for set the recode pixel table
+                del LayerToEdit.instances[(layer_to_edit.qgs_layer.id(), layer_to_edit.band)]
+                self.QCBox_LayerToEdit.setCurrentIndex(-1)
+                with block_signals_to(self.QCBox_band_LayerToEdit):
+                    self.QCBox_band_LayerToEdit.clear()
+                return
 
         LayerToEdit.current = layer_to_edit
 
