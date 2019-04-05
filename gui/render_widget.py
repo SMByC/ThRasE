@@ -21,6 +21,7 @@
 from qgis.PyQt.QtCore import Qt, QTimer, QSettings
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QWidget, QGridLayout
+from qgis.core import QgsCoordinateTransform, QgsProject
 from qgis.gui import QgsMapToolPan, QgsMapCanvas
 from qgis.utils import iface
 
@@ -77,10 +78,16 @@ class RenderWidget(QWidget):
                               if view_widget.is_active and view_widget != self and not view_widget.render_widget.canvas.extent().isEmpty()]
 
             if others_extents:
+                # set extent using the extent of the other valid view (or self) with at least one layer
                 extent = others_extents[0]
                 self.update_canvas_to(extent)
             else:
-                self.canvas.setExtent(valid_layers[0].extent())
+                # first layer to render
+                # set the extent using the extent of the Qgis project but first transform the crs if it is different
+                new_layer = valid_layers[0]
+                transform = QgsCoordinateTransform(new_layer.crs(), self.canvas.mapSettings().destinationCrs(), QgsProject.instance())
+                new_extent = transform.transformBoundingBox(new_layer.extent())
+                self.canvas.setExtent(new_extent)
 
             self.canvas.refresh()
 
