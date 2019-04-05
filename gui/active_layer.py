@@ -25,6 +25,7 @@ from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget, QFileDialog
 from qgis.PyQt.QtCore import pyqtSlot
+from qgis.core import QgsMapLayer
 
 from ThRasE.utils.system_utils import block_signals_to
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, StyleEditorDialog
@@ -115,7 +116,10 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.layer = layer
         self.enable()
         self.render_widget.update_render_layers()
-        self.layerOpacity.setValue(int(self.layer.renderer().opacity()*100))
+        if self.layer.type() == QgsMapLayer.VectorLayer:
+            self.layerOpacity.setValue(int(self.layer.opacity()*100))
+        else:
+            self.layerOpacity.setValue(int(self.layer.renderer().opacity()*100))
 
     @pyqtSlot(bool)
     def on_off_layer(self, checked):
@@ -129,7 +133,10 @@ class ActiveLayer(QWidget, FORM_CLASS):
     @pyqtSlot(int)
     def update_layer_opacity(self, opacity):
         if self.layer:
-            self.layer.renderer().setOpacity(opacity/100.0)
+            if self.layer.type() == QgsMapLayer.VectorLayer:
+                self.layer.setOpacity(opacity/100.0)
+            else:
+                self.layer.renderer().setOpacity(opacity/100.0)
             #if hasattr(self.layer, "setCacheImage"):
             #    self.layer.setCacheImage(None)
             self.layer.triggerRepaint()
