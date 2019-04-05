@@ -27,7 +27,7 @@ from pathlib import Path
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
-from qgis.core import Qgis, QgsMapLayer
+from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel
 from qgis.PyQt.QtGui import QColor, QFont
 
 from ThRasE.core.edition import LayerToEdit
@@ -111,6 +111,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # ######### setup layer to edit ######### #
         self.QCBox_LayerToEdit.setCurrentIndex(-1)
+        self.QCBox_LayerToEdit.setFilters(QgsMapLayerProxyModel.RasterLayer)
         # handle connect layer selection
         self.QCBox_LayerToEdit.layerChanged.connect(self.select_layer_to_edit)
         self.QCBox_band_LayerToEdit.currentIndexChanged.connect(self.setup_layer_to_edit)
