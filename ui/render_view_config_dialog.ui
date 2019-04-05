@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>Dialog</class>
  <widget class="QDialog" name="Dialog">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>351</width>
-    <height>185</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>ThRasE - Render views configuration</string>
   </property>
@@ -17,7 +9,7 @@
    <item>
     <widget class="QLabel" name="label_30">
      <property name="text">
-      <string>First configure the number of render views windows for theThRasE edit dialog:</string>
+      <string>First, set the number of render views windows for the ThRasE edit dialog:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -35,7 +27,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>40</height>
+       <height>4</height>
       </size>
      </property>
     </spacer>
@@ -50,7 +42,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>4</width>
           <height>20</height>
          </size>
         </property>
@@ -74,6 +66,18 @@
       </item>
       <item>
        <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>64</width>
+          <height>64</height>
+         </size>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -176,7 +180,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>4</width>
           <height>20</height>
          </size>
         </property>
@@ -193,7 +197,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>40</height>
+       <height>4</height>
       </size>
      </property>
     </spacer>
