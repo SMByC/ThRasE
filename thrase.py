@@ -124,7 +124,7 @@ class ThRasE:
                 ThRasE.dialog = ThRasEDialog()
 
             # init tmp dir for all process and intermediate files
-            ThRasE.tmp_dir = tempfile.mkdtemp()
+            #ThRasE.tmp_dir = tempfile.mkdtemp() ## TODO: is necessary?
             # connect to provide cleanup on closing of dialog
             ThRasE.dialog.closingPlugin.connect(self.onClosePlugin)
 
@@ -151,7 +151,12 @@ class ThRasE:
         ThRasE.dialog.close()
         ThRasE.dialog = None
 
+        # reset some variables
+        from ThRasE.core.edition import LayerToEdit
         self.pluginIsActive = False
+        ThRasEDialog.view_widgets = []
+        LayerToEdit.instances = {}
+        LayerToEdit.current = None
 
         from qgis.utils import reloadPlugin
         reloadPlugin("ThRasE - Thematic Raster Edition")
