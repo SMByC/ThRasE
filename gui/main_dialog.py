@@ -76,6 +76,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
         self.build_navigation_dialog = BuildNavigation()
         self.QPBtn_BuildNavigation.clicked.connect(self.open_build_navigation_dialog)
+        self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
         self.Widget_GlobalEditTools.setDisabled(True)
 
@@ -123,6 +124,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
 
         # ######### others ######### #
+        self.QPBtn_ReloadRecodeTable.clicked.connect(self.reload_recode_table)
         self.QPBtn_RestoreRecodeTable.clicked.connect(self.restore_recode_table)
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
@@ -178,6 +180,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # disable and clear if layer selected is wrong
         def disable():
             self.NavigationBlockWidget.setDisabled(True)
+            self.QPBtn_ReloadRecodeTable.setDisabled(True)
             self.QPBtn_RestoreRecodeTable.setDisabled(True)
             self.Widget_GlobalEditTools.setDisabled(True)
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
@@ -234,6 +237,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
+        self.QPBtn_ReloadRecodeTable.setEnabled(True)
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
         self.Widget_GlobalEditTools.setEnabled(True)
 
@@ -367,6 +371,31 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     ((color.red(), color.green(), color.blue(), color.alpha()),)
                 apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
 
+    def reload_recode_table(self):
+        old_pixels = LayerToEdit.current.pixels
+        pixels_backup = LayerToEdit.current.pixels_backup
+        recode_pixel_table_status = LayerToEdit.current.setup_pixel_table(force_update=True)
+
+        if recode_pixel_table_status is False:  # wrong style for set the recode pixel table
+            self.recodePixelTable.clear()
+            self.recodePixelTable.setRowCount(0)
+            self.recodePixelTable.setColumnCount(0)
+            # disable some components
+            self.NavigationBlockWidget.setEnabled(False)
+            [view_widget.widget_EditionTools.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
+            self.Widget_GlobalEditTools.setEnabled(False)
+            return
+        # restore backup
+        LayerToEdit.current.pixels_backup = pixels_backup
+        # restore new pixel values and visibility
+        for new_item in LayerToEdit.current.pixels:
+            if new_item["value"] in [i["value"] for i in old_pixels]:
+                old_item = next((i for i in old_pixels if i["value"] == new_item["value"]))
+                new_item["new_value"] = old_item["new_value"]
+                new_item["s/h"] = old_item["s/h"]
+        self.setup_layer_to_edit()
+        self.update_recode_pixel_table()
+
     def restore_recode_table(self):
         # restore the pixels and symbology variables
         LayerToEdit.current.pixels = deepcopy(LayerToEdit.current.pixels_backup)
@@ -375,6 +404,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_recode_pixel_table()
         # update pixel class visibility
         apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
+        # enable some components
+        self.NavigationBlockWidget.setEnabled(True)
+        [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
+        self.Widget_GlobalEditTools.setEnabled(True)
 
     def apply_whole_image(self):
         # first prompt

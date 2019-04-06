@@ -607,18 +607,34 @@ padding-right: 3px;</string>
              <number>0</number>
             </property>
             <item>
-             <widget class="QToolButton" name="QPBtn_RestoreRecodeTable">
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="QPBtn_ReloadRecodeTable">
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
                 <height>32</height>
                </size>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
-               <string>Restore to original values and reset table</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This reloads the recode table if its style has been changed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Restore recode table</string>
+               <string>Reload</string>
               </property>
               <property name="icon">
                <iconset>
@@ -631,6 +647,48 @@ padding-right: 3px;</string>
                <bool>true</bool>
               </property>
              </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="QPBtn_RestoreRecodeTable">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This restore the recode table to original values when the layer was loaded in the plugin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Restore</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/undo.svg</normaloff>:/plugins/thrase/icons/undo.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>
@@ -673,6 +731,9 @@ padding-right: 3px;</string>
                    <height>32</height>
                   </size>
                  </property>
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
                  <property name="toolTip">
                   <string>Apply the recode pixels changes in the whole image</string>
                  </property>
@@ -698,6 +759,9 @@ padding-right: 3px;</string>
                    <width>16777215</width>
                    <height>32</height>
                   </size>
+                 </property>
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="text">
                   <string>Using an external class</string>
@@ -786,6 +850,9 @@ padding-right: 3px;</string>
             </item>
             <item>
              <widget class="QToolButton" name="CloseButton">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="text">
                <string>Close</string>
               </property>
