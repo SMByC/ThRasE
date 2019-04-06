@@ -369,7 +369,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 LayerToEdit.current.symbology[table_item.row()] = \
                     LayerToEdit.current.symbology[table_item.row()][0:2] + \
                     ((color.red(), color.green(), color.blue(), color.alpha()),)
-                apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
+                self.update_recode_pixel_table()
 
     def reload_recode_table(self):
         old_pixels = LayerToEdit.current.pixels
