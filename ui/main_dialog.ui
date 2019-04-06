@@ -734,9 +734,6 @@ padding-right: 3px;</string>
                  <property name="cursor">
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
-                 <property name="toolTip">
-                  <string>Apply the recode pixels changes in the whole image</string>
-                 </property>
                  <property name="text">
                   <string>Apply to the whole image</string>
                  </property>
