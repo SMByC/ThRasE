@@ -44,6 +44,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.parent_view = None  # view window instance
         self.render_widget = None  # the render_widget for this view window
         self.is_active = False  # enable and rendering a layer
+        self.opacity = 100  # store the opacity value
 
         self.setupUi(self)
 
@@ -150,3 +151,4 @@ class ActiveLayer(QWidget, FORM_CLASS):
                 with block_signals_to(active_layer.layerOpacity):
                     active_layer.layerOpacity.setValue(opacity)
 
+            self.opacity = opacity

@@ -166,6 +166,18 @@ def apply_symbology(rlayer, rband, symbology):
     # Set renderer for raster layer
     rlayer.setRenderer(renderer)
 
+    # set the opacity to the layer based on the opacity set in active layer UI
+    from ThRasE.gui.main_dialog import ThRasEDialog
+    active_layer = next(
+        (active_layer for active_layer in
+         [al for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets] for al in als]
+         if active_layer.layer == rlayer), False)
+    if active_layer:
+        if rlayer.type() == QgsMapLayer.VectorLayer:
+            rlayer.setOpacity(active_layer.opacity / 100.0)
+        else:
+            rlayer.renderer().setOpacity(active_layer.opacity / 100.0)
+
     # Repaint
     if hasattr(rlayer, 'setCacheImage'):
         rlayer.setCacheImage(None)
