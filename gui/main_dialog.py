@@ -197,6 +197,17 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.MsgBar.pushMessage("The thematic raster layer to edit is not valid", level=Qgis.Warning)
             disable()
             return
+        # show warning for layer to edit different to tif format
+        if layer_selected.dataProvider().dataSourceUri()[-3::].lower() != "tif":
+            quit_msg = "Use raster files different to TIF format has not been tested yet. " \
+                       "We recommend, for the moment, only TIF files for edit.\n\n" \
+                       "Do you want to continue anyway?"
+            reply = QMessageBox.question(None, 'Image format supported in ThRasE',
+                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                disable()
+                return
+
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
             self.MsgBar.pushMessage("The thematic raster layer to edit must be byte or integer as data type",
