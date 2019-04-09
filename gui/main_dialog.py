@@ -422,9 +422,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def apply_whole_image(self):
         # first prompt
-        quit_msg = "This action apply the changes set in recode pixels table to the whole image, this cannot undone. " \
-                   "Layer to apply: {}".format(LayerToEdit.current.qgs_layer.name())
-        reply = QMessageBox.question(None, 'Applying changes to the whole image...',
+        quit_msg = "This action apply the changes set in recode pixels table to the whole image, this cannot undone. \n\n" \
+                   "Layer to apply: \"{}\"".format(LayerToEdit.current.qgs_layer.name())
+        reply = QMessageBox.question(None, 'Applying changes to the whole image',
                                      quit_msg, QMessageBox.Ok, QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             LayerToEdit.current.edit_whole_image()
