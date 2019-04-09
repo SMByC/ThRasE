@@ -349,7 +349,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        item_table.setToolTip("Show/hide the pixel class value")
+                        item_table.setToolTip("Show/hide the pixel class value. \nIf it is "
+                                              "hidden it does not avoid being edited!")
                         if pixel["s/h"]:
                             item_table.setCheckState(Qt.Checked)
                         else:
