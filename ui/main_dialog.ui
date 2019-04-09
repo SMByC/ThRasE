@@ -742,7 +742,7 @@ padding-right: 3px;</string>
                  </property>
                  <property name="icon">
                   <iconset>
-                   <normaloff>:/plugins/thrase/icons/run.svg</normaloff>:/plugins/thrase/icons/run.svg</iconset>
+                   <normaloff>:/plugins/thrase/icons/run_whole_image.svg</normaloff>:/plugins/thrase/icons/run_whole_image.svg</iconset>
                  </property>
                  <property name="toolButtonStyle">
                   <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -768,7 +768,7 @@ padding-right: 3px;</string>
                  </property>
                  <property name="icon">
                   <iconset>
-                   <normaloff>:/plugins/thrase/icons/run.svg</normaloff>:/plugins/thrase/icons/run.svg</iconset>
+                   <normaloff>:/plugins/thrase/icons/run_external_class.svg</normaloff>:/plugins/thrase/icons/run_external_class.svg</iconset>
                  </property>
                  <property name="toolButtonStyle">
                   <enum>Qt::ToolButtonTextBesideIcon</enum>

@@ -128,6 +128,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_RestoreRecodeTable.clicked.connect(self.restore_recode_table)
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
+        #self.QPBtn_ApplyUsingExternalClass.clicked.connect(self.apply_using_external_class) TODO
+        self.QPBtn_ApplyUsingExternalClass.setDisabled(True)
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog

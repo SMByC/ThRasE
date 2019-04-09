@@ -10,7 +10,6 @@
         <file>icons/undo.svg</file>
         <file>icons/redo.svg</file>
         <file>icons/trash.svg</file>
-        <file>icons/run.svg</file>
         <file>icons/run_nav.svg</file>
         <file>icons/next.svg</file>
         <file>icons/previous.svg</file>
@@ -20,5 +19,7 @@
         <file>icons/edit_tool.svg</file>
         <file>icons/active_layers_tool.svg</file>
         <file>icons/restore.svg</file>
+        <file>icons/run_whole_image.svg</file>
+        <file>icons/run_external_class.svg</file>
     </qresource>
 </RCC>
