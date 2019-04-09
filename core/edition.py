@@ -18,9 +18,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 import functools
 import numpy as np
 from copy import deepcopy
+from shutil import move
+from osgeo import gdal
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
@@ -286,19 +289,55 @@ class LayerToEdit(object):
     @wait_process
     @edit_layer
     def edit_whole_image(self):
-        ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
-        ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
+        # check if the image is relative small for process pixel by pixel
+        if self.qgs_layer.width() * self.qgs_layer.height() <= 100000:
+            ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
+            ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
 
-        # define x and y min/max in the extent
-        y_min = self.bounds[1] + ps_y / 2
-        y_max = self.bounds[3] - ps_y / 2
-        x_min = self.bounds[0] + ps_x / 2
-        x_max = self.bounds[2] - ps_x / 2
+            # define x and y min/max in the extent
+            y_min = self.bounds[1] + ps_y / 2
+            y_max = self.bounds[3] - ps_y / 2
+            x_min = self.bounds[0] + ps_x / 2
+            x_max = self.bounds[2] - ps_x / 2
 
-        # edit all the pixel using recode table
-        [self.edit_pixel(QgsPointXY(x, y), check_bounds=False)
-         for y in np.arange(y_min, y_max + ps_y, ps_y)
-         for x in np.arange(x_min, x_max + ps_x, ps_x)]
+            # edit all the pixel using recode table
+            [self.edit_pixel(QgsPointXY(x, y), check_bounds=False)
+             for y in np.arange(y_min, y_max + ps_y, ps_y)
+             for x in np.arange(x_min, x_max + ps_x, ps_x)]
+        else:
+            # read
+            ds_in = gdal.Open(self.file_path)
+            num_bands = ds_in.RasterCount
+            data_array = ds_in.GetRasterBand(self.band).ReadAsArray()
+            new_data_array = deepcopy(data_array)
+
+            # apply changes
+            for old_value, new_value in self.old_new_value.items():
+                new_data_array[data_array == old_value] = new_value
+            del data_array
+
+            # create file
+            fn, ext = os.path.splitext(self.file_path)
+            fn_out = fn + "_tmp" + ext
+            driver = gdal.GetDriverByName(ds_in.GetDriver().ShortName)
+            (x, y) = new_data_array.shape
+            ds_out = driver.Create(fn_out, y, x, num_bands, ds_in.GetRasterBand(self.band).DataType)
+
+            for b in range(1, num_bands + 1):
+                if b == self.band:
+                    ds_out.GetRasterBand(b).WriteArray(new_data_array)
+                else:
+                    ds_out.GetRasterBand(b).WriteArray(ds_in.GetRasterBand(b).ReadAsArray())
+                nodata = ds_in.GetRasterBand(b).GetNoDataValue()
+                if nodata is not None:
+                    ds_out.GetRasterBand(b).SetNoDataValue(nodata)
+
+            # set output geo info based on first input layer
+            ds_out.SetGeoTransform(ds_in.GetGeoTransform())
+            ds_out.SetProjection(ds_in.GetProjection())
+
+            del ds_in, ds_out, driver, new_data_array
+            move(fn_out, self.file_path)
 
         self.qgs_layer.reload()
         self.qgs_layer.triggerRepaint()
