@@ -29,6 +29,7 @@ from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
+from ThRasE.gui.build_navigation import BuildNavigation
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import get_file_path_of_layer, apply_symbology
 from ThRasE.utils.system_utils import wait_process, block_signals_to
@@ -63,7 +64,9 @@ class LayerToEdit(object):
         self.file_path = get_file_path_of_layer(layer)
         self.band = band
         self.bounds = layer.extent().toRectF().getCoords()  # (xmin , ymin, xmax, ymax)
-        self.navigation = Navigation()
+        # navigation
+        self.navigation = Navigation(self)
+        self.build_navigation_dialog = BuildNavigation(layer_to_edit=self)
         # store pixels: value, color, new_value, on/off
         #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool}, ...]
         self.pixels_backup = None  # backup for save the original values

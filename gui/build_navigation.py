@@ -22,11 +22,14 @@
 import os
 from pathlib import Path
 
+from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes
+from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog
 from qgis.PyQt.QtCore import pyqtSlot
 
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
+from ThRasE.utils.system_utils import wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -35,27 +38,63 @@ FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'build_navigation.ui'))
 
 class BuildNavigation(QDialog, FORM_CLASS):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, layer_to_edit=None):
         QDialog.__init__(self, parent)
         self.setupUi(self)
-        self.thematic_to_edit = None
+        self.layer_to_edit = layer_to_edit
 
-    def setup_gui(self, thematic_to_edit):
-        self.thematic_to_edit = thematic_to_edit
+        self.setup_gui()
+
+        # init render widget
+        self.render_widget.canvas.setDestinationCrs(self.layer_to_edit.qgs_layer.crs())
+        self.render_widget.canvas.setLayers([self.layer_to_edit.qgs_layer])
+        self.render_widget.canvas.setExtent(self.layer_to_edit.extent())
+        self.render_widget.canvas.refresh()
+
+        self.map_tool_pan = QgsMapToolPan(self.render_widget.canvas)
+        self.render_widget.canvas.setMapTool(self.map_tool_pan, clean=True)
+
+    def setup_gui(self):
         self.NavTiles_widgetFile.setHidden(True)
         self.NavTiles_widgetAOI.setHidden(True)
         self.QCBox_BuildNavType.currentIndexChanged[str].connect(self.set_navigation_type_tool)
         # set properties to QgsMapLayerComboBox
-        self.QCBox_BuildNavFile.setCurrentIndex(-1)
+        self.QCBox_VectorFile.setCurrentIndex(-1)
+        self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.VectorLayer)
         # handle connect layer selection with render canvas
-        self.QCBox_BuildNavFile.currentIndexChanged.connect(
-            lambda: self.render_over_thematic(self.QCBox_BuildNavFile.currentLayer()))
+        self.QCBox_VectorFile.currentIndexChanged.connect(
+            lambda: self.render_over_thematic(self.QCBox_VectorFile.currentLayer()))
         # call to browse the render file
-        self.QPBtn_BrowseBuildNavFile.clicked.connect(lambda: self.fileDialog_browse(
-            self.QCBox_BuildNavFile,
-            dialog_title=self.tr("Select the NN file"),
-            dialog_types=self.tr("Raster or vector files (*.tif *.img *.gpkg *.shp);;All files (*.*)"),
-            layer_type="any"))
+        self.QPBtn_BrowseVectorFile.clicked.connect(lambda: self.fileDialog_browse(
+            self.QCBox_VectorFile,
+            dialog_title=self.tr("Select the vector file"),
+            dialog_types=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
+            layer_type="vector"))
+        self.QPBtn_BuildNavigation.clicked.connect(lambda: self.call_to_build_navigation())
+
+        # #### setup units in tile size
+        # set/update the units in tileSize item
+        layer_unit = self.layer_to_edit.qgs_layer.crs().mapUnits()
+        str_unit = QgsUnitTypes.toString(layer_unit)
+        abbr_unit = QgsUnitTypes.toAbbreviatedString(layer_unit)
+        # Set the properties of the QdoubleSpinBox based on the QgsUnitTypes of the thematic layer
+        # https://qgis.org/api/classQgsUnitTypes.html
+        self.tileSize.setSuffix(" {}".format(abbr_unit))
+        self.tileSize.setToolTip("The height/width of the tile to build the navigation, in {}\n"
+                                 "(units based on the current thematic layer to edit)".format(str_unit))
+        self.tileSize.setRange(0, 360 if layer_unit == QgsUnitTypes.DistanceDegrees else 10e10)
+        self.tileSize.setDecimals(
+            4 if layer_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
+                                     QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
+        self.tileSize.setSingleStep(
+            0.0001 if layer_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
+                                          QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
+        default_tile_size = {QgsUnitTypes.DistanceMeters: 15000, QgsUnitTypes.DistanceKilometers: 15,
+                             QgsUnitTypes.DistanceFeet: 49125, QgsUnitTypes.DistanceNauticalMiles: 8.125,
+                             QgsUnitTypes.DistanceYards: 16500, QgsUnitTypes.DistanceMiles: 9.375,
+                             QgsUnitTypes.DistanceDegrees: 0.1375, QgsUnitTypes.DistanceCentimeters: 1500000,
+                             QgsUnitTypes.DistanceMillimeters: 15000000}
+        self.tileSize.setValue(default_tile_size[layer_unit])
 
     @pyqtSlot()
     def fileDialog_browse(self, combo_box, dialog_title, dialog_types, layer_type):
@@ -88,3 +127,10 @@ class BuildNavigation(QDialog, FORM_CLASS):
         if nav_type == "by tiles throughout centroid of polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
+
+    @wait_process
+    def call_to_build_navigation(self):
+        tile_size = self.tileSize.value()
+        nav_mode = "horizontal" if self.nav_horizontal_mode.isChecked() else "vertical"
+        self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+

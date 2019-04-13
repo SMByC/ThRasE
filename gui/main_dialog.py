@@ -32,7 +32,6 @@ from qgis.PyQt.QtGui import QColor, QFont
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
-from ThRasE.gui.build_navigation import BuildNavigation
 from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology
 
@@ -74,8 +73,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.NavigationBlockWidget.setDisabled(True)
         self.NavigationBlockWidgetControls.setDisabled(True)
         self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
-        self.build_navigation_dialog = BuildNavigation()
-        self.QPBtn_BuildNavigation.clicked.connect(self.open_build_navigation_dialog)
+        self.QPBtn_BuildNavigationDialog.clicked.connect(self.open_build_navigation_dialog)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
         self.Widget_GlobalEditTools.setDisabled(True)
@@ -166,7 +164,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def open_build_navigation_dialog(self):
-        if self.build_navigation_dialog.exec_():
+        if LayerToEdit.current.build_navigation_dialog.exec_():
             # Build Navigation button
             pass
         else:

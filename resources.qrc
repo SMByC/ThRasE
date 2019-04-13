@@ -21,5 +21,7 @@
         <file>icons/restore.svg</file>
         <file>icons/run_whole_image.svg</file>
         <file>icons/run_external_class.svg</file>
+        <file>icons/nav_horizontal.svg</file>
+        <file>icons/nav_vertical.svg</file>
     </qresource>
 </RCC>
