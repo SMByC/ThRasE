@@ -22,7 +22,7 @@
 import os
 from pathlib import Path
 
-from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes
+from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog
@@ -97,6 +97,12 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.tileSize.setValue(default_tile_size[layer_unit])
 
     @pyqtSlot()
+    def exec_(self):
+        if self.layer_to_edit.navigation.is_valid:
+            [tile.create(self.render_widget.canvas) for tile in self.layer_to_edit.navigation.tiles]
+        super().exec_()
+
+    @pyqtSlot()
     def fileDialog_browse(self, combo_box, dialog_title, dialog_types, layer_type):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", dialog_types)
         if file_path != '' and os.path.isfile(file_path):
@@ -132,5 +138,10 @@ class BuildNavigation(QDialog, FORM_CLASS):
     def call_to_build_navigation(self):
         tile_size = self.tileSize.value()
         nav_mode = "horizontal" if self.nav_horizontal_mode.isChecked() else "vertical"
-        self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+        nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+        if nav_status:  # navigation is valid
+            self.layer_to_edit.navigation.is_valid = True
+        else:  # navigation is not valid
+            self.layer_to_edit.navigation.is_valid = False
+            self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical)
 

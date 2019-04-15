@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1241</width>
+    <width>1312</width>
     <height>543</height>
    </rect>
   </property>
@@ -14,6 +14,21 @@
    <string>ThRasE - Build Navigation</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
    <item>
     <widget class="QgsMessageBar" name="MsgBar">
      <property name="sizePolicy">
@@ -662,57 +677,10 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Ok</set>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QToolButton" name="CloseButton">
-        <property name="text">
-         <string>Cancel</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>:/plugins/thrase/icons/close.svg</normaloff>:/plugins/thrase/icons/close.svg</iconset>
-        </property>
-        <property name="toolButtonStyle">
-         <enum>Qt::ToolButtonTextBesideIcon</enum>
-        </property>
-        <property name="autoRaise">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
   </layout>
@@ -739,18 +707,18 @@
  <resources/>
  <connections>
   <connection>
-   <sender>CloseButton</sender>
-   <signal>clicked()</signal>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
    <receiver>Dialog</receiver>
-   <slot>reject()</slot>
+   <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>732</x>
-     <y>597</y>
+     <x>1282</x>
+     <y>513</y>
     </hint>
     <hint type="destinationlabel">
-     <x>576</x>
-     <y>619</y>
+     <x>1322</x>
+     <y>475</y>
     </hint>
    </hints>
   </connection>

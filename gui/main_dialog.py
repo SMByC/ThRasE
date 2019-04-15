@@ -77,6 +77,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
         self.Widget_GlobalEditTools.setDisabled(True)
+        self.currentTile.clicked.connect(self.go_to_current_tile)
+        self.previousTile.clicked.connect(self.go_to_previous_tile)
+        self.nextTile.clicked.connect(self.go_to_next_tile)
 
         # ######### build the view render widgets windows ######### #
         render_view_config = RenderViewConfig()
@@ -163,13 +166,49 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.NavigationBlockWidget.setVisible(True)
 
     @pyqtSlot()
+    def go_to_current_tile(self):
+        if LayerToEdit.current.navigation.is_valid:
+            LayerToEdit.current.navigation.current_tile.focus()
+
+    @pyqtSlot()
+    def go_to_previous_tile(self):
+        if LayerToEdit.current.navigation.is_valid:
+            # set the previous tile
+            LayerToEdit.current.navigation.previous_tile()
+            # adjust navigation components
+            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx + 1)
+            self.nextTile.setEnabled(True)
+            if LayerToEdit.current.navigation.current_tile.idx == 0:  # first item
+                self.previousTile.setEnabled(False)
+
+    @pyqtSlot()
+    def go_to_next_tile(self):
+        if LayerToEdit.current.navigation.is_valid:
+            # set the next tile
+            LayerToEdit.current.navigation.next_tile()
+            # adjust navigation components
+            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx + 1)
+            self.previousTile.setEnabled(True)
+            if LayerToEdit.current.navigation.current_tile.idx + 1 == len(LayerToEdit.current.navigation.tiles):  # last item
+                self.nextTile.setEnabled(False)
+
+    @pyqtSlot()
     def open_build_navigation_dialog(self):
-        if LayerToEdit.current.build_navigation_dialog.exec_():
-            # Build Navigation button
-            pass
+        LayerToEdit.current.build_navigation_dialog.exec_()
+
+        if LayerToEdit.current.navigation.is_valid:
+            # init and set the progress bar and navigation
+            self.NavigationBlockWidgetControls.setEnabled(True)
+            self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
+            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx + 1)
+            if LayerToEdit.current.navigation.current_tile.idx == 0:
+                self.previousTile.setEnabled(False)
+                LayerToEdit.current.navigation.current_tile.show()
+                LayerToEdit.current.navigation.current_tile.focus()
+                [view_widget.render_widget.canvas.refresh() for view_widget in ThRasEDialog.view_widgets
+                 if view_widget.is_active]
         else:
-            # cancel button
-            pass
+            self.NavigationBlockWidgetControls.setEnabled(False)
 
     @pyqtSlot(QgsMapLayer)
     def select_layer_to_edit(self, layer_selected):
