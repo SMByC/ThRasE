@@ -40,7 +40,6 @@ class ViewWidget(QWidget, FORM_CLASS):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.id = None
-        self.pc_id = None
         self.is_active = False
         self.active_layers = []  # for save the active layers instances
         self.setupUi(self)
@@ -89,13 +88,6 @@ class ViewWidget(QWidget, FORM_CLASS):
         # clean actions
         self.CleanAllPolygons.clicked.connect(self.clean_all_polygons_drawn)
 
-    def clean(self):
-        # clean this view widget and the layers loaded
-        if self.pc_id is not None:
-            for layer in self.render_widget.canvas.layers():
-                QgsProject.instance().removeMapLayer(layer.id())
-        self.disable()
-
     @staticmethod
     def unhighlight_cells_in_recode_pixel_table():
         from ThRasE.thrase import ThRasE
@@ -119,6 +111,10 @@ class ViewWidget(QWidget, FORM_CLASS):
             self.render_widget.canvas.setCanvasColor(QColor(255, 255, 255))
             # set status for view widget
             self.is_active = True
+            # if the navigation is using, then draw the current tile in this view
+            from ThRasE.thrase import ThRasE
+            if LayerToEdit.current.navigation.is_valid and ThRasE.dialog.currentTileKeepVisible.isChecked():
+                LayerToEdit.current.navigation.current_tile.show()
 
     def disable(self):
         with block_signals_to(self.render_widget):

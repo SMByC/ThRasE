@@ -81,8 +81,8 @@ class RenderWidget(QWidget):
             # set init extent from other view if any is activated else set layer extent
             from ThRasE.gui.main_dialog import ThRasEDialog
             others_extents = [view_widget.render_widget.canvas.extent() for view_widget in ThRasEDialog.view_widgets
-                              if view_widget.is_active and view_widget != self and not view_widget.render_widget.canvas.extent().isEmpty()]
-
+                              if view_widget.is_active and view_widget.render_widget != self
+                              and not view_widget.render_widget.canvas.extent().isEmpty()]
             if others_extents:
                 # set extent using the extent of the other valid view (or self) with at least one layer
                 extent = others_extents[0]
@@ -94,12 +94,6 @@ class RenderWidget(QWidget):
                 transform = QgsCoordinateTransform(new_layer.crs(), self.canvas.mapSettings().destinationCrs(), QgsProject.instance())
                 new_extent = transform.transformBoundingBox(new_layer.extent())
                 self.canvas.setExtent(new_extent)
-
-            # if the navigation is using, then draw the current tile in this view
-            from ThRasE.thrase import ThRasE
-            from ThRasE.core.edition import LayerToEdit
-            if LayerToEdit.current.navigation.is_valid and ThRasE.dialog.currentTileKeepVisible.isChecked():
-                LayerToEdit.current.navigation.current_tile.show()
 
             self.refresh()
 
