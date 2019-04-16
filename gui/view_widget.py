@@ -123,8 +123,7 @@ class ViewWidget(QWidget, FORM_CLASS):
     def disable(self):
         with block_signals_to(self.render_widget):
             self.render_widget.canvas.setLayers([])
-            self.render_widget.canvas.clearCache()
-            self.render_widget.canvas.refresh()
+            self.render_widget.refresh()
             # deactivate some parts of this view
             self.QLabel_ViewName.setDisabled(True)
             self.render_widget.setDisabled(True)
@@ -211,10 +210,7 @@ class ViewWidget(QWidget, FORM_CLASS):
             self.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
             self.CleanAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
         # update changes done in the layer and view
-        LayerToEdit.current.qgs_layer.reload()
-        LayerToEdit.current.qgs_layer.triggerRepaint()
-        self.render_widget.canvas.clearCache()
-        self.render_widget.canvas.refresh()
+        self.render_widget.refresh()
 
     @pyqtSlot()
     def active_layers_widget(self):
@@ -326,8 +322,7 @@ class PickerPixelTool(QgsMapTool):
         point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
         status = LayerToEdit.current.edit_from_pixel_picker(point)
         if status:
-            self.view_widget.render_widget.canvas.clearCache()
-            self.view_widget.render_widget.canvas.refresh()
+            self.view_widget.render_widget.refresh()
             # update status of undo/redo buttons
             self.view_widget.UndoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_undone())
             self.view_widget.RedoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_redone())
@@ -416,8 +411,7 @@ class PickerLineTool(QgsMapTool):
         line_buffer = float(self.view_widget.LineBuffer.currentText())
         status = LayerToEdit.current.edit_from_line_picker(new_feature, line_buffer)
         if status:  # at least one pixel was edited
-            self.view_widget.render_widget.canvas.clearCache()
-            self.view_widget.render_widget.canvas.refresh()
+            self.view_widget.render_widget.refresh()
             # update status of undo/redo/clean buttons
             self.view_widget.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
             self.view_widget.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
@@ -552,8 +546,7 @@ class PickerPolygonTool(QgsMapTool):
     def edit(self, new_feature):
         status = LayerToEdit.current.edit_from_polygon_picker(new_feature)
         if status:  # at least one pixel was edited
-            self.view_widget.render_widget.canvas.clearCache()
-            self.view_widget.render_widget.canvas.refresh()
+            self.view_widget.render_widget.refresh()
             # update status of undo/redo/clean buttons
             self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
             self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())

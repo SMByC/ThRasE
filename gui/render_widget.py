@@ -51,6 +51,13 @@ class RenderWidget(QWidget):
 
         gridLayout.addWidget(self.canvas)
 
+    def refresh(self):
+        self.canvas.clearCache()
+        if self.active_layers is not None:
+            [active_layer.layer.reload() for active_layer in self.active_layers if active_layer.is_active]
+            [active_layer.layer.triggerRepaint() for active_layer in self.active_layers if active_layer.is_active]
+        self.canvas.refresh()
+
     def set_crs(self, crs):
         self.crs = crs
         self.update_render_layers()
@@ -68,7 +75,7 @@ class RenderWidget(QWidget):
             valid_layers = [active_layer.layer for active_layer in self.active_layers if active_layer.is_active]
             if len(valid_layers) == 0:
                 self.canvas.setLayers([])
-                self.canvas.refresh()
+                self.refresh()
                 return
             # set to canvas
             self.canvas.setLayers(valid_layers)
@@ -89,12 +96,12 @@ class RenderWidget(QWidget):
                 new_extent = transform.transformBoundingBox(new_layer.extent())
                 self.canvas.setExtent(new_extent)
 
-            self.canvas.refresh()
+            self.refresh()
 
     def update_canvas_to(self, new_extent):
         with block_signals_to(self.canvas):
             self.canvas.setExtent(new_extent)
-            self.canvas.refresh()
+            self.refresh()
 
 
 class DefaultPointTool(QgsMapToolPan):
