@@ -196,11 +196,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot()
     def current_tile_keep_visible(self):
         if self.currentTileKeepVisible.isChecked():
-            [instance.show() for instance in LayerToEdit.current.navigation.current_tile.instances]
+            LayerToEdit.current.navigation.current_tile.show()
         else:
-            [instance.hide() for instance in LayerToEdit.current.navigation.current_tile.instances]
+            LayerToEdit.current.navigation.current_tile.hide()
 
-        [view_widget.render_widget.canvas.refresh() for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
+        [view_widget.render_widget.refresh() for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
 
     @pyqtSlot()
     def open_build_navigation_dialog(self):
@@ -215,7 +215,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.previousTile.setEnabled(False)
                 LayerToEdit.current.navigation.current_tile.show()
                 LayerToEdit.current.navigation.current_tile.focus()
-                [view_widget.render_widget.canvas.refresh() for view_widget in ThRasEDialog.view_widgets
+                [view_widget.render_widget.refresh() for view_widget in ThRasEDialog.view_widgets
                  if view_widget.is_active]
         else:
             self.NavigationBlockWidgetControls.setEnabled(False)

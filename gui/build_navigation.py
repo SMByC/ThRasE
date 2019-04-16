@@ -49,7 +49,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.render_widget.canvas.setDestinationCrs(self.layer_to_edit.qgs_layer.crs())
         self.render_widget.canvas.setLayers([self.layer_to_edit.qgs_layer])
         self.render_widget.canvas.setExtent(self.layer_to_edit.extent())
-        self.render_widget.canvas.refresh()
+        self.render_widget.refresh()
 
         self.map_tool_pan = QgsMapToolPan(self.render_widget.canvas)
         self.render_widget.canvas.setMapTool(self.map_tool_pan, clean=True)

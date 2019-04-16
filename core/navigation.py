@@ -54,21 +54,20 @@ class Tile(object):
                 self.create(view_widget.render_widget.canvas)
 
     def hide(self):
-        [instance.hide() for instance in self.instances]
-        from ThRasE.gui.main_dialog import ThRasEDialog
-        [view_widget.render_widget.canvas.refresh() for view_widget in ThRasEDialog.view_widgets
-         if view_widget.is_active]
+        [instance.reset() for instance in self.instances]
 
     def focus(self):
         """Adjust to the tile extent in all view widgets in main dialog"""
-        [instance.show() for instance in self.instances]
+        self.hide()
 
-        from ThRasE.gui.main_dialog import ThRasEDialog
         # focus to extent with a bit of buffer
-        buffer = (self.ymax - self.ymin) * 0.005
+        from ThRasE.gui.main_dialog import ThRasEDialog
+        buffer = (self.ymax - self.ymin) * 0.01
         extent_with_buffer = QgsRectangle(self.xmin-buffer, self.ymin-buffer, self.xmax+buffer, self.ymax+buffer)
         [view_widget.render_widget.update_canvas_to(extent_with_buffer) for view_widget in ThRasEDialog.view_widgets
          if view_widget.is_active]
+
+        self.show()
 
         from ThRasE.thrase import ThRasE
         if not ThRasE.dialog.currentTileKeepVisible.isChecked():
