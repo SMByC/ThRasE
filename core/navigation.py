@@ -47,6 +47,8 @@ class Tile(object):
 
     def show(self):
         """Show/draw the tile in all view widgets in main dialog"""
+        self.hide()
+
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
             # for all view widgets in main dialog
@@ -58,8 +60,6 @@ class Tile(object):
 
     def focus(self):
         """Adjust to the tile extent in all view widgets in main dialog"""
-        self.hide()
-
         # focus to extent with a bit of buffer
         from ThRasE.gui.main_dialog import ThRasEDialog
         buffer = (self.ymax - self.ymin) * 0.01

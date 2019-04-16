@@ -90,7 +90,7 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.CleanAllPolygons.clicked.connect(self.clean_all_polygons_drawn)
 
     def clean(self):
-        # clean this view widget and the layers loaded in PCs
+        # clean this view widget and the layers loaded
         if self.pc_id is not None:
             for layer in self.render_widget.canvas.layers():
                 QgsProject.instance().removeMapLayer(layer.id())
@@ -123,13 +123,21 @@ class ViewWidget(QWidget, FORM_CLASS):
     def disable(self):
         with block_signals_to(self.render_widget):
             self.render_widget.canvas.setLayers([])
-            self.render_widget.refresh()
             # deactivate some parts of this view
             self.QLabel_ViewName.setDisabled(True)
             self.render_widget.setDisabled(True)
             self.render_widget.canvas.setCanvasColor(QColor(245, 245, 245))
             # set status for view widget
             self.is_active = False
+            # if the navigation is using, erase the current tile in this view
+            from ThRasE.thrase import ThRasE
+            if LayerToEdit.current is not None and LayerToEdit.current.navigation.is_valid:
+                if ThRasE.dialog.currentTileKeepVisible.isChecked():
+                    LayerToEdit.current.navigation.current_tile.show()
+                else:
+                    LayerToEdit.current.navigation.current_tile.hide()
+
+            self.render_widget.refresh()
 
     @pyqtSlot()
     def canvas_changed(self):

@@ -33,7 +33,6 @@ class RenderWidget(QWidget):
         QWidget.__init__(self, parent)
         self.setupUi()
         self.active_layers = None  # instances of active layers
-        self.detection_layer = None
         self.crs = None
 
     def setupUi(self):
@@ -95,6 +94,12 @@ class RenderWidget(QWidget):
                 transform = QgsCoordinateTransform(new_layer.crs(), self.canvas.mapSettings().destinationCrs(), QgsProject.instance())
                 new_extent = transform.transformBoundingBox(new_layer.extent())
                 self.canvas.setExtent(new_extent)
+
+            # if the navigation is using, then draw the current tile in this view
+            from ThRasE.thrase import ThRasE
+            from ThRasE.core.edition import LayerToEdit
+            if LayerToEdit.current.navigation.is_valid and ThRasE.dialog.currentTileKeepVisible.isChecked():
+                LayerToEdit.current.navigation.current_tile.show()
 
             self.refresh()
 
