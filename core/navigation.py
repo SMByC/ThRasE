@@ -25,6 +25,8 @@ from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsRubberBand
 from qgis.core import QgsRectangle, QgsPointXY, QgsGeometry, QgsWkbTypes
 
+from ThRasE.utils.system_utils import wait_process
+
 
 class Tile(object):
     def __init__(self, idx, xmin, xmax, ymin, ymax):
@@ -85,6 +87,7 @@ class Navigation(object):
         self.current_tile = None
         self.tiles = []
 
+    @wait_process
     def build_navigation(self, tile_size, nav_mode):
         self.delete()
 

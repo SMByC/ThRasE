@@ -25,11 +25,10 @@ from pathlib import Path
 from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import pyqtSlot
 
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
-from ThRasE.utils.system_utils import wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -70,7 +69,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
             dialog_title=self.tr("Select the vector file"),
             dialog_types=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
             layer_type="vector"))
-        self.QPBtn_BuildNavigation.clicked.connect(lambda: self.call_to_build_navigation())
+        self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
 
         # #### setup units in tile size
         # set/update the units in tileSize item
@@ -134,8 +133,16 @@ class BuildNavigation(QDialog, FORM_CLASS):
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
 
-    @wait_process
     def call_to_build_navigation(self):
+        # first prompt if the user do some progress in tile navigation
+        if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
+            quit_msg = "If you build another navigation you will lose the current progress " \
+                       "(the current tile position).\n\nDo you want to continue?"
+            reply = QMessageBox.question(None, 'Building the tile navigation',
+                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return
+
         tile_size = self.tileSize.value()
         nav_mode = "horizontal" if self.nav_horizontal_mode.isChecked() else "vertical"
         nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
