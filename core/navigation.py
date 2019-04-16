@@ -64,7 +64,10 @@ class Tile(object):
         [instance.show() for instance in self.instances]
 
         from ThRasE.gui.main_dialog import ThRasEDialog
-        [view_widget.render_widget.update_canvas_to(self.extent) for view_widget in ThRasEDialog.view_widgets
+        # focus to extent with a bit of buffer
+        buffer = (self.ymax - self.ymin) * 0.005
+        extent_with_buffer = QgsRectangle(self.xmin-buffer, self.ymin-buffer, self.xmax+buffer, self.ymax+buffer)
+        [view_widget.render_widget.update_canvas_to(extent_with_buffer) for view_widget in ThRasEDialog.view_widgets
          if view_widget.is_active]
 
         from ThRasE.thrase import ThRasE
