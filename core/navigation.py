@@ -20,6 +20,7 @@
 """
 from math import ceil
 
+from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsRubberBand
 from qgis.core import QgsRectangle, QgsPointXY, QgsGeometry, QgsWkbTypes
@@ -52,11 +53,23 @@ class Tile(object):
             if view_widget.is_active:
                 self.create(view_widget.render_widget.canvas)
 
+    def hide(self):
+        [instance.hide() for instance in self.instances]
+        from ThRasE.gui.main_dialog import ThRasEDialog
+        [view_widget.render_widget.canvas.refresh() for view_widget in ThRasEDialog.view_widgets
+         if view_widget.is_active]
+
     def focus(self):
         """Adjust to the tile extent in all view widgets in main dialog"""
+        [instance.show() for instance in self.instances]
+
         from ThRasE.gui.main_dialog import ThRasEDialog
         [view_widget.render_widget.update_canvas_to(self.extent) for view_widget in ThRasEDialog.view_widgets
          if view_widget.is_active]
+
+        from ThRasE.thrase import ThRasE
+        if not ThRasE.dialog.currentTileKeepVisible.isChecked():
+            QTimer.singleShot(1200, self.hide)
 
     def is_valid(self):
         return True

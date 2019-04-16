@@ -23,5 +23,6 @@
         <file>icons/run_external_class.svg</file>
         <file>icons/nav_horizontal.svg</file>
         <file>icons/nav_vertical.svg</file>
+        <file>icons/visible.svg</file>
     </qresource>
 </RCC>

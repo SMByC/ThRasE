@@ -80,6 +80,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.currentTile.clicked.connect(self.go_to_current_tile)
         self.previousTile.clicked.connect(self.go_to_previous_tile)
         self.nextTile.clicked.connect(self.go_to_next_tile)
+        self.currentTileKeepVisible.clicked.connect(self.current_tile_keep_visible)
 
         # ######### build the view render widgets windows ######### #
         render_view_config = RenderViewConfig()
@@ -191,6 +192,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.previousTile.setEnabled(True)
             if LayerToEdit.current.navigation.current_tile.idx + 1 == len(LayerToEdit.current.navigation.tiles):  # last item
                 self.nextTile.setEnabled(False)
+
+    @pyqtSlot()
+    def current_tile_keep_visible(self):
+        if self.currentTileKeepVisible.isChecked():
+            [instance.show() for instance in LayerToEdit.current.navigation.current_tile.instances]
+        else:
+            [instance.hide() for instance in LayerToEdit.current.navigation.current_tile.instances]
+
+        [view_widget.render_widget.canvas.refresh() for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
 
     @pyqtSlot()
     def open_build_navigation_dialog(self):

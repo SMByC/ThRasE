@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1331</width>
+    <width>1359</width>
     <height>645</height>
    </rect>
   </property>
@@ -333,9 +333,28 @@ padding-right: 3px;</string>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLabel" name="statusCurrentTile">
+                         <widget class="QToolButton" name="currentTileKeepVisible">
+                          <property name="toolTip">
+                           <string>Keep the current navigation tile always visible</string>
+                          </property>
                           <property name="text">
                            <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>:/plugins/thrase/icons/visible.svg</normaloff>:/plugins/thrase/icons/visible.svg</iconset>
+                          </property>
+                          <property name="checkable">
+                           <bool>true</bool>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                          <property name="toolButtonStyle">
+                           <enum>Qt::ToolButtonIconOnly</enum>
+                          </property>
+                          <property name="autoRaise">
+                           <bool>true</bool>
                           </property>
                          </widget>
                         </item>
@@ -415,7 +434,7 @@ padding-right: 3px;</string>
                 </widget>
                </item>
                <item>
-                <widget class="QToolButton" name="QPBtn_BuildNavigation">
+                <widget class="QToolButton" name="QPBtn_BuildNavigationDialog">
                  <property name="text">
                   <string>Build Navigation</string>
                  </property>
