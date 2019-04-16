@@ -28,7 +28,7 @@ from qgis.core import QgsRectangle, QgsPointXY, QgsGeometry, QgsWkbTypes
 
 class Tile(object):
     def __init__(self, idx, xmin, xmax, ymin, ymax):
-        self.idx = idx
+        self.idx = idx  # index order number of the tile, start in 1
         self.instances = []
         self.extent = QgsRectangle(xmin, ymin, xmax, ymax)
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
@@ -93,7 +93,7 @@ class Navigation(object):
         nx_tiles = ceil((rectangle_nav.xMaximum() - rectangle_nav.xMinimum()) / tile_size)
         ny_tiles = ceil((rectangle_nav.yMaximum() - rectangle_nav.yMinimum()) / tile_size)
 
-        idx_tile = 0
+        idx_tile = 1
         # left-right and top-bottom
         if nav_mode == "horizontal":
             x_left_right = []
@@ -147,7 +147,7 @@ class Navigation(object):
         from ThRasE.core.edition import LayerToEdit
         [tile.create(LayerToEdit.current.build_navigation_dialog.render_widget.canvas) for tile in self.tiles]
         # init
-        self.current_tile = next((tile for tile in self.tiles if tile.idx == 0), None)
+        self.current_tile = next((tile for tile in self.tiles if tile.idx == 1), None)
         return True if self.current_tile is not None else False
 
     def previous_tile(self):

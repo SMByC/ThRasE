@@ -177,9 +177,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # set the previous tile
             LayerToEdit.current.navigation.previous_tile()
             # adjust navigation components
-            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx + 1)
+            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             self.nextTile.setEnabled(True)
-            if LayerToEdit.current.navigation.current_tile.idx == 0:  # first item
+            if LayerToEdit.current.navigation.current_tile.idx == 1:  # first item
                 self.previousTile.setEnabled(False)
 
     @pyqtSlot()
@@ -188,9 +188,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # set the next tile
             LayerToEdit.current.navigation.next_tile()
             # adjust navigation components
-            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx + 1)
+            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             self.previousTile.setEnabled(True)
-            if LayerToEdit.current.navigation.current_tile.idx + 1 == len(LayerToEdit.current.navigation.tiles):  # last item
+            if LayerToEdit.current.navigation.current_tile.idx == len(LayerToEdit.current.navigation.tiles):  # last item
                 self.nextTile.setEnabled(False)
 
     @pyqtSlot()
@@ -210,8 +210,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # init and set the progress bar and navigation
             self.NavigationBlockWidgetControls.setEnabled(True)
             self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
-            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx + 1)
-            if LayerToEdit.current.navigation.current_tile.idx == 0:
+            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
+            if LayerToEdit.current.navigation.current_tile.idx == 1:
                 self.previousTile.setEnabled(False)
                 LayerToEdit.current.navigation.current_tile.show()
                 LayerToEdit.current.navigation.current_tile.focus()
