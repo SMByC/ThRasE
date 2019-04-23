@@ -189,6 +189,8 @@ class LayerToEdit(object):
         # edit
         edit_status = self.edit_pixel(point)
         if edit_status:  # the pixel was edited
+            if hasattr(self.qgs_layer, 'setCacheImage'):
+                self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
@@ -239,6 +241,8 @@ class LayerToEdit(object):
         points_and_values = [item for item in points_and_values if item]  # clean None, unedited pixels
 
         if points_and_values:
+            if hasattr(self.qgs_layer, 'setCacheImage'):
+                self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
@@ -283,6 +287,8 @@ class LayerToEdit(object):
         points_and_values = [item for item in points_and_values if item]  # clean None, unedited pixels
 
         if points_and_values:
+            if hasattr(self.qgs_layer, 'setCacheImage'):
+                self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
@@ -342,6 +348,8 @@ class LayerToEdit(object):
             del ds_in, ds_out, driver, new_data_array
             move(fn_out, self.file_path)
 
+        if hasattr(self.qgs_layer, 'setCacheImage'):
+            self.qgs_layer.setCacheImage(None)
         self.qgs_layer.reload()
         self.qgs_layer.triggerRepaint()
 

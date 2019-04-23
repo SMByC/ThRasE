@@ -138,8 +138,8 @@ class ActiveLayer(QWidget, FORM_CLASS):
                 self.layer.setOpacity(opacity/100.0)
             else:
                 self.layer.renderer().setOpacity(opacity/100.0)
-            #if hasattr(self.layer, "setCacheImage"):
-            #    self.layer.setCacheImage(None)
+            if hasattr(self.layer, "setCacheImage"):
+                self.layer.setCacheImage(None)
             self.layer.triggerRepaint()
 
             from ThRasE.gui.main_dialog import ThRasEDialog

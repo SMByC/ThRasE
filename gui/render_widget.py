@@ -51,11 +51,10 @@ class RenderWidget(QWidget):
         gridLayout.addWidget(self.canvas)
 
     def refresh(self):
-        self.canvas.clearCache()
         if self.active_layers is not None:
             [active_layer.layer.reload() for active_layer in self.active_layers if active_layer.is_active]
             [active_layer.layer.triggerRepaint() for active_layer in self.active_layers if active_layer.is_active]
-        self.canvas.refresh()
+        self.canvas.refreshAllLayers()
 
     def set_crs(self, crs):
         self.crs = crs

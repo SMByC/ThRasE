@@ -192,6 +192,4 @@ class ThRasE:
         ThRasE.tmp_dir = None
 
         # clear qgis main canvas
-        iface.mapCanvas().clearCache()
-        iface.mapCanvas().refresh()
-
+        iface.mapCanvas().refreshAllLayers()
