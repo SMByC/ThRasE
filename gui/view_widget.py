@@ -22,7 +22,7 @@ import os
 from pathlib import Path
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QWidget, QColorDialog
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsWkbTypes, QgsFeature, QgsRaster, Qgis
@@ -71,12 +71,16 @@ class ViewWidget(QWidget, FORM_CLASS):
 
         # picker line tool edit
         self.lines_drawn = []
+        self.lines_color = QColor("red")
+        self.LinesColor.clicked.connect(self.change_lines_color)
         self.LinesPicker.clicked.connect(self.use_lines_picker_for_edit)
         # clean actions
         self.CleanAllLines.clicked.connect(self.clean_all_lines_drawn)
 
         # picker polygon tool edit
         self.polygons_drawn = []
+        self.polygons_color = QColor("red")
+        self.PolygonsColor.clicked.connect(self.change_polygons_color)
         self.PolygonsPicker.clicked.connect(self.use_polygons_picker_for_edit)
         # undo/redo
         self.UndoPixel.clicked.connect(lambda: self.go_to_history("undo", "pixel"))
@@ -146,6 +150,34 @@ class ViewWidget(QWidget, FORM_CLASS):
                 if view_widget.is_active and view_widget != self:
                     view_widget.render_widget.update_canvas_to(new_extent)
 
+    def change_lines_color(self):
+        color = QColorDialog.getColor(self.lines_color, self)
+        if color.isValid():
+            self.lines_color = color
+            self.LinesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            # restart a start draw again
+            maptool_instance = self.render_widget.canvas.mapTool()
+            if isinstance(maptool_instance, PickerLineTool):
+                if maptool_instance.line:
+                    maptool_instance.line.reset(QgsWkbTypes.LineGeometry)
+                if maptool_instance.aux_line:
+                    maptool_instance.aux_line.reset(QgsWkbTypes.LineGeometry)
+                maptool_instance.start_new_line()
+
+    def change_polygons_color(self):
+        color = QColorDialog.getColor(self.polygons_color, self)
+        if color.isValid():
+            self.polygons_color = color
+            self.PolygonsColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            # restart a start draw again
+            maptool_instance = self.render_widget.canvas.mapTool()
+            if isinstance(maptool_instance, PickerPolygonTool):
+                if maptool_instance.rubber_band:
+                    maptool_instance.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                if maptool_instance.aux_rubber_band:
+                    maptool_instance.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                maptool_instance.start_new_polygon()
+
     @wait_process
     @edit_layer
     def go_to_history(self, action, from_edit_tool):
@@ -173,7 +205,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                 line_feature, points_and_values = LayerToEdit.current.history_lines.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
-                color = QColor("red")
+                color = self.lines_color
                 color.setAlpha(80)
                 rubber_band.setColor(color)
                 rubber_band.setWidth(3)
@@ -200,7 +232,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                 polygon_feature, points_and_values = LayerToEdit.current.history_polygons.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
-                color = QColor("red")
+                color = self.polygons_color
                 color.setAlpha(50)
                 rubber_band.setColor(color)
                 rubber_band.setWidth(2)
@@ -368,7 +400,7 @@ class PickerLineTool(QgsMapTool):
 
     def start_new_line(self):
         # set rubber band style
-        color = QColor("red")
+        color = self.view_widget.lines_color
         color.setAlpha(40)
         # create the main line
         self.line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.LineGeometry)
@@ -398,7 +430,7 @@ class PickerLineTool(QgsMapTool):
         self.aux_line.reset(QgsWkbTypes.LineGeometry)
         self.aux_line = None
         # adjust the color
-        color = QColor("red")
+        color = self.view_widget.lines_color
         color.setAlpha(80)
         self.line.setColor(color)
         self.line.setWidth(3)
@@ -504,7 +536,7 @@ class PickerPolygonTool(QgsMapTool):
 
     def start_new_polygon(self):
         # set rubber band style
-        color = QColor("red")
+        color = self.view_widget.polygons_color
         color.setAlpha(25)
         # create the main polygon rubber band
         self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
@@ -534,7 +566,7 @@ class PickerPolygonTool(QgsMapTool):
         self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.aux_rubber_band = None
         # adjust the color
-        color = QColor("red")
+        color = self.view_widget.polygons_color
         color.setAlpha(50)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(2)

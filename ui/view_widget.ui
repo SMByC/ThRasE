@@ -573,6 +573,32 @@
              </widget>
             </item>
             <item>
+             <widget class="QToolButton" name="LinesColor">
+              <property name="maximumSize">
+               <size>
+                <width>18</width>
+                <height>18</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>Select the color for the lines</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">
+QToolButton
+{
+   background-color:red;
+}</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer_6">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -813,6 +839,32 @@
               </property>
               <property name="autoRaise">
                <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="PolygonsColor">
+              <property name="maximumSize">
+               <size>
+                <width>18</width>
+                <height>18</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>Select the color for the polygons</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">
+QToolButton
+{
+   background-color:red;
+}</string>
+              </property>
+              <property name="text">
+               <string/>
               </property>
              </widget>
             </item>
