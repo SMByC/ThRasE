@@ -206,7 +206,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
                 color = self.lines_color
-                color.setAlpha(80)
+                color.setAlpha(160)
                 rubber_band.setColor(color)
                 rubber_band.setWidth(3)
                 rubber_band.addGeometry(line_feature.geometry())
@@ -233,9 +233,9 @@ class ViewWidget(QWidget, FORM_CLASS):
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
                 color = self.polygons_color
-                color.setAlpha(50)
+                color.setAlpha(80)
                 rubber_band.setColor(color)
-                rubber_band.setWidth(2)
+                rubber_band.setWidth(3)
                 rubber_band.addGeometry(polygon_feature.geometry())
                 self.polygons_drawn.append(rubber_band)
             # make action
@@ -401,7 +401,7 @@ class PickerLineTool(QgsMapTool):
     def start_new_line(self):
         # set rubber band style
         color = self.view_widget.lines_color
-        color.setAlpha(40)
+        color.setAlpha(80)
         # create the main line
         self.line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.LineGeometry)
         self.line.setColor(color)
@@ -431,7 +431,7 @@ class PickerLineTool(QgsMapTool):
         self.aux_line = None
         # adjust the color
         color = self.view_widget.lines_color
-        color.setAlpha(80)
+        color.setAlpha(160)
         self.line.setColor(color)
         self.line.setWidth(3)
         # save
@@ -537,15 +537,15 @@ class PickerPolygonTool(QgsMapTool):
     def start_new_polygon(self):
         # set rubber band style
         color = self.view_widget.polygons_color
-        color.setAlpha(25)
+        color.setAlpha(40)
         # create the main polygon rubber band
         self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
         self.rubber_band.setColor(color)
-        self.rubber_band.setWidth(2)
+        self.rubber_band.setWidth(3)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
         self.aux_rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
         self.aux_rubber_band.setColor(color)
-        self.aux_rubber_band.setWidth(2)
+        self.aux_rubber_band.setWidth(3)
 
     def finish(self):
         if self.rubber_band:
@@ -567,9 +567,9 @@ class PickerPolygonTool(QgsMapTool):
         self.aux_rubber_band = None
         # adjust the color
         color = self.view_widget.polygons_color
-        color.setAlpha(50)
+        color.setAlpha(80)
         self.rubber_band.setColor(color)
-        self.rubber_band.setWidth(2)
+        self.rubber_band.setWidth(3)
         # save
         new_feature = QgsFeature()
         new_feature.setGeometry(self.rubber_band.asGeometry())
