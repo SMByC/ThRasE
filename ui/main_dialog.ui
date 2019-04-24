@@ -166,6 +166,9 @@
                 <height>30</height>
                </size>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="styleSheet">
                <string notr="true">padding-left: 3px;
 padding-right: 3px;</string>
@@ -263,6 +266,9 @@ padding-right: 3px;</string>
                      </item>
                      <item>
                       <widget class="QToolButton" name="previousTile">
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
                        <property name="toolTip">
                         <string>Go to the previous tile</string>
                        </property>
@@ -314,6 +320,9 @@ padding-right: 3px;</string>
                         </item>
                         <item>
                          <widget class="QToolButton" name="currentTile">
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Go to current tile</string>
                           </property>
@@ -334,6 +343,9 @@ padding-right: 3px;</string>
                         </item>
                         <item>
                          <widget class="QToolButton" name="currentTileKeepVisible">
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Keep the current navigation tile always visible</string>
                           </property>
@@ -376,6 +388,9 @@ padding-right: 3px;</string>
                      </item>
                      <item>
                       <widget class="QToolButton" name="nextTile">
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
                        <property name="toolTip">
                         <string>Go to the next tile</string>
                        </property>
@@ -435,6 +450,9 @@ padding-right: 3px;</string>
                </item>
                <item>
                 <widget class="QToolButton" name="QPBtn_BuildNavigationDialog">
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
                  <property name="text">
                   <string>Build Navigation</string>
                  </property>
