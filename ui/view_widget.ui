@@ -519,12 +519,20 @@
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The N times the pixel size for defining the buffer around the line&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
+              <property name="maxVisibleItems">
+               <number>20</number>
+              </property>
               <property name="sizeAdjustPolicy">
                <enum>QComboBox::AdjustToContents</enum>
               </property>
               <property name="frame">
                <bool>false</bool>
               </property>
+              <item>
+               <property name="text">
+                <string>0.5</string>
+               </property>
+              </item>
               <item>
                <property name="text">
                 <string>1.0</string>
