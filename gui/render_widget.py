@@ -86,7 +86,7 @@ class RenderWidget(QWidget):
                 # set extent using the extent of the other valid view (or self) with at least one layer
                 extent = others_extents[0]
                 self.update_canvas_to(extent)
-            else:
+            elif self.canvas.extent().isEmpty():
                 # first layer to render
                 # set the extent using the extent of the Qgis project but first transform the crs if it is different
                 new_layer = valid_layers[0]
