@@ -124,6 +124,9 @@
              <height>42</height>
             </size>
            </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
            <property name="styleSheet">
             <string notr="true">padding-left: 3px;padding-right: 3px;</string>
            </property>
@@ -341,6 +344,9 @@
             </property>
             <item>
              <widget class="QToolButton" name="AOI_Picker">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="text">
                <string>AOI picker</string>
               </property>
@@ -361,6 +367,9 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Undo the last AOI created</string>
               </property>
@@ -380,6 +389,9 @@
              <widget class="QToolButton" name="DeleteAllAOI">
               <property name="enabled">
                <bool>false</bool>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
                <string>Delete all AOI</string>
@@ -521,6 +533,9 @@
             </property>
             <item>
              <widget class="QToolButton" name="nav_horizontal_mode">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Horizontal navigation (left-right and top-bottom)</string>
               </property>
@@ -547,6 +562,9 @@
             </item>
             <item>
              <widget class="QToolButton" name="nav_vertical_mode">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="toolTip">
                <string>Vertical navigation (top-bottom and left-right)</string>
               </property>
@@ -611,7 +629,36 @@
           </spacer>
          </item>
          <item>
+          <widget class="QToolButton" name="TilesColor">
+           <property name="maximumSize">
+            <size>
+             <width>18</width>
+             <height>18</height>
+            </size>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Select the color for the tiles navigation</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
+QToolButton
+{
+   background-color:blue;
+}</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QToolButton" name="QPBtn_BuildNavigation">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
            <property name="text">
             <string>Build Navigation</string>
            </property>
@@ -631,6 +678,9 @@
           <widget class="QToolButton" name="DeleteNavigation">
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
             <string>Delete/clean the current navigation</string>
@@ -692,15 +742,15 @@
    <header>qgis.gui</header>
   </customwidget>
   <customwidget>
-   <class>QgsMessageBar</class>
-   <extends>QFrame</extends>
-   <header>qgis.gui</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>RenderWidget</class>
    <extends>QWidget</extends>
    <header>ThRasE.gui.render_widget</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QgsMessageBar</class>
+   <extends>QFrame</extends>
+   <header>qgis.gui</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

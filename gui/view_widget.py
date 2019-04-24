@@ -150,6 +150,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                 if view_widget.is_active and view_widget != self:
                     view_widget.render_widget.update_canvas_to(new_extent)
 
+    @pyqtSlot()
     def change_lines_color(self):
         color = QColorDialog.getColor(self.lines_color, self)
         if color.isValid():
@@ -164,6 +165,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                     maptool_instance.aux_line.reset(QgsWkbTypes.LineGeometry)
                 maptool_instance.start_new_line()
 
+    @pyqtSlot()
     def change_polygons_color(self):
         color = QColorDialog.getColor(self.polygons_color, self)
         if color.isValid():

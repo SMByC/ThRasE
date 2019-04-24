@@ -29,11 +29,12 @@ from ThRasE.utils.system_utils import wait_process
 
 
 class Tile(object):
-    def __init__(self, idx, xmin, xmax, ymin, ymax):
+    def __init__(self, idx, xmin, xmax, ymin, ymax, tile_color):
         self.idx = idx  # index order number of the tile, start in 1
         self.instances = []
         self.extent = QgsRectangle(xmin, ymin, xmax, ymax)
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
+        self.tile_color = tile_color
 
     def create(self, canvas):
         """Create the tile as a rubber band inside the canvas given"""
@@ -41,7 +42,7 @@ class Tile(object):
         points = [QgsPointXY(self.xmin, self.ymax), QgsPointXY(self.xmax, self.ymax),
                   QgsPointXY(self.xmax, self.ymin), QgsPointXY(self.xmin, self.ymin)]
         instance.setToGeometry(QgsGeometry.fromPolygonXY([points]), None)
-        instance.setColor(QColor(0, 0, 255))
+        instance.setColor(self.tile_color)
         instance.setFillColor(QColor(0, 0, 0, 0))
         instance.setWidth(2)
         instance.show()
@@ -86,6 +87,7 @@ class Navigation(object):
         self.is_valid = False
         self.current_tile = None
         self.tiles = []
+        self.tiles_color = QColor("blue")
 
     @wait_process
     def build_navigation(self, tile_size, nav_mode):
@@ -117,7 +119,7 @@ class Navigation(object):
                     if ymin < rectangle_nav.yMinimum():
                         ymin = rectangle_nav.yMinimum()
 
-                    tile = Tile(idx_tile, xmin, xmax, ymin, ymax)
+                    tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
                     if tile.is_valid():
                         self.tiles.append(tile)
                         idx_tile += 1
@@ -141,7 +143,7 @@ class Navigation(object):
                     if ymin < rectangle_nav.yMinimum():
                         ymin = rectangle_nav.yMinimum()
 
-                    tile = Tile(idx_tile, xmin, xmax, ymin, ymax)
+                    tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
                     if tile.is_valid():
                         self.tiles.append(tile)
                         idx_tile += 1

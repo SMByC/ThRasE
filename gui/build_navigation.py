@@ -25,7 +25,7 @@ from pathlib import Path
 from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QColorDialog
 from qgis.PyQt.QtCore import pyqtSlot
 
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
@@ -70,6 +70,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
             dialog_types=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
             layer_type="vector"))
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
+        self.TilesColor.clicked.connect(self.change_tiles_color)
 
         # #### setup units in tile size
         # set/update the units in tileSize item
@@ -115,6 +116,16 @@ class BuildNavigation(QDialog, FORM_CLASS):
         if not layer:
             return
         pass
+
+    @pyqtSlot()
+    def change_tiles_color(self):
+        color = QColorDialog.getColor(self.layer_to_edit.navigation.tiles_color, self)
+        if color.isValid():
+            self.layer_to_edit.navigation.tiles_color = color
+            self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            # repaint
+            if self.layer_to_edit.navigation.is_valid:
+                self.call_to_build_navigation()
 
     def set_navigation_type_tool(self, nav_type):
         if nav_type == "by tiles throughout the thematic file":
