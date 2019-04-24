@@ -123,9 +123,6 @@ class BuildNavigation(QDialog, FORM_CLASS):
         if color.isValid():
             self.layer_to_edit.navigation.tiles_color = color
             self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
-            # repaint
-            if self.layer_to_edit.navigation.is_valid:
-                self.call_to_build_navigation()
 
     def set_navigation_type_tool(self, nav_type):
         if nav_type == "by tiles throughout the thematic file":
