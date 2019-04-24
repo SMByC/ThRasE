@@ -675,7 +675,7 @@ QToolButton
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="DeleteNavigation">
+          <widget class="QToolButton" name="CleanNavigation">
            <property name="enabled">
             <bool>false</bool>
            </property>

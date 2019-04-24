@@ -71,6 +71,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
             layer_type="vector"))
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
         self.TilesColor.clicked.connect(self.change_tiles_color)
+        self.CleanNavigation.clicked.connect(self.clean_navigation)
 
         # #### setup units in tile size
         # set/update the units in tileSize item
@@ -144,7 +145,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
     def call_to_build_navigation(self):
         # first prompt if the user do some progress in tile navigation
         if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
-            quit_msg = "If you build another navigation you will lose the current progress " \
+            quit_msg = "If you build another navigation you will lose the progress " \
                        "(the current tile position).\n\nDo you want to continue?"
             reply = QMessageBox.question(None, 'Building the tile navigation',
                                          quit_msg, QMessageBox.Yes, QMessageBox.No)
@@ -156,7 +157,22 @@ class BuildNavigation(QDialog, FORM_CLASS):
         nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
         if nav_status:  # navigation is valid
             self.layer_to_edit.navigation.is_valid = True
+            self.CleanNavigation.setEnabled(True)
         else:  # navigation is not valid
             self.layer_to_edit.navigation.is_valid = False
+            self.CleanNavigation.setEnabled(False)
             self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical)
+
+    def clean_navigation(self):
+        # first prompt if the user do some progress in tile navigation
+        if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
+            quit_msg = "Clean the current navigation you will lose the progress " \
+                       "(the current tile position).\n\nDo you want to continue?"
+            reply = QMessageBox.question(None, 'Building the tile navigation',
+                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return
+
+        self.layer_to_edit.navigation.delete()
+        self.CleanNavigation.setEnabled(False)
 
