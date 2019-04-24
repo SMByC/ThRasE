@@ -117,7 +117,8 @@ class ViewWidget(QWidget, FORM_CLASS):
             self.is_active = True
             # if the navigation is using, then draw the current tile in this view
             from ThRasE.thrase import ThRasE
-            if LayerToEdit.current.navigation.is_valid and ThRasE.dialog.currentTileKeepVisible.isChecked():
+            if LayerToEdit.current is not None and LayerToEdit.current.navigation.is_valid \
+               and ThRasE.dialog.currentTileKeepVisible.isChecked():
                 LayerToEdit.current.navigation.current_tile.show()
 
     def disable(self):
