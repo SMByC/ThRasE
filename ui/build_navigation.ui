@@ -347,6 +347,9 @@
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Define one or more polygons for build navigation only in these areas.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the polygon&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current polygon&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>AOI picker</string>
               </property>
@@ -354,31 +357,11 @@
                <iconset>
                 <normaloff>:/plugins/thrase/icons/polygon_picker.svg</normaloff>:/plugins/thrase/icons/polygon_picker.svg</iconset>
               </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
+              <property name="checkable">
                <bool>true</bool>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="UndoAOI">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Undo the last AOI created</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/undo.svg</normaloff>:/plugins/thrase/icons/undo.svg</iconset>
-              </property>
               <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonIconOnly</enum>
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
               <property name="autoRaise">
                <bool>true</bool>

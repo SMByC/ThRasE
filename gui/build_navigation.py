@@ -22,11 +22,12 @@
 import os
 from pathlib import Path
 
-from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis
-from qgis.gui import QgsMapToolPan
+from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis, QgsWkbTypes, QgsFeature
+from qgis.gui import QgsMapToolPan, QgsRubberBand, QgsMapTool
 from qgis.PyQt import uic
+from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QColorDialog
-from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import pyqtSlot, Qt
 
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
 
@@ -41,6 +42,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
         QDialog.__init__(self, parent)
         self.setupUi(self)
         self.layer_to_edit = layer_to_edit
+        self.aoi_drawn = []
 
         self.setup_gui()
 
@@ -69,9 +71,12 @@ class BuildNavigation(QDialog, FORM_CLASS):
             dialog_title=self.tr("Select the vector file"),
             dialog_types=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
             layer_type="vector"))
+        # buttons connections
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
         self.TilesColor.clicked.connect(self.change_tiles_color)
         self.CleanNavigation.clicked.connect(self.clean_navigation)
+        self.AOI_Picker.clicked.connect(self.activate_deactivate_AOI_picker)
+        self.DeleteAllAOI.clicked.connect(self.clean_all_aoi_drawn)
 
         # #### setup units in tile size
         # set/update the units in tileSize item
@@ -142,6 +147,23 @@ class BuildNavigation(QDialog, FORM_CLASS):
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
 
+    @pyqtSlot()
+    def activate_deactivate_AOI_picker(self):
+        if isinstance(self.render_widget.canvas.mapTool(), AOIPickerTool):
+            # disable edit and return to normal map tool
+            self.render_widget.canvas.mapTool().finish()
+        else:
+            # enable draw
+            self.render_widget.canvas.setMapTool(AOIPickerTool(self), clean=True)
+
+    def clean_all_aoi_drawn(self):
+        # clean/reset all rubber bands
+        for rubber_band in self.aoi_drawn:
+            rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.aoi_drawn = []
+        self.render_widget.canvas.mapTool().finish()
+        self.DeleteAllAOI.setEnabled(False)
+
     def call_to_build_navigation(self):
         # first prompt if the user do some progress in tile navigation
         if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
@@ -176,3 +198,104 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.layer_to_edit.navigation.delete()
         self.CleanNavigation.setEnabled(False)
 
+
+class AOIPickerTool(QgsMapTool):
+    def __init__(self, build_navigation):
+        QgsMapTool.__init__(self, build_navigation.render_widget.canvas)
+        self.build_navigation = build_navigation
+        # status rec icon and focus
+        self.build_navigation.render_widget.canvas.setFocus()
+
+        self.start_new_polygon()
+
+    def start_new_polygon(self):
+        # set rubber band style
+        color = QColor("red")
+        color.setAlpha(40)
+        # create the main polygon rubber band
+        self.rubber_band = QgsRubberBand(self.build_navigation.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band.setColor(color)
+        self.rubber_band.setWidth(3)
+        # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
+        self.aux_rubber_band = QgsRubberBand(self.build_navigation.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band.setColor(color)
+        self.aux_rubber_band.setWidth(3)
+
+    def finish(self):
+        if self.rubber_band:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        if self.aux_rubber_band:
+            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = None
+        self.aux_rubber_band = None
+        self.build_navigation.AOI_Picker.setChecked(False)
+        # restart point tool
+        self.clean()
+        self.build_navigation.render_widget.canvas.unsetMapTool(self)
+        self.build_navigation.render_widget.canvas.setMapTool(self.build_navigation.map_tool_pan)
+
+    def define_polygon(self):
+        # clean the aux rubber band
+        self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band = None
+        # adjust the color
+        color = QColor("red")
+        color.setAlpha(80)
+        self.rubber_band.setColor(color)
+        self.rubber_band.setWidth(3)
+        # save
+        new_feature = QgsFeature()
+        new_feature.setGeometry(self.rubber_band.asGeometry())
+        self.build_navigation.aoi_drawn.append(self.rubber_band)
+        #
+        self.build_navigation.DeleteAllAOI.setEnabled(True)
+
+        self.start_new_polygon()
+
+    def canvasMoveEvent(self, event):
+        # draw the auxiliary rubber band
+        if self.aux_rubber_band is None:
+            return
+        if self.aux_rubber_band and self.aux_rubber_band.numberOfVertices():
+            x = event.pos().x()
+            y = event.pos().y()
+            point = self.build_navigation.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            self.aux_rubber_band.removeLastPoint()
+            self.aux_rubber_band.addPoint(point)
+
+    def canvasPressEvent(self, event):
+        if self.rubber_band is None:
+            self.finish()
+            return
+        # new point on polygon
+        if event.button() == Qt.LeftButton:
+            x = event.pos().x()
+            y = event.pos().y()
+            point = self.build_navigation.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            self.rubber_band.addPoint(point)
+            self.aux_rubber_band.addPoint(point)
+        # edit
+        if event.button() == Qt.RightButton:
+            if self.rubber_band and self.rubber_band.numberOfVertices():
+                if self.rubber_band.numberOfVertices() < 3:
+                    return
+                # save polygon and edit
+                self.define_polygon()
+
+    def keyPressEvent(self, event):
+        # edit
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            if self.rubber_band and self.rubber_band.numberOfVertices():
+                if self.rubber_band.numberOfVertices() < 3:
+                    return
+                # save polygon
+                self.define_polygon()
+        # delete last point
+        if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
+            self.rubber_band.removeLastPoint()
+            self.aux_rubber_band.removeLastPoint()
+        # delete and finish
+        if event.key() == Qt.Key_Escape:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.finish()
