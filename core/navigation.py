@@ -76,8 +76,16 @@ class Tile(object):
         if not ThRasE.dialog.currentTileKeepVisible.isChecked():
             QTimer.singleShot(1200, self.hide)
 
-    def is_valid(self):
-        return True
+    def is_valid(self, navigation):
+        if navigation.nav_type == "whole":
+            # all tiles are valid
+            return True
+        if navigation.nav_type == "aois":
+            # only the tiles that intersects the aois are valid
+            if True in [aoi.intersects(self.extent) for aoi in navigation.aois]:
+                return True
+            else:
+                return False
 
 
 class Navigation(object):
@@ -85,16 +93,39 @@ class Navigation(object):
     def __init__(self, layer_to_edit):
         self.layer_to_edit = layer_to_edit
         self.is_valid = False
+        self.nav_type = None
         self.current_tile = None
         self.tiles = []
         self.tiles_color = QColor("blue")
 
     @wait_process
-    def build_navigation(self, tile_size, nav_mode):
+    def build_navigation(self, tile_size, nav_mode, aois=None, shapefile=None, points=None, centroids=None):
+        # define type of navigation
+        if aois:
+            self.nav_type = "aois"
+            self.aois = aois
+        elif shapefile:
+            self.nav_type = "shapefile"
+        elif points:
+            self.nav_type = "points"
+        elif centroids:
+            self.nav_type = "centroids"
+        else:
+            self.nav_type = "whole"
+
+        # clear before build
         self.delete()
 
-        rectangle_nav = self.layer_to_edit.qgs_layer.extent()
+        # define the extent to compute the tiles
+        if self.nav_type == "whole":
+            rectangle_nav = self.layer_to_edit.qgs_layer.extent()
+        if self.nav_type == "aois":
+            # compute the wrapper extent of all aois
+            rectangle_nav = QgsRectangle()
+            for aoi in aois:
+                rectangle_nav.combineExtentWith(aoi.boundingBox())
 
+        # number of tiles
         nx_tiles = ceil((rectangle_nav.xMaximum() - rectangle_nav.xMinimum()) / tile_size)
         ny_tiles = ceil((rectangle_nav.yMaximum() - rectangle_nav.yMinimum()) / tile_size)
 
@@ -120,7 +151,7 @@ class Navigation(object):
                         ymin = rectangle_nav.yMinimum()
 
                     tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
-                    if tile.is_valid():
+                    if tile.is_valid(self):
                         self.tiles.append(tile)
                         idx_tile += 1
         # top-bottom and left-right
@@ -144,7 +175,7 @@ class Navigation(object):
                         ymin = rectangle_nav.yMinimum()
 
                     tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
-                    if tile.is_valid():
+                    if tile.is_valid(self):
                         self.tiles.append(tile)
                         idx_tile += 1
 

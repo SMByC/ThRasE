@@ -176,7 +176,27 @@ class BuildNavigation(QDialog, FORM_CLASS):
 
         tile_size = self.tileSize.value()
         nav_mode = "horizontal" if self.nav_horizontal_mode.isChecked() else "vertical"
-        nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+
+        if self.QCBox_BuildNavType.currentText() == "by tiles throughout the thematic file":
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+
+        if self.QCBox_BuildNavType.currentText() == "by tiles throughout the AOI":
+            if not self.aoi_drawn:
+                self.MsgBar.pushMessage("Navigation was not built: there aren't polygons drawn", level=Qgis.Warning)
+                return
+            aois = [aoi.asGeometry() for aoi in self.aoi_drawn]
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, aois=aois)
+
+        if self.QCBox_BuildNavType.currentText() == "by tiles throughout a shapefile":
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+
+        if self.QCBox_BuildNavType.currentText() == "by tiles throughout points":
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+
+        if self.QCBox_BuildNavType.currentText() == "by tiles throughout centroid of polygons":
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+
+
         if nav_status:  # navigation is valid
             self.layer_to_edit.navigation.is_valid = True
             self.CleanNavigation.setEnabled(True)
