@@ -120,8 +120,12 @@ class BuildNavigation(QDialog, FORM_CLASS):
     @pyqtSlot()
     def render_over_thematic(self, layer):
         if not layer:
+            self.render_widget.canvas.setLayers([self.layer_to_edit.qgs_layer])
+            self.render_widget.refresh()
             return
-        pass
+
+        self.render_widget.canvas.setLayers([layer, self.layer_to_edit.qgs_layer])
+        self.render_widget.refresh()
 
     @pyqtSlot()
     def change_tiles_color(self):
@@ -131,21 +135,29 @@ class BuildNavigation(QDialog, FORM_CLASS):
             self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
 
     def set_navigation_type_tool(self, nav_type):
+        # first unselect the vector file
+        self.QCBox_VectorFile.setCurrentIndex(-1)
+        # clear draw
+        self.clean_all_aoi_drawn()
+        # by nav type
         if nav_type == "by tiles throughout the thematic file":
             self.NavTiles_widgetFile.setHidden(True)
             self.NavTiles_widgetAOI.setHidden(True)
         if nav_type == "by tiles throughout the AOI":
             self.NavTiles_widgetFile.setHidden(True)
             self.NavTiles_widgetAOI.setVisible(True)
-        if nav_type == "by tiles throughout a shapefile":
+        if nav_type == "by tiles throughout polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
+            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         if nav_type == "by tiles throughout points":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
+            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PointLayer)
         if nav_type == "by tiles throughout centroid of polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
+            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
 
     @pyqtSlot()
     def activate_deactivate_AOI_picker(self):
@@ -161,7 +173,8 @@ class BuildNavigation(QDialog, FORM_CLASS):
         for rubber_band in self.aoi_drawn:
             rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.aoi_drawn = []
-        self.render_widget.canvas.mapTool().finish()
+        if isinstance(self.render_widget.canvas.mapTool(), AOIPickerTool):
+            self.render_widget.canvas.mapTool().finish()
         self.DeleteAllAOI.setEnabled(False)
 
     def call_to_build_navigation(self):
@@ -177,6 +190,8 @@ class BuildNavigation(QDialog, FORM_CLASS):
         tile_size = self.tileSize.value()
         nav_mode = "horizontal" if self.nav_horizontal_mode.isChecked() else "vertical"
 
+        # call build navigation of the respective navigation type
+
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout the thematic file":
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
 
@@ -185,10 +200,12 @@ class BuildNavigation(QDialog, FORM_CLASS):
                 self.MsgBar.pushMessage("Navigation was not built: there aren't polygons drawn", level=Qgis.Warning)
                 return
             aois = [aoi.asGeometry() for aoi in self.aoi_drawn]
-            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, aois=aois)
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=aois)
 
-        if self.QCBox_BuildNavType.currentText() == "by tiles throughout a shapefile":
-            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
+        if self.QCBox_BuildNavType.currentText() == "by tiles throughout polygons":
+            vector_layer = self.QCBox_VectorFile.currentLayer()
+            polygons = [feature.geometry() for feature in vector_layer.getFeatures()]
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=polygons)
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout points":
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)

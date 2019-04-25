@@ -80,9 +80,9 @@ class Tile(object):
         if navigation.nav_type == "whole":
             # all tiles are valid
             return True
-        if navigation.nav_type == "aois":
-            # only the tiles that intersects the aois are valid
-            if True in [aoi.intersects(self.extent) for aoi in navigation.aois]:
+        if navigation.nav_type == "polygons":
+            # only the tiles that intersects the polygons are valid
+            if True in [polygon.intersects(self.extent) for polygon in navigation.polygons]:
                 return True
             else:
                 return False
@@ -99,17 +99,14 @@ class Navigation(object):
         self.tiles_color = QColor("blue")
 
     @wait_process
-    def build_navigation(self, tile_size, nav_mode, aois=None, shapefile=None, points=None, centroids=None):
+    def build_navigation(self, tile_size, nav_mode, polygons=None, points=None):
         # define type of navigation
-        if aois:
-            self.nav_type = "aois"
-            self.aois = aois
-        elif shapefile:
-            self.nav_type = "shapefile"
+        if polygons:
+            self.nav_type = "polygons"
+            self.polygons = polygons
         elif points:
             self.nav_type = "points"
-        elif centroids:
-            self.nav_type = "centroids"
+            self.points = points
         else:
             self.nav_type = "whole"
 
@@ -119,11 +116,13 @@ class Navigation(object):
         # define the extent to compute the tiles
         if self.nav_type == "whole":
             rectangle_nav = self.layer_to_edit.qgs_layer.extent()
-        if self.nav_type == "aois":
-            # compute the wrapper extent of all aois
+        if self.nav_type == "polygons":
+            # compute the wrapper extent of all polygons
             rectangle_nav = QgsRectangle()
-            for aoi in aois:
-                rectangle_nav.combineExtentWith(aoi.boundingBox())
+            for polygon in self.polygons:
+                rectangle_nav.combineExtentWith(polygon.boundingBox())
+            # intersect with the layer to edit
+            rectangle_nav = rectangle_nav.intersect(self.layer_to_edit.extent())
 
         # number of tiles
         nx_tiles = ceil((rectangle_nav.xMaximum() - rectangle_nav.xMinimum()) / tile_size)

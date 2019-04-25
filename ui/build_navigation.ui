@@ -148,7 +148,7 @@
            </item>
            <item>
             <property name="text">
-             <string>by tiles throughout a shapefile</string>
+             <string>by tiles throughout polygons</string>
             </property>
            </item>
            <item>
