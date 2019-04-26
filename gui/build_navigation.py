@@ -213,8 +213,10 @@ class BuildNavigation(QDialog, FORM_CLASS):
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout centroid of polygons":
-            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
-
+            vector_layer = self.QCBox_VectorFile.currentLayer()
+            polygons = [feature.geometry() for feature in vector_layer.getFeatures()]
+            points = [polygon.centroid().asPoint() for polygon in polygons]
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
 
         if nav_status:  # navigation is valid
             self.layer_to_edit.navigation.is_valid = True
