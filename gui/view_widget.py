@@ -60,6 +60,8 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.widget_ActiveLayer_3.setup_gui(3, self)
         # save active layers in render widget
         self.render_widget.active_layers = self.active_layers
+        # action for synchronize all view extent
+        self.render_widget.canvas.extentsChanged.connect(self.canvas_changed)
 
         # ### init the edition tools ###
         # unselect items in recode pixel table
@@ -379,17 +381,9 @@ class PickerPixelTool(QgsMapTool):
         if event.button() == Qt.LeftButton:
             self.edit(event)
 
-    def wheelEvent(self, event):
-        QgsMapTool.wheelEvent(self, event)
-        QTimer.singleShot(10, self.view_widget.canvas_changed)
-
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.finish()
-
-    def keyReleaseEvent(self, event):
-        if event.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Right, Qt.Key_Left, Qt.Key_PageUp, Qt.Key_PageDown]:
-            QTimer.singleShot(10, self.view_widget.canvas_changed)
 
 
 class PickerLineTool(QgsMapTool):
@@ -482,10 +476,6 @@ class PickerLineTool(QgsMapTool):
             self.aux_line.removeLastPoint()
             self.aux_line.addPoint(point)
 
-    def wheelEvent(self, event):
-        QgsMapTool.wheelEvent(self, event)
-        QTimer.singleShot(10, self.view_widget.canvas_changed)
-
     def canvasPressEvent(self, event):
         if self.line is None:
             self.finish()
@@ -522,10 +512,6 @@ class PickerLineTool(QgsMapTool):
             self.line.reset(QgsWkbTypes.LineGeometry)
             self.aux_line.reset(QgsWkbTypes.LineGeometry)
             self.finish()
-
-    def keyReleaseEvent(self, event):
-        if event.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Right, Qt.Key_Left, Qt.Key_PageUp, Qt.Key_PageDown]:
-            QTimer.singleShot(10, self.view_widget.canvas_changed)
 
 
 class PickerPolygonTool(QgsMapTool):
@@ -617,10 +603,6 @@ class PickerPolygonTool(QgsMapTool):
             self.aux_rubber_band.removeLastPoint()
             self.aux_rubber_band.addPoint(point)
 
-    def wheelEvent(self, event):
-        QgsMapTool.wheelEvent(self, event)
-        QTimer.singleShot(10, self.view_widget.canvas_changed)
-
     def canvasPressEvent(self, event):
         if self.rubber_band is None:
             self.finish()
@@ -657,7 +639,3 @@ class PickerPolygonTool(QgsMapTool):
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             self.finish()
-
-    def keyReleaseEvent(self, event):
-        if event.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Right, Qt.Key_Left, Qt.Key_PageUp, Qt.Key_PageDown]:
-            QTimer.singleShot(10, self.view_widget.canvas_changed)

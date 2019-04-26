@@ -45,7 +45,7 @@ class RenderWidget(QWidget):
         self.canvas.enableAntiAliasing(settings.value("/qgis/enable_anti_aliasing", False, type=bool))
         self.setMinimumSize(15, 15)
         # action pan and zoom
-        self.default_point_tool = DefaultPointTool(self)
+        self.default_point_tool = QgsMapToolPan(self.canvas)
         self.canvas.setMapTool(self.default_point_tool, clean=True)
 
         gridLayout.addWidget(self.canvas)
@@ -100,27 +100,3 @@ class RenderWidget(QWidget):
         with block_signals_to(self.canvas):
             self.canvas.setExtent(new_extent)
             self.refresh()
-
-
-class DefaultPointTool(QgsMapToolPan):
-    def __init__(self, render_widget):
-        QgsMapToolPan.__init__(self, render_widget.canvas)
-        self.render_widget = render_widget
-
-    def canvasReleaseEvent(self, event):
-        if event.button() != Qt.RightButton:
-            QgsMapToolPan.canvasReleaseEvent(self, event)
-            self.render_widget.parent_view.canvas_changed()
-
-    def canvasPressEvent(self, event):
-        if event.button() != Qt.RightButton:
-            QgsMapToolPan.canvasPressEvent(self, event)
-
-    def wheelEvent(self, event):
-        QgsMapToolPan.wheelEvent(self, event)
-        QTimer.singleShot(10, self.render_widget.parent_view.canvas_changed)
-
-    def keyReleaseEvent(self, event):
-        if event.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Right, Qt.Key_Left, Qt.Key_PageUp, Qt.Key_PageDown]:
-            QTimer.singleShot(10, self.render_widget.parent_view.canvas_changed)
-
