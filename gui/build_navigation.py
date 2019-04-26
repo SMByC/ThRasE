@@ -204,16 +204,25 @@ class BuildNavigation(QDialog, FORM_CLASS):
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
+            if not vector_layer:
+                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning)
+                return
             polygons = [feature.geometry() for feature in vector_layer.getFeatures()]
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=polygons)
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout points":
             vector_layer = self.QCBox_VectorFile.currentLayer()
+            if not vector_layer:
+                self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.Warning)
+                return
             points = [feature.geometry().asPoint() for feature in vector_layer.getFeatures()]
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout centroid of polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
+            if not vector_layer:
+                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning)
+                return
             polygons = [feature.geometry() for feature in vector_layer.getFeatures()]
             points = [polygon.centroid().asPoint() for polygon in polygons]
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
