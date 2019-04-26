@@ -77,7 +77,7 @@ class Tile(object):
             QTimer.singleShot(1200, self.hide)
 
     def is_valid(self, navigation):
-        if navigation.nav_type == "whole":
+        if navigation.nav_type in ["whole", "points"]:
             # all tiles are valid
             return True
         if navigation.nav_type == "polygons":
@@ -113,70 +113,95 @@ class Navigation(object):
         # clear before build
         self.delete()
 
-        # define the extent to compute the tiles
-        if self.nav_type == "whole":
-            rectangle_nav = self.layer_to_edit.qgs_layer.extent()
-        if self.nav_type == "polygons":
-            # compute the wrapper extent of all polygons
-            rectangle_nav = QgsRectangle()
-            for polygon in self.polygons:
-                rectangle_nav.combineExtentWith(polygon.boundingBox())
-            # intersect with the layer to edit
-            rectangle_nav = rectangle_nav.intersect(self.layer_to_edit.extent())
+        # compute the tiles in whole image or covering the polygons
+        if self.nav_type in ["whole", "polygons"]:
+            # define the extent to compute the tiles
+            if self.nav_type == "whole":
+                rectangle_nav = self.layer_to_edit.qgs_layer.extent()
+            if self.nav_type == "polygons":
+                # compute the wrapper extent of all polygons
+                rectangle_nav = QgsRectangle()
+                for polygon in self.polygons:
+                    rectangle_nav.combineExtentWith(polygon.boundingBox())
+                # intersect with the layer to edit
+                rectangle_nav = rectangle_nav.intersect(self.layer_to_edit.extent())
 
-        # number of tiles
-        nx_tiles = ceil((rectangle_nav.xMaximum() - rectangle_nav.xMinimum()) / tile_size)
-        ny_tiles = ceil((rectangle_nav.yMaximum() - rectangle_nav.yMinimum()) / tile_size)
+            # number of tiles
+            nx_tiles = ceil((rectangle_nav.xMaximum() - rectangle_nav.xMinimum()) / tile_size)
+            ny_tiles = ceil((rectangle_nav.yMaximum() - rectangle_nav.yMinimum()) / tile_size)
 
-        idx_tile = 1
-        # left-right and top-bottom
-        if nav_mode == "horizontal":
-            x_left_right = []
-            for y_tile in range(ny_tiles):
-                for x_tile in range(nx_tiles):
-                    if y_tile % 2 == 0:  # left to right
-                        xmin = rectangle_nav.xMinimum() + x_tile * tile_size
-                        xmax = xmin + tile_size
-                        x_left_right.append((xmin, xmax))
-                    else:  # right to left
-                        xmin, xmax = x_left_right.pop()
-                    ymax = rectangle_nav.yMaximum() - y_tile * tile_size
-                    ymin = ymax - tile_size
-
-                    # fix/adjust right and bottom tiles borders
-                    if xmax > rectangle_nav.xMaximum():
-                        xmax = rectangle_nav.xMaximum()
-                    if ymin < rectangle_nav.yMinimum():
-                        ymin = rectangle_nav.yMinimum()
-
-                    tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
-                    if tile.is_valid(self):
-                        self.tiles.append(tile)
-                        idx_tile += 1
-        # top-bottom and left-right
-        if nav_mode == "vertical":
-            y_top_bottom = []
-            for x_tile in range(nx_tiles):
+            idx_tile = 1
+            # left-right and top-bottom
+            if nav_mode == "horizontal":
+                x_left_right = []
                 for y_tile in range(ny_tiles):
-                    if x_tile % 2 == 0:  # top to bottom
+                    for x_tile in range(nx_tiles):
+                        if y_tile % 2 == 0:  # left to right
+                            xmin = rectangle_nav.xMinimum() + x_tile * tile_size
+                            xmax = xmin + tile_size
+                            x_left_right.append((xmin, xmax))
+                        else:  # right to left
+                            xmin, xmax = x_left_right.pop()
                         ymax = rectangle_nav.yMaximum() - y_tile * tile_size
                         ymin = ymax - tile_size
-                        y_top_bottom.append((ymin, ymax))
-                    else:  # bottom to top
-                        ymin, ymax = y_top_bottom.pop()
-                    xmin = rectangle_nav.xMinimum() + x_tile * tile_size
-                    xmax = xmin + tile_size
 
-                    # fix/adjust right and bottom tiles borders
-                    if xmax > rectangle_nav.xMaximum():
-                        xmax = rectangle_nav.xMaximum()
-                    if ymin < rectangle_nav.yMinimum():
-                        ymin = rectangle_nav.yMinimum()
+                        # fix/adjust right and bottom tiles borders
+                        if xmax > rectangle_nav.xMaximum():
+                            xmax = rectangle_nav.xMaximum()
+                        if ymin < rectangle_nav.yMinimum():
+                            ymin = rectangle_nav.yMinimum()
 
-                    tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
-                    if tile.is_valid(self):
-                        self.tiles.append(tile)
-                        idx_tile += 1
+                        tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
+                        if tile.is_valid(self):
+                            self.tiles.append(tile)
+                            idx_tile += 1
+            # top-bottom and left-right
+            if nav_mode == "vertical":
+                y_top_bottom = []
+                for x_tile in range(nx_tiles):
+                    for y_tile in range(ny_tiles):
+                        if x_tile % 2 == 0:  # top to bottom
+                            ymax = rectangle_nav.yMaximum() - y_tile * tile_size
+                            ymin = ymax - tile_size
+                            y_top_bottom.append((ymin, ymax))
+                        else:  # bottom to top
+                            ymin, ymax = y_top_bottom.pop()
+                        xmin = rectangle_nav.xMinimum() + x_tile * tile_size
+                        xmax = xmin + tile_size
+
+                        # fix/adjust right and bottom tiles borders
+                        if xmax > rectangle_nav.xMaximum():
+                            xmax = rectangle_nav.xMaximum()
+                        if ymin < rectangle_nav.yMinimum():
+                            ymin = rectangle_nav.yMinimum()
+
+                        tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
+                        if tile.is_valid(self):
+                            self.tiles.append(tile)
+                            idx_tile += 1
+        # compute the tiles using the points as center of the tiles
+        if self.nav_type == "points":
+            idx_tile = 1
+            # left-right and top-bottom
+            if nav_mode == "horizontal":
+                points_sorted = sorted(self.points, key=lambda p: (-p.y(), p.x()))
+
+            # top-bottom and left-right
+            if nav_mode == "vertical":
+                points_sorted = sorted(self.points, key=lambda p: (p.x(), -p.y()))
+
+            for point in points_sorted:
+                # check if point is inside layer to edit
+                if not self.layer_to_edit.extent().contains(point):
+                    continue
+                xmin = point.x() - tile_size/2
+                xmax = point.x() + tile_size/2
+                ymin = point.y() - tile_size/2
+                ymax = point.y() + tile_size/2
+                tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
+                if tile.is_valid(self):
+                    self.tiles.append(tile)
+                    idx_tile += 1
 
         # show all tiles in build navigation canvas dialog
         from ThRasE.core.edition import LayerToEdit
