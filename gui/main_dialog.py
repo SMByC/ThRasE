@@ -213,6 +213,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             if LayerToEdit.current.navigation.current_tile.idx == 1:
                 self.previousTile.setEnabled(False)
+                self.nextTile.setEnabled(True)
                 LayerToEdit.current.navigation.current_tile.show()
                 LayerToEdit.current.navigation.current_tile.focus()
                 [view_widget.render_widget.refresh() for view_widget in ThRasEDialog.view_widgets
