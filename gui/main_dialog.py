@@ -25,7 +25,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from qgis.PyQt import QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot
+from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
 from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel
 from qgis.PyQt.QtGui import QColor, QFont
@@ -163,8 +163,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def set_navigation_tool(self, nav_type):
         if nav_type == "free":
             self.NavigationBlockWidget.setHidden(True)
+            if LayerToEdit.current.navigation.is_valid:
+                LayerToEdit.current.navigation.current_tile.hide()
+
         if nav_type == "by tiles":
             self.NavigationBlockWidget.setVisible(True)
+            if LayerToEdit.current.navigation.is_valid:
+                LayerToEdit.current.navigation.current_tile.show()
+                if not self.currentTileKeepVisible.isChecked():
+                    QTimer.singleShot(1200, LayerToEdit.current.navigation.current_tile.hide)
 
     @pyqtSlot()
     def go_to_current_tile(self):
