@@ -24,7 +24,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QMessageBox
 from qgis.utils import iface
@@ -137,6 +137,12 @@ class ThRasE:
                 # Do something useful here - delete the line containing pass and
                 # substitute with your code.
                 pass
+        else:
+            # an instance of ThRasE is already created
+            # brings that instance to front even if it is minimized
+            ThRasE.dialog.setWindowState(ThRasE.dialog.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+            ThRasE.dialog.raise_()
+            ThRasE.dialog.activateWindow()
 
     #--------------------------------------------------------------------------
 
