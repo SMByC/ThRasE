@@ -34,10 +34,9 @@ from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology
+from ThRasE.utils.system_utils import block_signals_to, error_handler
 
 # plugin path
-from ThRasE.utils.system_utils import block_signals_to
-
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'main_dialog.ui'))
 
@@ -278,6 +277,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.setup_layer_to_edit()
 
+    @error_handler
     def setup_layer_to_edit(self):
         layer = self.QCBox_LayerToEdit.currentLayer()
         band = int(self.QCBox_band_LayerToEdit.currentText())
@@ -309,6 +309,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
         self.Widget_GlobalEditTools.setEnabled(True)
 
+    @error_handler
     def update_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current
         layer_to_edit.old_new_value = {}
@@ -343,6 +344,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # update table
         self.set_recode_pixel_table()
 
+    @error_handler
     def set_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current
 
@@ -440,6 +442,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     ((color.red(), color.green(), color.blue(), color.alpha()),)
                 self.update_recode_pixel_table()
 
+    @error_handler
     def reload_recode_table(self):
         old_pixels = LayerToEdit.current.pixels
         pixels_backup = LayerToEdit.current.pixels_backup
@@ -465,6 +468,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setup_layer_to_edit()
         self.update_recode_pixel_table()
 
+    @error_handler
     def restore_recode_table(self):
         # restore the pixels and symbology variables
         LayerToEdit.current.pixels = deepcopy(LayerToEdit.current.pixels_backup)
