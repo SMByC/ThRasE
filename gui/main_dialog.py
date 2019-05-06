@@ -40,6 +40,7 @@ from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_proc
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'main_dialog.ui'))
 
+# read metadata
 cfg = configparser.ConfigParser()
 cfg.read(str(Path(plugin_folder, 'metadata.txt')))
 VERSION = cfg.get('general', 'version')
@@ -68,7 +69,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def setup_gui(self):
         # ######### plugin info ######### #
         self.about_dialog = AboutDialog()
-        self.QPBtn_PluginInfo.setText("{}".format(VERSION))
+        self.QPBtn_PluginInfo.setText("...")
         self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
 
         # ######### navigation ######### #
