@@ -154,8 +154,9 @@ class ViewWidget(QWidget, FORM_CLASS):
                     view_widget.render_widget.update_canvas_to(new_extent)
 
     @pyqtSlot()
-    def change_lines_color(self):
-        color = QColorDialog.getColor(self.lines_color, self)
+    def change_lines_color(self, color=None):
+        if not color:
+            color = QColorDialog.getColor(self.lines_color, self)
         if color.isValid():
             self.lines_color = color
             self.LinesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
@@ -169,8 +170,9 @@ class ViewWidget(QWidget, FORM_CLASS):
                 maptool_instance.start_new_line()
 
     @pyqtSlot()
-    def change_polygons_color(self):
-        color = QColorDialog.getColor(self.polygons_color, self)
+    def change_polygons_color(self, color=None):
+        if not color:
+            color = QColorDialog.getColor(self.polygons_color, self)
         if color.isValid():
             self.polygons_color = color
             self.PolygonsColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))

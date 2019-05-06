@@ -128,8 +128,9 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.render_widget.refresh()
 
     @pyqtSlot()
-    def change_tiles_color(self):
-        color = QColorDialog.getColor(self.layer_to_edit.navigation.tiles_color, self)
+    def change_tiles_color(self, color=None):
+        if not color:
+            color = QColorDialog.getColor(self.layer_to_edit.navigation.tiles_color, self)
         if color.isValid():
             self.layer_to_edit.navigation.tiles_color = color
             self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))

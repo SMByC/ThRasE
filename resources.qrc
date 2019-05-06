@@ -24,5 +24,6 @@
         <file>icons/nav_horizontal.svg</file>
         <file>icons/nav_vertical.svg</file>
         <file>icons/visible.svg</file>
+        <file>icons/save.svg</file>
     </qresource>
 </RCC>

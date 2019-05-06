@@ -27,14 +27,14 @@ from pathlib import Path
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
-from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel
+from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY
 from qgis.PyQt.QtGui import QColor, QFont
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology
-from ThRasE.utils.system_utils import block_signals_to, error_handler
+from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -59,12 +59,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-        self.setup_gui()
+        #
+        self.grid_rows = None
+        self.grid_columns = None
 
     def setup_gui(self):
         # ######### plugin info ######### #
         self.about_dialog = AboutDialog()
-        self.QPBtn_PluginInfo.setText("v{}".format(VERSION))
+        self.QPBtn_PluginInfo.setText("{}".format(VERSION))
         self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
 
         # ######### navigation ######### #
@@ -82,22 +84,42 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.currentTileKeepVisible.clicked.connect(self.current_tile_keep_visible)
 
         # ######### build the view render widgets windows ######### #
-        render_view_config = RenderViewConfig()
-        if render_view_config.exec_():
-            grid_rows = render_view_config.grid_rows.value()
-            grid_columns = render_view_config.grid_columns.value()
+        init_dialog = InitDialog()
+        if init_dialog.exec_():
+            # new
+            if init_dialog.tabWidget.currentIndex() == 0:
+                settings_type = "new"
+                self.grid_rows = init_dialog.grid_rows.value()
+                self.grid_columns = init_dialog.grid_columns.value()
+            # load
+            if init_dialog.tabWidget.currentIndex() == 1:
+                settings_type = "load"
+                file_path = init_dialog.QgsFile_LoadConfigFile.filePath()
+                if file_path != '' and os.path.isfile(file_path):
+                    # load classification from yaml file
+                    import yaml
+                    with open(file_path, 'r') as yaml_file:
+                        try:
+                            yaml_config = yaml.load(yaml_file)
+                        except yaml.YAMLError as err:
+                            msg = "Error while read the yaml file classification config:\n\n{}".format(err)
+                            QMessageBox.critical(init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
+                            self.close()
+                            return False
+                    # restore rows/columns
+                    self.grid_rows = yaml_config["grid_view_widgets"]["rows"]
+                    self.grid_columns = yaml_config["grid_view_widgets"]["columns"]
         else:
-            # by default
-            grid_rows = 1
-            grid_columns = 1
+            self.close()
+            return False
 
         # configure the views layout
         views_layout = QGridLayout()
         views_layout.setSpacing(0)
         views_layout.setMargin(0)
         view_widgets = []
-        for row in range(grid_rows):
-            for column in range(grid_columns):
+        for row in range(self.grid_rows):
+            for column in range(self.grid_columns):
                 new_view_widget = ViewWidget()
                 views_layout.addWidget(new_view_widget, row, column)
                 view_widgets.append(new_view_widget)
@@ -120,17 +142,130 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # call to browse the render file
         self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
         # update recode pixel table
-        self.recodePixelTable.itemChanged.connect(self.update_recode_pixel_table)
+        self.recodePixelTable.itemChanged.connect(lambda: self.update_recode_pixel_table())
         # for change the class color
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
 
         # ######### others ######### #
-        self.QPBtn_ReloadRecodeTable.clicked.connect(self.reload_recode_table)
-        self.QPBtn_RestoreRecodeTable.clicked.connect(self.restore_recode_table)
+        self.QPBtn_ReloadRecodeTable.clicked.connect(lambda: self.reload_recode_table())
+        self.QPBtn_RestoreRecodeTable.clicked.connect(lambda: self.restore_recode_table())
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
         #self.QPBtn_ApplyUsingExternalClass.clicked.connect(self.apply_using_external_class) TODO
         self.QPBtn_ApplyUsingExternalClass.setDisabled(True)
+        self.SaveConfig.clicked.connect(self.fileDialog_saveConfig)
+
+        # ######### load settings from file ######### #
+        if settings_type == "load":
+            self.load_config(yaml_config)
+
+        return True
+
+    @wait_process
+    def load_config(self, yaml_config):
+        # dialog size
+        if "main_dialog_size" in yaml_config:
+            self.resize(*yaml_config["main_dialog_size"])
+        # thematic file to edit
+        if yaml_config["thematic_file_to_edit"]["path"]:
+            load_and_select_filepath_in(self.QCBox_LayerToEdit, yaml_config["thematic_file_to_edit"]["path"], "raster")
+            self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer())
+            # band number
+            if "band" in yaml_config["thematic_file_to_edit"]:
+                self.QCBox_band_LayerToEdit.setCurrentIndex(yaml_config["thematic_file_to_edit"]["band"] - 1)
+        # file config
+        LayerToEdit.current.config_file = yaml_config["config_file"]
+        # symbology and pixel table
+        if "symbology" in yaml_config:
+            LayerToEdit.current.symbology = yaml_config["symbology"]
+        LayerToEdit.current.pixels = yaml_config["recode_pixel_table"]
+        LayerToEdit.current.pixels_backup = yaml_config["recode_pixel_table_backup"]
+        self.reload_recode_table()
+        # view_widgets, active layers and edit tool
+        if "active_layers_widget" in yaml_config and yaml_config["active_layers_widget"]:
+            ThRasEDialog.view_widgets[0].active_layers_widget()
+        if "edition_tools_widget" in yaml_config and yaml_config["edition_tools_widget"]:
+            ThRasEDialog.view_widgets[0].edition_tools_widget()
+        for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"]):
+            view_widget.QLabel_ViewName.setText(yaml_view_widget["view_name"])
+            # active layers
+            for active_layer, yaml_active_layer in zip(view_widget.active_layers, yaml_view_widget["active_layers"]):
+                # load layer
+                if yaml_active_layer["layer"] and os.path.isfile(yaml_active_layer["layer"]):
+                    layer = load_and_select_filepath_in(active_layer.QCBox_RenderFile, yaml_active_layer["layer"])
+                    active_layer.set_render_layer(layer)
+                # opacity
+                active_layer.layerOpacity.setValue(yaml_active_layer["opacity"])
+                # on/off
+                if not yaml_active_layer["is_active"]:
+                    active_layer.on_off_layer(False)
+                    with block_signals_to(active_layer.OnOffActiveLayer):
+                        active_layer.OnOffActiveLayer.setChecked(False)
+                        active_layer.widget_ActiveLayer.setDisabled(True)
+            # edit tool
+            if yaml_view_widget["mouse_pixel_value"]:
+                view_widget.mousePixelValue2Table.setChecked(True)
+            if yaml_view_widget["pixels_picker_enabled"]:
+                view_widget.PixelsPicker.setChecked(True)
+                view_widget.use_pixels_picker_for_edit()
+            if yaml_view_widget["lines_picker_enabled"]:
+                view_widget.LinesPicker.setChecked(True)
+                view_widget.use_lines_picker_for_edit()
+            if yaml_view_widget["line_buffer"]:
+                selected_index = view_widget.LineBuffer.findText(yaml_view_widget["line_buffer"], Qt.MatchFixedString)
+                view_widget.LineBuffer.setCurrentIndex(selected_index)
+            if yaml_view_widget["lines_color"]:
+                view_widget.change_lines_color(QColor(yaml_view_widget["lines_color"]))
+            if yaml_view_widget["polygons_picker_enabled"]:
+                view_widget.PolygonsPicker.setChecked(True)
+                view_widget.use_polygons_picker_for_edit()
+            if yaml_view_widget["polygons_color"]:
+                view_widget.change_polygons_color(QColor(yaml_view_widget["polygons_color"]))
+        # navigation
+        if yaml_config["navigation"]["type"] != "free":
+            self.QCBox_NavType.setCurrentIndex(1)
+            selected_index = LayerToEdit.current.build_navigation_dialog.QCBox_BuildNavType.findText(
+                yaml_config["navigation"]["type"], Qt.MatchFixedString)
+            LayerToEdit.current.build_navigation_dialog.QCBox_BuildNavType.setCurrentIndex(selected_index)
+            LayerToEdit.current.build_navigation_dialog.tileSize.setValue(yaml_config["navigation"]["tile_size"])
+            if yaml_config["navigation"]["mode"] == "horizontal":
+                LayerToEdit.current.build_navigation_dialog.nav_horizontal_mode.setChecked(True)
+            else:
+                LayerToEdit.current.build_navigation_dialog.nav_vertical_mode.setChecked(True)
+            LayerToEdit.current.build_navigation_dialog.change_tiles_color(QColor(yaml_config["navigation"]["tiles_color"]))
+            # recover some stuff by type navigation
+            if yaml_config["navigation"]["type"] == "by tiles throughout the AOI" and yaml_config["navigation"]["aois"]:
+                # recover all aois and draw and save as rubber bands
+                LayerToEdit.current.build_navigation_dialog.activate_deactivate_AOI_picker()
+                nav_dialog_canvas = LayerToEdit.current.build_navigation_dialog.render_widget.canvas
+                for feature in yaml_config["navigation"]["aois"]:
+                    # rebuilt all features of the aois
+                    for x, y in feature:
+                        point = QgsPointXY(x, y)
+                        nav_dialog_canvas.mapTool().rubber_band.addPoint(point)
+                        nav_dialog_canvas.mapTool().aux_rubber_band.addPoint(point)
+                    nav_dialog_canvas.mapTool().define_polygon()
+                nav_dialog_canvas.mapTool().finish()
+            if yaml_config["navigation"]["type"] in ["by tiles throughout polygons",
+                                                     "by tiles throughout points",
+                                                     "by tiles throughout centroid of polygons"]:
+                # recover the vector file
+                load_and_select_filepath_in(LayerToEdit.current.build_navigation_dialog.QCBox_VectorFile,
+                                            yaml_config["navigation"]["vector_file"], "vector")
+            # build navigation with all settings loaded
+            LayerToEdit.current.build_navigation_dialog.call_to_build_navigation()
+            current_tile_id = yaml_config["navigation"]["current_tile_id"]
+            LayerToEdit.current.navigation.current_tile = \
+                next((tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None)
+            # navigation block widget
+            self.currentTileKeepVisible.setChecked(yaml_config["navigation"]["tile_keep_visible"])
+            self.set_navigation_tool("by tiles")
+            self.NavigationBlockWidgetControls.setEnabled(True)
+            self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
+            self.QPBar_TilesNavigation.setValue(current_tile_id)
+        # update extent
+        if "extent" in yaml_config and yaml_config["extent"]:
+            ThRasEDialog.view_widgets[0].render_widget.canvas.setExtent(QgsRectangle(*yaml_config["extent"]))
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -138,14 +273,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             super(ThRasEDialog, self).keyPressEvent(event)
 
     def closeEvent(self, event):
-        # first prompt
-        quit_msg = "Are you sure you want close the ThRasE plugin?"
-        reply = QMessageBox.question(None, 'Closing the ThRasE plugin',
-                                     quit_msg, QMessageBox.Yes, QMessageBox.No)
-        if reply == QMessageBox.No:
-            # don't close
-            event.ignore()
-            return
+        # first prompt if dialog is opened
+        if self.isVisible():
+            quit_msg = "Are you sure you want close the ThRasE plugin?"
+            reply = QMessageBox.question(None, 'Closing the ThRasE plugin',
+                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                # don't close
+                event.ignore()
+                return
         # close
         self.closingPlugin.emit()
         event.accept()
@@ -240,6 +376,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.QPBtn_RestoreRecodeTable.setDisabled(True)
             self.Widget_GlobalEditTools.setDisabled(True)
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
+            self.SaveConfig.setDisabled(True)
             with block_signals_to(self.QCBox_band_LayerToEdit):
                 self.QCBox_band_LayerToEdit.clear()
             LayerToEdit.current = None
@@ -308,6 +445,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_ReloadRecodeTable.setEnabled(True)
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
         self.Widget_GlobalEditTools.setEnabled(True)
+        self.SaveConfig.setEnabled(True)
 
     @error_handler
     def update_recode_pixel_table(self):
@@ -491,11 +629,26 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if reply == QMessageBox.Ok:
             LayerToEdit.current.edit_whole_image()
 
+    @pyqtSlot()
+    def fileDialog_saveConfig(self):
+        if LayerToEdit.current.config_file:
+            suggested_filename = LayerToEdit.current.config_file
+        else:
+            path, filename = os.path.split(LayerToEdit.current.file_path)
+            suggested_filename = os.path.splitext(os.path.join(path, filename))[0] + "_thrase.yml"
 
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'render_view_config_dialog.ui'))
+        file_out, _ = QFileDialog.getSaveFileName(self, self.tr("Save current configuration of ThRasE plugin"),
+                                                  suggested_filename,
+                                                  self.tr("Yaml (*.yaml *.yml);;All files (*.*)"))
+        if file_out != '':
+            LayerToEdit.current.save_config(file_out)
+            self.MsgBar.pushMessage("ThRasE", "File saved successfully", level=Qgis.Success)
 
 
-class RenderViewConfig(QtWidgets.QDialog, FORM_CLASS):
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'init_dialog.ui'))
+
+
+class InitDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)

@@ -128,7 +128,9 @@ class ThRasE:
             # connect to provide cleanup on closing of dialog
             ThRasE.dialog.closingPlugin.connect(self.onClosePlugin)
 
-            # show the dialog
+            # setup and show the dialog
+            if not ThRasE.dialog.setup_gui():
+                return
             ThRasE.dialog.show()
             # Run the dialog event loop
             result = ThRasE.dialog.exec_()

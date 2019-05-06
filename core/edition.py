@@ -24,6 +24,7 @@ import numpy as np
 from copy import deepcopy
 from shutil import move
 from osgeo import gdal
+from collections import OrderedDict
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
@@ -80,6 +81,8 @@ class LayerToEdit(object):
         self.history_pixels = History("pixels")
         self.history_lines = History("lines")
         self.history_polygons = History("polygons")
+        # save config file
+        self.config_file = None
 
         LayerToEdit.instances[(layer.id(), band)] = self
 
@@ -118,7 +121,8 @@ class LayerToEdit(object):
                 self.pixels.append(pixel)
 
             # save backup
-            self.pixels_backup = deepcopy(self.pixels)
+            if not self.pixels_backup:
+                self.pixels_backup = deepcopy(self.pixels)
             # init the symbology table
             self.setup_symbology()
 
@@ -352,6 +356,81 @@ class LayerToEdit(object):
             self.qgs_layer.setCacheImage(None)
         self.qgs_layer.reload()
         self.qgs_layer.triggerRepaint()
+
+    @wait_process
+    def save_config(self, file_out):
+        from ThRasE.thrase import ThRasE
+        import yaml
+        # save in class
+        self.config_file = file_out
+
+        def setup_yaml():
+            """Keep dump ordered with orderedDict"""
+            represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', list(data.items()))
+            yaml.add_representer(OrderedDict, represent_dict_order)
+
+        setup_yaml()
+
+        data = OrderedDict()
+        # general settings
+        data["thematic_file_to_edit"] = \
+            {"path": self.file_path,
+             "band": self.band}
+        data["grid_view_widgets"] = {"columns": ThRasE.dialog.grid_columns, "rows": ThRasE.dialog.grid_rows}
+        data["main_dialog_size"] = (ThRasE.dialog.size().width(), ThRasE.dialog.size().height())
+        data["config_file"] = self.config_file
+        # recode pixel table
+        data["recode_pixel_table"] = self.pixels
+        data["recode_pixel_table_backup"] = self.pixels_backup
+        # the colors of thematic raster
+        data["symbology"] = self.symbology
+        # view_widgets, active layers and edit tool
+        from ThRasE.gui.main_dialog import ThRasEDialog
+        data["active_layers_widget"] = ThRasEDialog.view_widgets[0].widget_ActiveLayers.isVisible()
+        data["edition_tools_widget"] = ThRasEDialog.view_widgets[0].widget_EditionTools.isVisible()
+        data["extent"] = ThRasEDialog.view_widgets[0].render_widget.canvas.extent().toRectF().getCoords()
+        # view_widgets, active layers and edit tool
+        data["view_widgets"] = []
+        for view_widget in ThRasEDialog.view_widgets:
+            active_layers = []
+            for active_layer in view_widget.active_layers:
+                active_layers.append({"is_active": active_layer.OnOffActiveLayer.isChecked(),
+                                      "layer": get_file_path_of_layer(active_layer.layer),
+                                      "opacity": active_layer.opacity})
+            data["view_widgets"].append({"view_name": view_widget.QLabel_ViewName.text(),
+                                         "active_layers": active_layers,
+                                         "mouse_pixel_value": view_widget.mousePixelValue2Table.isChecked(),
+                                         "pixels_picker_enabled": view_widget.PixelsPicker.isChecked(),
+                                         "lines_picker_enabled": view_widget.LinesPicker.isChecked(),
+                                         "line_buffer": view_widget.LineBuffer.currentText(),
+                                         "lines_color": view_widget.lines_color.name(),
+                                         "polygons_picker_enabled": view_widget.PolygonsPicker.isChecked(),
+                                         "polygons_color": view_widget.polygons_color.name()})
+        # navigation
+        data["navigation"] = {}
+        if ThRasE.dialog.QCBox_NavType.currentText() == "free" or not self.navigation.is_valid:
+            data["navigation"]["type"] = "free"
+        else:
+            data["navigation"]["type"] = self.build_navigation_dialog.QCBox_BuildNavType.currentText()
+            data["navigation"]["tile_keep_visible"] = ThRasE.dialog.currentTileKeepVisible.isChecked()
+            data["navigation"]["tile_size"] = self.build_navigation_dialog.tileSize.value()
+            data["navigation"]["mode"] = \
+                "horizontal" if self.build_navigation_dialog.nav_horizontal_mode.isChecked() else "vertical"
+            data["navigation"]["tiles_color"] = self.navigation.tiles_color.name()
+            data["navigation"]["current_tile_id"] = self.navigation.current_tile.idx
+            # special type navigation
+            if data["navigation"]["type"] == "by tiles throughout the AOI":
+                aois = [[[[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asPolygon()][0]
+                        for aoi in self.build_navigation_dialog.aoi_drawn]
+                data["navigation"]["aois"] = aois
+            if data["navigation"]["type"] in ["by tiles throughout polygons",
+                                              "by tiles throughout points",
+                                              "by tiles throughout centroid of polygons"]:
+                data["navigation"]["vector_file"] = \
+                    get_file_path_of_layer(self.build_navigation_dialog.QCBox_VectorFile.currentLayer())
+
+        with open(file_out, 'w') as yaml_file:
+            yaml.dump(data, yaml_file)
 
 
 class History:
