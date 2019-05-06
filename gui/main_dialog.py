@@ -62,6 +62,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         #
         self.grid_rows = None
         self.grid_columns = None
+        # flags
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint)
 
     def setup_gui(self):
         # ######### plugin info ######### #
