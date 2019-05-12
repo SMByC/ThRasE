@@ -66,7 +66,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.QCBox_VectorFile.currentIndexChanged.connect(
             lambda: self.render_over_thematic(self.QCBox_VectorFile.currentLayer()))
         # call to browse the render file
-        self.QPBtn_BrowseVectorFile.clicked.connect(lambda: self.fileDialog_browse(
+        self.QPBtn_BrowseVectorFile.clicked.connect(lambda: self.browser_dialog_to_load_file(
             self.QCBox_VectorFile,
             dialog_title=self.tr("Select the vector file"),
             file_filters=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)")))
@@ -108,7 +108,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
         super().exec_()
 
     @pyqtSlot()
-    def fileDialog_browse(self, combo_box, dialog_title, file_filters):
+    def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list

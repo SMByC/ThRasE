@@ -59,7 +59,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.QCBox_RenderFile.currentIndexChanged.connect(lambda: self.set_render_layer(self.QCBox_RenderFile.currentLayer()))
         self.QCBox_RenderFile.setToolTip("{} layer".format({1: "upper", 2: "intermediate", 3: "lower"}[self.id]))
         # call to browse the render file
-        self.QCBox_browseRenderFile.clicked.connect(lambda: self.fileDialog_browse(
+        self.QCBox_browseRenderFile.clicked.connect(lambda: self.browser_dialog_to_load_file(
             self.QCBox_RenderFile,
             dialog_title=self.tr("Select the {} layer for this view".format({1: "upper", 2: "intermediate", 3: "lower"}[self.id])),
             file_filters=self.tr("Raster or vector files (*.tif *.img *.gpkg *.shp);;All files (*.*)")))
@@ -73,7 +73,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.layerOpacity.valueChanged[int].connect(self.update_layer_opacity)
 
     @pyqtSlot()
-    def fileDialog_browse(self, combo_box, dialog_title, file_filters):
+    def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
