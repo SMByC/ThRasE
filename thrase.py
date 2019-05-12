@@ -34,7 +34,7 @@ from .resources import *
 
 from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.gui.about_dialog import AboutDialog
-from ThRasE.utils.qgis_utils import unload_layer_in_qgis
+from ThRasE.utils.qgis_utils import unload_layer
 
 
 class ThRasE:
@@ -192,7 +192,7 @@ class ThRasE:
         except: files_in_tmp_dir = []
 
         for file_tmp in files_in_tmp_dir:
-            unload_layer_in_qgis(str(file_tmp))
+            unload_layer(str(file_tmp))
 
         # clear ThRasE.tmp_dir
         if ThRasE.tmp_dir and os.path.isdir(ThRasE.tmp_dir):

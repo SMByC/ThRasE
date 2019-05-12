@@ -69,8 +69,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.QPBtn_BrowseVectorFile.clicked.connect(lambda: self.fileDialog_browse(
             self.QCBox_VectorFile,
             dialog_title=self.tr("Select the vector file"),
-            dialog_types=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
-            layer_type="vector"))
+            file_filters=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)")))
         # buttons connections
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
         self.TilesColor.clicked.connect(self.change_tiles_color)
@@ -109,11 +108,11 @@ class BuildNavigation(QDialog, FORM_CLASS):
         super().exec_()
 
     @pyqtSlot()
-    def fileDialog_browse(self, combo_box, dialog_title, dialog_types, layer_type):
-        file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", dialog_types)
+    def fileDialog_browse(self, combo_box, dialog_title, file_filters):
+        file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_and_select_filepath_in(combo_box, file_path, layer_type)
+            load_and_select_filepath_in(combo_box, file_path)
 
             self.render_over_thematic(combo_box.currentLayer())
 

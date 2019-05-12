@@ -171,7 +171,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.resize(*yaml_config["main_dialog_size"])
         # thematic file to edit
         if yaml_config["thematic_file_to_edit"]["path"]:
-            load_and_select_filepath_in(self.QCBox_LayerToEdit, yaml_config["thematic_file_to_edit"]["path"], "raster")
+            load_and_select_filepath_in(self.QCBox_LayerToEdit, yaml_config["thematic_file_to_edit"]["path"])
             self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer())
             # band number
             if "band" in yaml_config["thematic_file_to_edit"]:
@@ -254,7 +254,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                                                      "by tiles throughout centroid of polygons"]:
                 # recover the vector file
                 load_and_select_filepath_in(LayerToEdit.current.build_navigation_dialog.QCBox_VectorFile,
-                                            yaml_config["navigation"]["vector_file"], "vector")
+                                            yaml_config["navigation"]["vector_file"])
             # build navigation with all settings loaded
             LayerToEdit.current.build_navigation_dialog.call_to_build_navigation()
             current_tile_id = yaml_config["navigation"]["current_tile_id"]
@@ -296,7 +296,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.tr("Raster files (*.tif *.img);;All files (*.*)"))
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_and_select_filepath_in(self.QCBox_RenderFile_1, file_path, "raster")
+            load_and_select_filepath_in(self.QCBox_RenderFile_1, file_path)
 
     def set_navigation_tool(self, nav_type):
         if nav_type == "free":
