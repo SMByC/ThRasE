@@ -22,7 +22,8 @@
 import os
 from pathlib import Path
 
-from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis, QgsWkbTypes, QgsFeature
+from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis, QgsWkbTypes, QgsFeature, QgsCoordinateReferenceSystem, \
+    QgsCoordinateTransform, QgsProject
 from qgis.gui import QgsMapToolPan, QgsRubberBand, QgsMapTool
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
@@ -200,6 +201,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
                 self.MsgBar.pushMessage("Navigation was not built: there aren't polygons drawn", level=Qgis.Warning)
                 return
             aois = [aoi.asGeometry() for aoi in self.aoi_drawn]
+            # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=aois)
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout polygons":
@@ -207,15 +209,28 @@ class BuildNavigation(QDialog, FORM_CLASS):
             if not vector_layer:
                 self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning)
                 return
-            polygons = [feature.geometry() for feature in vector_layer.getFeatures()]
-            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=polygons)
+            geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
+            # convert all coordinates system of the input geometries to target crs of the thematic edit file
+            crs_transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(vector_layer.crs()),
+                                                   QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
+                                                   QgsProject.instance())
+            [geom.transform(crs_transform) for geom in geometries]
+            # build navigation
+            nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=geometries)
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout points":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
                 self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.Warning)
                 return
-            points = [feature.geometry().asPoint() for feature in vector_layer.getFeatures()]
+            geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as points
+            # convert all coordinates system of the input geometries to target crs of the thematic edit file
+            crs_transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(vector_layer.crs()),
+                                                   QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
+                                                   QgsProject.instance())
+            [geom.transform(crs_transform) for geom in geometries]
+            points = [geom.asPoint() for geom in geometries]
+            # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
 
         if self.QCBox_BuildNavType.currentText() == "by tiles throughout centroid of polygons":
@@ -223,8 +238,14 @@ class BuildNavigation(QDialog, FORM_CLASS):
             if not vector_layer:
                 self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning)
                 return
-            polygons = [feature.geometry() for feature in vector_layer.getFeatures()]
-            points = [polygon.centroid().asPoint() for polygon in polygons]
+            geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
+            # convert all coordinates system of the input geometries to target crs of the thematic edit file
+            crs_transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(vector_layer.crs()),
+                                                   QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
+                                                   QgsProject.instance())
+            [geom.transform(crs_transform) for geom in geometries]
+            points = [geom.centroid().asPoint() for geom in geometries]
+            # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
 
         if nav_status:  # navigation is valid
