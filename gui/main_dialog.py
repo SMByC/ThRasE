@@ -193,10 +193,36 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             view_widget.QLabel_ViewName.setText(yaml_view_widget["view_name"])
             # active layers
             for active_layer, yaml_active_layer in zip(view_widget.active_layers, yaml_view_widget["active_layers"]):
-                # load layer
-                if yaml_active_layer["layer"] and os.path.isfile(yaml_active_layer["layer"]):
-                    layer = load_and_select_filepath_in(active_layer.QCBox_RenderFile, yaml_active_layer["layer"])
+                # TODO delete after some time, compatibility old yaml file
+                if "layer" in yaml_active_layer:
+                    yaml_active_layer["layer_path"] = yaml_active_layer["layer"]
+                if "layer_name" not in yaml_active_layer:
+                    if yaml_active_layer["layer_path"]:
+                        yaml_active_layer["layer_name"] = os.path.splitext(os.path.basename(yaml_active_layer["layer_path"]))[0]
+                    else:
+                        yaml_active_layer["layer_name"] = ""
+
+                # check if the file for this active layer if exists and is loaded in Qgis
+                layer_name = yaml_active_layer["layer_name"]
+                file_index = active_layer.QCBox_RenderFile.findText(layer_name, Qt.MatchFixedString)
+
+                # select the layer or load it
+                if file_index > 0:
+                    # select layer if exists in Qgis
+                    active_layer.QCBox_RenderFile.setCurrentIndex(file_index)
+                elif yaml_active_layer["layer_path"] and os.path.isfile(yaml_active_layer["layer_path"]):
+                    # load file and select in view if this exists and not load in Qgis
+                    layer = load_and_select_filepath_in(active_layer.QCBox_RenderFile, yaml_active_layer["layer_path"],
+                                                        layer_name=layer_name)
                     active_layer.set_render_layer(layer)
+                elif yaml_active_layer["layer_path"] and not os.path.isfile(yaml_active_layer["layer_path"]):
+                    self.MsgBar.pushMessage(
+                        "Could not load the layer '{}' in the view {}: no such file {}".format(
+                            layer_name,
+                            "'{}'".format(yaml_view_widget["view_name"]) if yaml_view_widget["view_name"] else view_widget.id,
+                            yaml_active_layer["layer_path"]), level=Qgis.Warning, duration=20)
+                    continue
+
                 # opacity
                 active_layer.layerOpacity.setValue(yaml_active_layer["opacity"])
                 # on/off

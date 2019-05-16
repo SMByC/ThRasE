@@ -395,7 +395,8 @@ class LayerToEdit(object):
             active_layers = []
             for active_layer in view_widget.active_layers:
                 active_layers.append({"is_active": active_layer.OnOffActiveLayer.isChecked(),
-                                      "layer": get_file_path_of_layer(active_layer.layer),
+                                      "layer_name": active_layer.layer.name() if active_layer.layer else None,
+                                      "layer_path": get_file_path_of_layer(active_layer.layer),
                                       "opacity": active_layer.opacity})
             data["view_widgets"].append({"view_name": view_widget.QLabel_ViewName.text(),
                                          "active_layers": active_layers,
