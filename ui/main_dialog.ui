@@ -453,6 +453,9 @@ padding-right: 3px;</string>
                  <property name="cursor">
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
+                 <property name="toolTip">
+                  <string>Open the build navigation dialog</string>
+                 </property>
                  <property name="text">
                   <string>Build Navigation</string>
                  </property>
@@ -854,9 +857,6 @@ padding-right: 3px;</string>
               <property name="cursor">
                <cursorShape>WhatsThisCursor</cursorShape>
               </property>
-              <property name="toolTip">
-               <string>About</string>
-              </property>
               <property name="text">
                <string>version</string>
               </property>
@@ -894,7 +894,7 @@ padding-right: 3px;</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Save all settings of ThRasE dialog</string>
+               <string>Save all settings and configuration of ThRasE dialog, views, pixel table, navigation and status</string>
               </property>
               <property name="text">
                <string>Save</string>
