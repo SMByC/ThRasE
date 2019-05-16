@@ -658,11 +658,13 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def apply_whole_image(self):
         # first prompt
         quit_msg = "This action apply the changes set in recode pixels table to the whole image, this cannot undone. \n\n" \
-                   "Layer to apply: \"{}\"".format(LayerToEdit.current.qgs_layer.name())
+                   "Target layer: \"{}\"".format(LayerToEdit.current.qgs_layer.name())
         reply = QMessageBox.question(None, 'Applying changes to the whole image',
-                                     quit_msg, QMessageBox.Ok, QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
+                                     quit_msg, QMessageBox.Apply | QMessageBox.Cancel, QMessageBox.Cancel)
+        if reply == QMessageBox.Apply:
             LayerToEdit.current.edit_whole_image()
+            self.MsgBar.pushMessage("Changes in recode pixels table were successfully applied to the whole thematic file",
+                                    level=Qgis.Success)
 
     @pyqtSlot()
     def fileDialog_saveConfig(self):
