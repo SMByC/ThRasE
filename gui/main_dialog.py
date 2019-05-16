@@ -69,7 +69,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def setup_gui(self):
         # ######### plugin info ######### #
         self.about_dialog = AboutDialog()
-        self.QPBtn_PluginInfo.setText("...")
+        self.QPBtn_PluginInfo.setText("About")
         self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
 
         # ######### navigation ######### #
@@ -325,6 +325,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             load_and_select_filepath_in(self.QCBox_RenderFile_1, file_path)
 
     def set_navigation_tool(self, nav_type):
+        if not LayerToEdit.current:
+            self.MsgBar.pushMessage("First select a valid thematic raster file to edit", level=Qgis.Warning)
+            with block_signals_to(self.QCBox_NavType):
+                self.QCBox_NavType.setCurrentIndex(0)
+            return
+
         if nav_type == "free":
             self.NavigationBlockWidget.setHidden(True)
             if LayerToEdit.current.navigation.is_valid:
