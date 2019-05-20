@@ -65,13 +65,13 @@ def get_current_file_path_in(combo_box, show_message=True):
     return None
 
 
-def load_and_select_filepath_in(combo_box, file_path, layer_name=None):
+def load_and_select_filepath_in(combo_box, file_path, layer_name=None, add_to_legend=True):
     if not layer_name:
         layer_name = os.path.splitext(os.path.basename(file_path))[0]
     layer = get_layer_by_name(layer_name)
     # load
     if not layer:
-        load_layer(file_path, name=layer_name)
+        load_layer(file_path, name=layer_name, add_to_legend=add_to_legend)
     # select the sampling file in combobox
     selected_index = combo_box.findText(layer_name, Qt.MatchFixedString)
     combo_box.setCurrentIndex(selected_index)
