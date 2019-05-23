@@ -321,7 +321,7 @@ class LayerToEdit(object):
             # read
             ds_in = gdal.Open(self.file_path)
             num_bands = ds_in.RasterCount
-            data_array = ds_in.GetRasterBand(self.band).ReadAsArray()
+            data_array = ds_in.GetRasterBand(self.band).ReadAsArray().astype(np.int)
             new_data_array = deepcopy(data_array)
 
             # apply changes
