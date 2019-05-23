@@ -793,7 +793,7 @@ padding-right: 3px;</string>
                 </widget>
                </item>
                <item>
-                <widget class="QToolButton" name="QPBtn_ApplyUsingExternalClass">
+                <widget class="QToolButton" name="QPBtn_ApplyFromThematicClasses">
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
@@ -804,7 +804,7 @@ padding-right: 3px;</string>
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="text">
-                  <string>Using an external class</string>
+                  <string>From thematic file classes</string>
                  </property>
                  <property name="icon">
                   <iconset>

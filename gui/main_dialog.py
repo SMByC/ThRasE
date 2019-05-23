@@ -33,6 +33,7 @@ from qgis.PyQt.QtGui import QColor, QFont
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget
+from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
@@ -154,8 +155,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_RestoreRecodeTable.clicked.connect(lambda: self.restore_recode_table())
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
-        #self.QPBtn_ApplyUsingExternalClass.clicked.connect(self.apply_using_external_class) TODO
-        self.QPBtn_ApplyUsingExternalClass.setDisabled(True)
+        self.apply_from_thematic_classes = ApplyFromThematicClasses()
+        self.QPBtn_ApplyFromThematicClasses.clicked.connect(self.apply_from_thematic_classes_dialog)
         self.SaveConfig.clicked.connect(self.fileDialog_saveConfig)
 
         # ######### load settings from file ######### #
@@ -655,6 +656,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
         self.Widget_GlobalEditTools.setEnabled(True)
 
+    @pyqtSlot()
     def apply_whole_image(self):
         # check if the recode pixel table is empty
         if not LayerToEdit.current.old_new_value:
@@ -672,6 +674,21 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.edit_whole_image()
             self.MsgBar.pushMessage(
                 "Changes in recode pixels table were successfully applied to the whole thematic file",
+                level=Qgis.Success)
+
+    @pyqtSlot()
+    def apply_from_thematic_classes_dialog(self):
+        # check if the recode pixel table is empty
+        if not LayerToEdit.current.old_new_value:
+            self.MsgBar.pushMessage(
+                "There are no changes to apply set in the recode pixel table, first configure it",
+                level=Qgis.Warning)
+            return
+
+        self.apply_from_thematic_classes.setup_gui()
+        if self.apply_from_thematic_classes.exec_():
+            self.MsgBar.pushMessage(
+                "Changes in recode pixels table were successfully applied using thematic file classes",
                 level=Qgis.Success)
 
     @pyqtSlot()
