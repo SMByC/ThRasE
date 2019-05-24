@@ -53,10 +53,15 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         self.render_widget.canvas.setMapTool(self.map_tool_pan, clean=True)
 
     def setup_gui(self):
-        # clear table
+        # clear
         self.PixelTable.clear()
-        # set properties to QgsMapLayerComboBox
+        self.PixelTable.setRowCount(0)
+        self.PixelTable.setColumnCount(0)
         self.QCBox_ThematicFile.setCurrentIndex(-1)
+        self.render_widget.canvas.setLayers([])
+        self.render_widget.refresh()
+        self.QCBox_band_ThematicFile.clear()
+        # set properties to QgsMapLayerComboBox
         self.QCBox_ThematicFile.setFilters(QgsMapLayerProxyModel.RasterLayer)
         # ignore and not show the current thematic
         self.QCBox_ThematicFile.setExceptedLayerList([LayerToEdit.current.qgs_layer])
@@ -90,6 +95,8 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             self.render_widget.canvas.setLayers([])
             self.render_widget.refresh()
             self.PixelTable.clear()
+            self.PixelTable.setRowCount(0)
+            self.PixelTable.setColumnCount(0)
             with block_signals_to(self.QCBox_band_ThematicFile):
                 self.QCBox_band_ThematicFile.clear()
 
@@ -128,10 +135,14 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
     @error_handler
     def setup_thematic_file_classes(self):
         # extract pixel classes from file
+        if not self.QCBox_band_ThematicFile.currentText():
+            return
         band = int(self.QCBox_band_ThematicFile.currentText())
         xml_style_items = get_xml_style(self.thematic_file_classes, band)
         if xml_style_items is None:
             self.PixelTable.clear()
+            self.PixelTable.setRowCount(0)
+            self.PixelTable.setColumnCount(0)
             return
         self.pixel_classes = []
         for xml_item in xml_style_items:
@@ -150,6 +161,8 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
     def set_pixel_table(self):
         # clear table
         self.PixelTable.clear()
+        self.PixelTable.setRowCount(0)
+        self.PixelTable.setColumnCount(0)
         if not self.thematic_file_classes:
             return
 
@@ -280,6 +293,8 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
         # clear
         self.PixelTable.clear()
+        self.PixelTable.setRowCount(0)
+        self.PixelTable.setColumnCount(0)
         self.render_widget.canvas.setLayers([])
         self.render_widget.canvas.clearCache()
         self.render_widget.refresh()
