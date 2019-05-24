@@ -237,6 +237,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
              for n_y, y in enumerate(np.arange(y_min, y_max + ps_y/2.0, ps_y)[::-1])
              for n_x, x in enumerate(np.arange(x_min, x_max + ps_x/2.0, ps_x))
              if da_intercepted[n_y][n_x] in classes_selected]
+        del da_intercepted
 
         # edit all pixels inside the classes selected based on the recode pixel table
         edit_status = [LayerToEdit.current.edit_pixel(pixel) for pixel in pixels_to_process]
