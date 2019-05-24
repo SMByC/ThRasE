@@ -84,13 +84,34 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
     @pyqtSlot(QgsMapLayer)
     def select_thematic_file_classes(self, layer):
-        if not layer:
+        def clear():
+            with block_signals_to(self.QCBox_ThematicFile):
+                self.QCBox_ThematicFile.setCurrentIndex(-1)
             self.render_widget.canvas.setLayers([])
             self.render_widget.refresh()
             self.PixelTable.clear()
             with block_signals_to(self.QCBox_band_ThematicFile):
                 self.QCBox_band_ThematicFile.clear()
+
+        if not layer:
+            clear()
             return
+
+        if layer.crs() != LayerToEdit.current.qgs_layer.crs():
+            self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same coordinate system with respect to "
+                                    "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
+                                    level=Qgis.Critical, duration=20)
+            clear()
+            return
+
+        if (round(layer.rasterUnitsPerPixelX(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelX(), 3) or
+            round(layer.rasterUnitsPerPixelY(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY(), 3)):
+            self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same pixel size with respect to "
+                                    "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
+                                    level=Qgis.Critical, duration=20)
+            clear()
+            return
+
         self.render_widget.canvas.setDestinationCrs(layer.crs())
         self.render_widget.canvas.setLayers([layer])
         self.render_widget.canvas.setExtent(layer.extent())
