@@ -23,8 +23,9 @@ import os
 from copy import deepcopy
 from pathlib import Path
 import numpy as np
+from osgeo import gdal
 
-from qgis.core import QgsMapLayerProxyModel, Qgis, QgsMapLayer, QgsPointXY, QgsRaster
+from qgis.core import QgsMapLayerProxyModel, Qgis, QgsMapLayer, QgsPointXY
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
@@ -33,7 +34,7 @@ from qgis.PyQt.QtCore import pyqtSlot, Qt
 
 from ThRasE.core.edition import LayerToEdit, edit_layer
 from ThRasE.utils.others_utils import get_xml_style
-from ThRasE.utils.qgis_utils import load_and_select_filepath_in, apply_symbology
+from ThRasE.utils.qgis_utils import load_and_select_filepath_in, apply_symbology, get_file_path_of_layer
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
 # plugin path
@@ -211,23 +212,31 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
         extent_intercepted = LayerToEdit.current.qgs_layer.extent().intersect(self.thematic_file_classes.extent())
 
-        ps_x = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
-        ps_y = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
+        ps_x = self.thematic_file_classes.rasterUnitsPerPixelX()  # pixel size in x
+        ps_y = self.thematic_file_classes.rasterUnitsPerPixelY()  # pixel size in y
 
         # locate the pixel centroid in x and y for the pixel in min/max in the extent
-        y_min = LayerToEdit.current.bounds[3] - int((LayerToEdit.current.bounds[3] - extent_intercepted.yMinimum()) / ps_y) * ps_y - ps_y / 2
-        y_max = LayerToEdit.current.bounds[3] - int((LayerToEdit.current.bounds[3] - extent_intercepted.yMaximum()) / ps_y) * ps_y - ps_y / 2
-        x_min = LayerToEdit.current.bounds[0] + int((extent_intercepted.xMinimum() - LayerToEdit.current.bounds[0]) / ps_x) * ps_x + ps_x / 2
-        x_max = LayerToEdit.current.bounds[0] + int((extent_intercepted.xMaximum() - LayerToEdit.current.bounds[0]) / ps_x) * ps_x + ps_x / 2
-        # analysis all pixel if is inside the polygon drawn
-        band = int(self.QCBox_band_ThematicFile.currentText())
+        y_min = extent_intercepted.yMinimum() + (ps_y / 2.0)
+        y_max = extent_intercepted.yMaximum() - (ps_y / 2.0)
+        x_min = extent_intercepted.xMinimum() + (ps_x / 2.0)
+        x_max = extent_intercepted.xMaximum() - (ps_x / 2.0)
+        # index for extent intercepted start in the corner left-top respect to thematic file classes
+        idx_x = int((x_min - self.thematic_file_classes.extent().xMinimum()) / ps_x)
+        idx_y = int((self.thematic_file_classes.extent().yMaximum() - y_max) / ps_y)
+
+        thematic_classes_band = int(self.QCBox_band_ThematicFile.currentText())
+
+        # data array for the extent intercepted using the thematic file classes values
+        ds_in = gdal.Open(get_file_path_of_layer(self.thematic_file_classes))
+        da_intercepted = ds_in.GetRasterBand(thematic_classes_band).ReadAsArray(
+            idx_x, idx_y, int(round((x_max-x_min)/ps_x + 1)), int(round((y_max-y_min)/ps_y + 1))).astype(np.int)
+        del ds_in
 
         pixels_to_process = \
             [QgsPointXY(x, y)
-             for y in np.arange(y_min, y_max + ps_y, ps_y)
-             for x in np.arange(x_min, x_max + ps_x, ps_x)
-             if self.thematic_file_classes.dataProvider().identify(QgsPointXY(x, y), QgsRaster.IdentifyFormatValue).results()[band]
-             in classes_selected]
+             for n_y, y in enumerate(np.arange(y_min, y_max + ps_y/2.0, ps_y)[::-1])
+             for n_x, x in enumerate(np.arange(x_min, x_max + ps_x/2.0, ps_x))
+             if da_intercepted[n_y][n_x] in classes_selected]
 
         # edit all pixels inside the classes selected based on the recode pixel table
         edit_status = [LayerToEdit.current.edit_pixel(pixel) for pixel in pixels_to_process]
@@ -241,12 +250,11 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             return
 
         # return to origin symbology
-        band = int(self.QCBox_band_ThematicFile.currentText())
         symbology = \
             [(str(pixel["value"]), pixel["value"],
               (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"]))
              for pixel in self.pixel_classes_backup]
-        apply_symbology(self.thematic_file_classes, band, symbology)
+        apply_symbology(self.thematic_file_classes, thematic_classes_band, symbology)
 
         # clear
         self.PixelTable.clear()
