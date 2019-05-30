@@ -233,7 +233,7 @@
           <widget class="QWidget" name="widget" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <property name="spacing">
-             <number>0</number>
+             <number>2</number>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -449,7 +449,7 @@
           <widget class="QWidget" name="widget_2" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <property name="spacing">
-             <number>0</number>
+             <number>2</number>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -791,7 +791,7 @@ QToolButton
           <widget class="QWidget" name="widget_3" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_8">
             <property name="spacing">
-             <number>0</number>
+             <number>2</number>
             </property>
             <property name="leftMargin">
              <number>0</number>
