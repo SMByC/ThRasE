@@ -27,15 +27,20 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget
 from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, Qgis, QgsStyle, QgsMapLayer, QgsRasterShader, \
-    QgsColorRampShader, QgsSingleBandPseudoColorRenderer, QgsRasterRange
+    QgsColorRampShader, QgsSingleBandPseudoColorRenderer
 from qgis.utils import iface
 
 
+def get_file_path_of_layer(layer):
+    if layer and layer.isValid():
+        return os.path.realpath(layer.source())
+    return ""
+
+
 def valid_file_selected_in(combo_box):
-    try:
-        combo_box.currentLayer().dataProvider().dataSourceUri()
+    if combo_box.currentLayer() is not None and combo_box.currentLayer().isValid():
         return True
-    except:
+    else:
         combo_box.setCurrentIndex(-1)
         return False
 
@@ -46,22 +51,12 @@ def get_layer_by_name(layer_name):
         return layer[0]
 
 
-def get_file_path_of_layer(layer):
-    try:
-        return str(layer.dataProvider().dataSourceUri().split('|layerid')[0])
-    except:
-        return None
-
-
 def get_current_file_path_in(combo_box, show_message=True):
-    try:
-        file_path = str(combo_box.currentLayer().dataProvider().dataSourceUri().split('|layerid')[0])
-        if os.path.isfile(file_path) or file_path.startswith("memory"):
-            return file_path
-    except:
-        if show_message:
-            iface.messageBar().pushMessage("ThRasE", "Error, please select a valid file",
-                                           level=Qgis.Warning)
+    file_path = get_file_path_of_layer(combo_box.currentLayer())
+    if os.path.isfile(file_path):
+        return file_path
+    elif show_message:
+        iface.messageBar().pushMessage("ThRasE", "Error, please select a valid file", level=Qgis.Warning)
     return None
 
 
@@ -106,9 +101,8 @@ def load_layer(file_path, name=None, add_to_legend=True):
 def unload_layer(layer_path):
     layers_loaded = QgsProject.instance().mapLayers().values()
     for layer_loaded in layers_loaded:
-        if hasattr(layer_loaded, "dataProvider"):
-            if layer_path == layer_loaded.dataProvider().dataSourceUri().split('|layerid')[0]:
-                QgsProject.instance().removeMapLayer(layer_loaded.id())
+        if layer_path == get_file_path_of_layer(layer_loaded):
+            QgsProject.instance().removeMapLayer(layer_loaded.id())
 
 
 # plugin path
