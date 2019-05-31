@@ -30,7 +30,7 @@ from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
-from ThRasE.gui.build_navigation import BuildNavigation
+from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import get_file_path_of_layer, apply_symbology
 from ThRasE.utils.system_utils import wait_process, block_signals_to
@@ -67,7 +67,7 @@ class LayerToEdit(object):
         self.bounds = layer.extent().toRectF().getCoords()  # (xmin , ymin, xmax, ymax)
         # navigation
         self.navigation = Navigation(self)
-        self.build_navigation_dialog = BuildNavigation(layer_to_edit=self)
+        self.navigation_dialog = NavigationDialog(layer_to_edit=self)
         # store pixels: value, color, new_value, on/off
         #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool}, ...]
         self.pixels_backup = None  # backup for save the original values
@@ -173,7 +173,6 @@ class LayerToEdit(object):
 
         if new_value is None:
             new_value = self.get_the_new_pixel_value(point)
-            # check if the new value is valid and different
             if new_value is None:
                 return
 
@@ -412,23 +411,28 @@ class LayerToEdit(object):
         if ThRasE.dialog.QCBox_NavType.currentText() == "free" or not self.navigation.is_valid:
             data["navigation"]["type"] = "free"
         else:
-            data["navigation"]["type"] = self.build_navigation_dialog.QCBox_BuildNavType.currentText()
+            data["navigation"]["type"] = self.navigation_dialog.QCBox_BuildNavType.currentText()
             data["navigation"]["tile_keep_visible"] = ThRasE.dialog.currentTileKeepVisible.isChecked()
-            data["navigation"]["tile_size"] = self.build_navigation_dialog.tileSize.value()
+            data["navigation"]["tile_size"] = self.navigation_dialog.tileSize.value()
             data["navigation"]["mode"] = \
-                "horizontal" if self.build_navigation_dialog.nav_horizontal_mode.isChecked() else "vertical"
+                "horizontal" if self.navigation_dialog.nav_horizontal_mode.isChecked() else "vertical"
             data["navigation"]["tiles_color"] = self.navigation.tiles_color.name()
             data["navigation"]["current_tile_id"] = self.navigation.current_tile.idx
             # special type navigation
-            if data["navigation"]["type"] == "by tiles throughout the AOI":
+            if data["navigation"]["type"] == "AOIs":
                 aois = [[[[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asPolygon()][0]
-                        for aoi in self.build_navigation_dialog.aoi_drawn]
+                        for aoi in self.navigation_dialog.aoi_drawn]
                 data["navigation"]["aois"] = aois
-            if data["navigation"]["type"] in ["by tiles throughout polygons",
-                                              "by tiles throughout points",
-                                              "by tiles throughout centroid of polygons"]:
+            if data["navigation"]["type"] in ["polygons",
+                                              "points",
+                                              "centroid of polygons"]:
                 data["navigation"]["vector_file"] = \
-                    get_file_path_of_layer(self.build_navigation_dialog.QCBox_VectorFile.currentLayer())
+                    get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer())
+
+            # TODO save the new refactoring in navigation dialog:
+            # - enable/disable build tools
+            # - keep above others windows
+            # - status and highlight the tile
 
         with open(file_out, 'w') as yaml_file:
             yaml.dump(data, yaml_file)

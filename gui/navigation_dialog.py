@@ -23,7 +23,7 @@ import os
 from pathlib import Path
 
 from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis, QgsWkbTypes, QgsFeature, QgsCoordinateReferenceSystem, \
-    QgsCoordinateTransform, QgsProject
+    QgsCoordinateTransform, QgsProject, QgsRectangle
 from qgis.gui import QgsMapToolPan, QgsRubberBand, QgsMapTool
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
@@ -31,19 +31,21 @@ from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QColorDialog
 from qgis.PyQt.QtCore import pyqtSlot, Qt
 
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
+from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'build_navigation.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'navigation_dialog.ui'))
 
 
-class BuildNavigation(QDialog, FORM_CLASS):
+class NavigationDialog(QDialog, FORM_CLASS):
 
     def __init__(self, parent=None, layer_to_edit=None):
         QDialog.__init__(self, parent)
         self.setupUi(self)
         self.layer_to_edit = layer_to_edit
         self.aoi_drawn = []
+        self.highlight_tile = None
 
         self.setup_gui()
 
@@ -56,9 +58,13 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.map_tool_pan = QgsMapToolPan(self.render_widget.canvas)
         self.render_widget.canvas.setMapTool(self.map_tool_pan, clean=True)
 
+        # flags
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint | Qt.WindowStaysOnTopHint)
+
     def setup_gui(self):
         self.NavTiles_widgetFile.setHidden(True)
         self.NavTiles_widgetAOI.setHidden(True)
+        self.SliderNavigationBlock.setEnabled(False)
         self.QCBox_BuildNavType.currentIndexChanged[str].connect(self.set_navigation_type_tool)
         # set properties to QgsMapLayerComboBox
         self.QCBox_VectorFile.setCurrentIndex(-1)
@@ -72,12 +78,18 @@ class BuildNavigation(QDialog, FORM_CLASS):
             dialog_title=self.tr("Select the vector file"),
             file_filters=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)")))
         # buttons connections
+        self.QPBtn_BuildNavigationTools.clicked.connect(self.build_tools)
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
         self.TilesColor.clicked.connect(self.change_tiles_color)
         self.CleanNavigation.clicked.connect(self.clean_navigation)
         self.AOI_Picker.clicked.connect(self.activate_deactivate_AOI_picker)
         self.DeleteAllAOI.clicked.connect(self.clean_all_aoi_drawn)
-
+        self.WindowKeepAbove.clicked.connect(self.window_keep_above)
+        self.ZoomToTiles.clicked.connect(self.zoom_to_tiles)
+        # slider and spinbox connection
+        self.SliderNavigation.valueChanged.connect(self.highlight)
+        self.SliderNavigation.sliderReleased.connect(lambda: self.change_tile_from_slider(self.SliderNavigation.value()))
+        self.currentTile.valueChanged.connect(self.change_tile_from_spinbox)
         # #### setup units in tile size
         # set/update the units in tileSize item
         layer_unit = self.layer_to_edit.qgs_layer.crs().mapUnits()
@@ -103,10 +115,15 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.tileSize.setValue(default_tile_size[layer_unit])
 
     @pyqtSlot()
-    def exec_(self):
-        if self.layer_to_edit.navigation.is_valid:
-            [tile.create(self.render_widget.canvas) for tile in self.layer_to_edit.navigation.tiles]
-        super().exec_()
+    def build_tools(self):
+        if self.QPBtn_BuildNavigationTools.isChecked():
+            self.build_tools_line.setVisible(True)
+            self.NavBuildTypeBlock.setVisible(True)
+            self.NavBuildToolsBlock.setVisible(True)
+        else:
+            self.build_tools_line.setHidden(True)
+            self.NavBuildTypeBlock.setHidden(True)
+            self.NavBuildToolsBlock.setHidden(True)
 
     @pyqtSlot()
     def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
@@ -141,21 +158,21 @@ class BuildNavigation(QDialog, FORM_CLASS):
         # clear draw
         self.clean_all_aoi_drawn()
         # by nav type
-        if nav_type == "by tiles throughout the thematic file":
+        if nav_type == "thematic file":
             self.NavTiles_widgetFile.setHidden(True)
             self.NavTiles_widgetAOI.setHidden(True)
-        if nav_type == "by tiles throughout the AOI":
+        if nav_type == "AOIs":
             self.NavTiles_widgetFile.setHidden(True)
             self.NavTiles_widgetAOI.setVisible(True)
-        if nav_type == "by tiles throughout polygons":
+        if nav_type == "polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        if nav_type == "by tiles throughout points":
+        if nav_type == "points":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PointLayer)
-        if nav_type == "by tiles throughout centroid of polygons":
+        if nav_type == "centroid of polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
@@ -193,10 +210,10 @@ class BuildNavigation(QDialog, FORM_CLASS):
 
         # call build navigation of the respective navigation type
 
-        if self.QCBox_BuildNavType.currentText() == "by tiles throughout the thematic file":
+        if self.QCBox_BuildNavType.currentText() == "thematic file":
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode)
 
-        if self.QCBox_BuildNavType.currentText() == "by tiles throughout the AOI":
+        if self.QCBox_BuildNavType.currentText() == "AOIs":
             if not self.aoi_drawn:
                 self.MsgBar.pushMessage("Navigation was not built: there aren't polygons drawn", level=Qgis.Warning)
                 return
@@ -204,7 +221,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
             # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=aois)
 
-        if self.QCBox_BuildNavType.currentText() == "by tiles throughout polygons":
+        if self.QCBox_BuildNavType.currentText() == "polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
                 self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning)
@@ -218,7 +235,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
             # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=geometries)
 
-        if self.QCBox_BuildNavType.currentText() == "by tiles throughout points":
+        if self.QCBox_BuildNavType.currentText() == "points":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
                 self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.Warning)
@@ -233,7 +250,7 @@ class BuildNavigation(QDialog, FORM_CLASS):
             # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
 
-        if self.QCBox_BuildNavType.currentText() == "by tiles throughout centroid of polygons":
+        if self.QCBox_BuildNavType.currentText() == "centroid of polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
                 self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning)
@@ -248,13 +265,75 @@ class BuildNavigation(QDialog, FORM_CLASS):
             # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, points=points)
 
+        # finish build navigation
+        from ThRasE.thrase import ThRasE
         if nav_status:  # navigation is valid
             self.layer_to_edit.navigation.is_valid = True
             self.CleanNavigation.setEnabled(True)
+            # set settings in the navigation dialog
+            self.SliderNavigationBlock.setEnabled(True)
+            self.totalTiles.setText("/{}".format(len(self.layer_to_edit.navigation.tiles)))
+            self.SliderNavigation.setMaximum(len(self.layer_to_edit.navigation.tiles))
+            self.currentTile.setValue(self.layer_to_edit.navigation.current_tile.idx)
+            self.currentTile.setMaximum(len(self.layer_to_edit.navigation.tiles))
+            # init and set the progress bar and navigation in main dialog
+            ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(True)
+            ThRasE.dialog.QPBar_TilesNavigation.setMaximum(len(self.layer_to_edit.navigation.tiles))
+            ThRasE.dialog.QPBar_TilesNavigation.setValue(self.layer_to_edit.navigation.current_tile.idx)
+            ThRasE.dialog.previousTile.setEnabled(False)
+            ThRasE.dialog.nextTile.setEnabled(True)
+            self.highlight()
         else:  # navigation is not valid
+            self.SliderNavigationBlock.setEnabled(False)
             self.layer_to_edit.navigation.is_valid = False
             self.CleanNavigation.setEnabled(False)
+            ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
             self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical)
+
+    @pyqtSlot()
+    def change_tile_from_slider(self, idx_tile):
+        with block_signals_to(self.currentTile):
+            self.currentTile.setValue(idx_tile)
+        self.go_to_tile(idx_tile)
+
+    @pyqtSlot(int)
+    def change_tile_from_spinbox(self, idx_tile):
+        with block_signals_to(self.SliderNavigation):
+            self.SliderNavigation.setValue(idx_tile)
+        self.go_to_tile(idx_tile)
+
+    def go_to_tile(self, idx_tile):
+        self.layer_to_edit.navigation.set_current_tile(idx_tile)
+
+        # adjust navigation components in main dialog
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.QPBar_TilesNavigation.setValue(idx_tile)
+        if idx_tile == 1:  # first item
+            ThRasE.dialog.previousTile.setEnabled(False)
+        else:
+            ThRasE.dialog.previousTile.setEnabled(True)
+        if idx_tile == len(self.layer_to_edit.navigation.tiles):  # last item
+            ThRasE.dialog.nextTile.setEnabled(False)
+        else:
+            ThRasE.dialog.nextTile.setEnabled(True)
+
+        self.highlight()
+
+    def highlight(self, idx_tile=None):
+        if idx_tile:  # from slider
+            with block_signals_to(self.currentTile):
+                self.currentTile.setValue(idx_tile)
+
+        if idx_tile:
+            tile = next((tile for tile in self.layer_to_edit.navigation.tiles if tile.idx == idx_tile), None)
+        else:
+            tile = self.layer_to_edit.navigation.current_tile
+
+        # unhighlight the before tile (rubber band)
+        if self.highlight_tile:
+            self.highlight_tile.reset(QgsWkbTypes.PolygonGeometry)
+
+        self.highlight_tile = tile.create(self.render_widget.canvas, line_width=5, rbs_in="highlight")
 
     def clean_navigation(self):
         # first prompt if the user do some progress in tile navigation
@@ -269,13 +348,34 @@ class BuildNavigation(QDialog, FORM_CLASS):
         self.layer_to_edit.navigation.delete()
         self.CleanNavigation.setEnabled(False)
 
+    @pyqtSlot()
+    def window_keep_above(self):
+        # TODO check the behavior of this function
+        if self.WindowKeepAbove.isChecked():
+            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+        else:
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+        self.show()
+
+    @pyqtSlot()
+    def zoom_to_tiles(self):
+        if self.layer_to_edit.navigation.is_valid:
+            # compute the wrapper extent of all tiles
+            extent_tiles = QgsRectangle()
+            [extent_tiles.combineExtentWith(tile.extent) for tile in self.layer_to_edit.navigation.tiles]
+            extent_tiles = extent_tiles.buffered((extent_tiles.yMaximum() - extent_tiles.yMinimum()) * 0.02)
+            self.render_widget.update_canvas_to(extent_tiles)
+            self.render_widget.canvas.refreshAllLayers()
+        else:
+            self.render_widget.update_canvas_to(self.layer_to_edit.extent())
+
 
 class AOIPickerTool(QgsMapTool):
-    def __init__(self, build_navigation):
-        QgsMapTool.__init__(self, build_navigation.render_widget.canvas)
-        self.build_navigation = build_navigation
+    def __init__(self, navigation_dialog):
+        QgsMapTool.__init__(self, navigation_dialog.render_widget.canvas)
+        self.navigation_dialog = navigation_dialog
         # status rec icon and focus
-        self.build_navigation.render_widget.canvas.setFocus()
+        self.navigation_dialog.render_widget.canvas.setFocus()
 
         self.start_new_polygon()
 
@@ -284,11 +384,11 @@ class AOIPickerTool(QgsMapTool):
         color = QColor("red")
         color.setAlpha(40)
         # create the main polygon rubber band
-        self.rubber_band = QgsRubberBand(self.build_navigation.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(3)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
-        self.aux_rubber_band = QgsRubberBand(self.build_navigation.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(3)
 
@@ -299,11 +399,11 @@ class AOIPickerTool(QgsMapTool):
             self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.rubber_band = None
         self.aux_rubber_band = None
-        self.build_navigation.AOI_Picker.setChecked(False)
+        self.navigation_dialog.AOI_Picker.setChecked(False)
         # restart point tool
         self.clean()
-        self.build_navigation.render_widget.canvas.unsetMapTool(self)
-        self.build_navigation.render_widget.canvas.setMapTool(self.build_navigation.map_tool_pan)
+        self.navigation_dialog.render_widget.canvas.unsetMapTool(self)
+        self.navigation_dialog.render_widget.canvas.setMapTool(self.navigation_dialog.map_tool_pan)
 
     def define_polygon(self):
         # clean the aux rubber band
@@ -317,9 +417,9 @@ class AOIPickerTool(QgsMapTool):
         # save
         new_feature = QgsFeature()
         new_feature.setGeometry(self.rubber_band.asGeometry())
-        self.build_navigation.aoi_drawn.append(self.rubber_band)
+        self.navigation_dialog.aoi_drawn.append(self.rubber_band)
         #
-        self.build_navigation.DeleteAllAOI.setEnabled(True)
+        self.navigation_dialog.DeleteAllAOI.setEnabled(True)
 
         self.start_new_polygon()
 
@@ -330,7 +430,7 @@ class AOIPickerTool(QgsMapTool):
         if self.aux_rubber_band and self.aux_rubber_band.numberOfVertices():
             x = event.pos().x()
             y = event.pos().y()
-            point = self.build_navigation.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            point = self.navigation_dialog.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
             self.aux_rubber_band.removeLastPoint()
             self.aux_rubber_band.addPoint(point)
 
@@ -342,7 +442,7 @@ class AOIPickerTool(QgsMapTool):
         if event.button() == Qt.LeftButton:
             x = event.pos().x()
             y = event.pos().y()
-            point = self.build_navigation.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            point = self.navigation_dialog.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
             self.rubber_band.addPoint(point)
             self.aux_rubber_band.addPoint(point)
         # edit

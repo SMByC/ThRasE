@@ -78,7 +78,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.NavigationBlockWidget.setDisabled(True)
         self.NavigationBlockWidgetControls.setDisabled(True)
         self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
-        self.QPBtn_BuildNavigationDialog.clicked.connect(self.open_build_navigation_dialog)
+        self.QPBtn_OpenNavigationDialog.clicked.connect(self.open_navigation_dialog)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
         self.Widget_GlobalEditTools.setDisabled(True)
@@ -253,21 +253,33 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 view_widget.change_polygons_color(QColor(yaml_view_widget["polygons_color"]))
         # navigation
         if yaml_config["navigation"]["type"] != "free":
+            # TODO delete after some time, compatibility old yaml file
+            if yaml_config["navigation"]["type"] == "by tiles throughout the thematic file":
+                yaml_config["navigation"]["type"] = "thematic file"
+            if yaml_config["navigation"]["type"] == "by tiles throughout the AOI":
+                yaml_config["navigation"]["type"] = "AOIs"
+            if yaml_config["navigation"]["type"] == "by tiles throughout polygons":
+                yaml_config["navigation"]["type"] = "polygons"
+            if yaml_config["navigation"]["type"] == "by tiles throughout points":
+                yaml_config["navigation"]["type"] = "points"
+            if yaml_config["navigation"]["type"] == "by tiles throughout centroid of polygons":
+                yaml_config["navigation"]["type"] = "centroid of polygons"
+
             self.QCBox_NavType.setCurrentIndex(1)
-            selected_index = LayerToEdit.current.build_navigation_dialog.QCBox_BuildNavType.findText(
+            selected_index = LayerToEdit.current.navigation_dialog.QCBox_BuildNavType.findText(
                 yaml_config["navigation"]["type"], Qt.MatchFixedString)
-            LayerToEdit.current.build_navigation_dialog.QCBox_BuildNavType.setCurrentIndex(selected_index)
-            LayerToEdit.current.build_navigation_dialog.tileSize.setValue(yaml_config["navigation"]["tile_size"])
+            LayerToEdit.current.navigation_dialog.QCBox_BuildNavType.setCurrentIndex(selected_index)
+            LayerToEdit.current.navigation_dialog.tileSize.setValue(yaml_config["navigation"]["tile_size"])
             if yaml_config["navigation"]["mode"] == "horizontal":
-                LayerToEdit.current.build_navigation_dialog.nav_horizontal_mode.setChecked(True)
+                LayerToEdit.current.navigation_dialog.nav_horizontal_mode.setChecked(True)
             else:
-                LayerToEdit.current.build_navigation_dialog.nav_vertical_mode.setChecked(True)
-            LayerToEdit.current.build_navigation_dialog.change_tiles_color(QColor(yaml_config["navigation"]["tiles_color"]))
+                LayerToEdit.current.navigation_dialog.nav_vertical_mode.setChecked(True)
+            LayerToEdit.current.navigation_dialog.change_tiles_color(QColor(yaml_config["navigation"]["tiles_color"]))
             # recover some stuff by type navigation
-            if yaml_config["navigation"]["type"] == "by tiles throughout the AOI" and yaml_config["navigation"]["aois"]:
+            if yaml_config["navigation"]["type"] == "AOIs" and yaml_config["navigation"]["aois"]:
                 # recover all aois and draw and save as rubber bands
-                LayerToEdit.current.build_navigation_dialog.activate_deactivate_AOI_picker()
-                nav_dialog_canvas = LayerToEdit.current.build_navigation_dialog.render_widget.canvas
+                LayerToEdit.current.navigation_dialog.activate_deactivate_AOI_picker()
+                nav_dialog_canvas = LayerToEdit.current.navigation_dialog.render_widget.canvas
                 for feature in yaml_config["navigation"]["aois"]:
                     # rebuilt all features of the aois
                     for x, y in feature:
@@ -276,14 +288,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         nav_dialog_canvas.mapTool().aux_rubber_band.addPoint(point)
                     nav_dialog_canvas.mapTool().define_polygon()
                 nav_dialog_canvas.mapTool().finish()
-            if yaml_config["navigation"]["type"] in ["by tiles throughout polygons",
-                                                     "by tiles throughout points",
-                                                     "by tiles throughout centroid of polygons"]:
+            if yaml_config["navigation"]["type"] in ["polygons",
+                                                     "points",
+                                                     "centroid of polygons"]:
                 # recover the vector file
-                load_and_select_filepath_in(LayerToEdit.current.build_navigation_dialog.QCBox_VectorFile,
+                load_and_select_filepath_in(LayerToEdit.current.navigation_dialog.QCBox_VectorFile,
                                             yaml_config["navigation"]["vector_file"])
             # build navigation with all settings loaded
-            LayerToEdit.current.build_navigation_dialog.call_to_build_navigation()
+            LayerToEdit.current.navigation_dialog.call_to_build_navigation()
             current_tile_id = yaml_config["navigation"]["current_tile_id"]
             LayerToEdit.current.navigation.current_tile = \
                 next((tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None)
@@ -353,23 +365,35 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def go_to_previous_tile(self):
         if LayerToEdit.current.navigation.is_valid:
             # set the previous tile
-            LayerToEdit.current.navigation.previous_tile()
+            LayerToEdit.current.navigation.set_current_tile(LayerToEdit.current.navigation.current_tile.idx - 1)
             # adjust navigation components
             self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             self.nextTile.setEnabled(True)
             if LayerToEdit.current.navigation.current_tile.idx == 1:  # first item
                 self.previousTile.setEnabled(False)
+            # adjust navigation components in navigation dialog
+            with block_signals_to(LayerToEdit.current.navigation_dialog.currentTile):
+                LayerToEdit.current.navigation_dialog.currentTile.setValue(LayerToEdit.current.navigation.current_tile.idx)
+            with block_signals_to(LayerToEdit.current.navigation_dialog.SliderNavigation):
+                LayerToEdit.current.navigation_dialog.SliderNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
+            LayerToEdit.current.navigation_dialog.highlight()
 
     @pyqtSlot()
     def go_to_next_tile(self):
         if LayerToEdit.current.navigation.is_valid:
             # set the next tile
-            LayerToEdit.current.navigation.next_tile()
+            LayerToEdit.current.navigation.set_current_tile(LayerToEdit.current.navigation.current_tile.idx + 1)
             # adjust navigation components
             self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             self.previousTile.setEnabled(True)
             if LayerToEdit.current.navigation.current_tile.idx == len(LayerToEdit.current.navigation.tiles):  # last item
                 self.nextTile.setEnabled(False)
+            # adjust navigation components in navigation dialog
+            with block_signals_to(LayerToEdit.current.navigation_dialog.currentTile):
+                LayerToEdit.current.navigation_dialog.currentTile.setValue(LayerToEdit.current.navigation.current_tile.idx)
+            with block_signals_to(LayerToEdit.current.navigation_dialog.SliderNavigation):
+                LayerToEdit.current.navigation_dialog.SliderNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
+            LayerToEdit.current.navigation_dialog.highlight()
 
     @pyqtSlot()
     def current_tile_keep_visible(self):
@@ -381,23 +405,13 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         [view_widget.render_widget.refresh() for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
 
     @pyqtSlot()
-    def open_build_navigation_dialog(self):
-        LayerToEdit.current.build_navigation_dialog.exec_()
-
-        if LayerToEdit.current.navigation.is_valid:
-            # init and set the progress bar and navigation
-            self.NavigationBlockWidgetControls.setEnabled(True)
-            self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
-            self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
-            if LayerToEdit.current.navigation.current_tile.idx == 1:
-                self.previousTile.setEnabled(False)
-                self.nextTile.setEnabled(True)
-                LayerToEdit.current.navigation.current_tile.show()
-                LayerToEdit.current.navigation.current_tile.focus()
-                [view_widget.render_widget.refresh() for view_widget in ThRasEDialog.view_widgets
-                 if view_widget.is_active]
+    def open_navigation_dialog(self):
+        if LayerToEdit.current.navigation_dialog.isVisible():
+            LayerToEdit.current.navigation_dialog.setWindowState(LayerToEdit.current.navigation_dialog.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+            LayerToEdit.current.navigation_dialog.raise_()
+            LayerToEdit.current.navigation_dialog.activateWindow()
         else:
-            self.NavigationBlockWidgetControls.setEnabled(False)
+            LayerToEdit.current.navigation_dialog.show()
 
     @pyqtSlot(QgsMapLayer)
     def select_layer_to_edit(self, layer_selected):

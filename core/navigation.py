@@ -31,22 +31,28 @@ from ThRasE.utils.system_utils import wait_process
 class Tile(object):
     def __init__(self, idx, xmin, xmax, ymin, ymax, tile_color):
         self.idx = idx  # index order number of the tile, start in 1
-        self.instances = []
+        self.rbs_in_main_dialog = []  # rubber bands instances in the main dialog
+        self.rbs_in_nav_dialog = []  # rubber bands instances in the navigation dialog
         self.extent = QgsRectangle(xmin, ymin, xmax, ymax)
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
         self.tile_color = tile_color
 
-    def create(self, canvas):
+    def create(self, canvas, line_width=2, rbs_in="main_dialog"):
         """Create the tile as a rubber band inside the canvas given"""
-        instance = QgsRubberBand(canvas)
+        rubber_band = QgsRubberBand(canvas)
         points = [QgsPointXY(self.xmin, self.ymax), QgsPointXY(self.xmax, self.ymax),
                   QgsPointXY(self.xmax, self.ymin), QgsPointXY(self.xmin, self.ymin)]
-        instance.setToGeometry(QgsGeometry.fromPolygonXY([points]), None)
-        instance.setColor(self.tile_color)
-        instance.setFillColor(QColor(0, 0, 0, 0))
-        instance.setWidth(2)
-        instance.show()
-        self.instances.append(instance)
+        rubber_band.setToGeometry(QgsGeometry.fromPolygonXY([points]), None)
+        rubber_band.setColor(self.tile_color)
+        rubber_band.setFillColor(QColor(0, 0, 0, 0))
+        rubber_band.setWidth(line_width)
+        rubber_band.show()
+        if rbs_in == "main_dialog":
+            self.rbs_in_main_dialog.append(rubber_band)
+        if rbs_in == "nav_dialog":
+            self.rbs_in_nav_dialog.append(rubber_band)
+        if rbs_in == "highlight":
+            return rubber_band
 
     def show(self):
         """Show/draw the tile in all view widgets in main dialog"""
@@ -59,7 +65,7 @@ class Tile(object):
                 self.create(view_widget.render_widget.canvas)
 
     def hide(self):
-        [instance.reset() for instance in self.instances]
+        [rubber_band.reset() for rubber_band in self.rbs_in_main_dialog]
 
     def focus(self):
         """Adjust to the tile extent in all view widgets in main dialog"""
@@ -205,34 +211,39 @@ class Navigation(object):
 
         # show all tiles in build navigation canvas dialog
         from ThRasE.core.edition import LayerToEdit
-        [tile.create(LayerToEdit.current.build_navigation_dialog.render_widget.canvas) for tile in self.tiles]
+        [tile.create(LayerToEdit.current.navigation_dialog.render_widget.canvas, line_width=1, rbs_in="nav_dialog")
+         for tile in self.tiles]
         # init
         self.current_tile = next((tile for tile in self.tiles if tile.idx == 1), None)
         return True if self.current_tile is not None else False
 
-    def previous_tile(self):
-        self.clean()
-        # set the previous tile
-        self.current_tile = next((tile for tile in self.tiles if tile.idx == self.current_tile.idx - 1), None)
+    def set_current_tile(self, idx_tile):
+        self.clean(rbs_in="main_dialog")
+        self.current_tile = next((tile for tile in self.tiles if tile.idx == idx_tile), None)
         self.current_tile.show()
         self.current_tile.focus()
 
-    def next_tile(self):
-        self.clean()
-        # set the next tile
-        self.current_tile = next((tile for tile in self.tiles if tile.idx == self.current_tile.idx + 1), None)
-        self.current_tile.show()
-        self.current_tile.focus()
-
-    def clean(self):
+    def clean(self, rbs_in="main_dialog"):
         """Clean all tiles drawn (rubber bands instances)"""
-        for tile in self.tiles:
-            for instance in tile.instances:
-                instance.reset(QgsWkbTypes.PolygonGeometry)
-            tile.instances = []
+        if rbs_in == "main_dialog":
+            for tile in self.tiles:
+                for rubber_band in tile.rbs_in_main_dialog:
+                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                tile.rbs_in_main_dialog = []
+        if rbs_in == "nav_dialog":
+            for tile in self.tiles:
+                for rubber_band in tile.rbs_in_nav_dialog:
+                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                tile.rbs_in_nav_dialog = []
 
     def delete(self):
-        self.clean()
+        from ThRasE.core.edition import LayerToEdit
+        self.clean(rbs_in="main_dialog")
+        self.clean(rbs_in="nav_dialog")
+        if LayerToEdit.current.navigation_dialog.highlight_tile:
+            LayerToEdit.current.navigation_dialog.highlight_tile.reset(QgsWkbTypes.PolygonGeometry)
         self.is_valid = False
         self.current_tile = None
         self.tiles = []
+
+        # TODO: disable navigation controls in main dialog and navigation dialog

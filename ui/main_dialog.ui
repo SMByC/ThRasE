@@ -176,9 +176,6 @@ padding-right: 3px;</string>
               <property name="sizeAdjustPolicy">
                <enum>QComboBox::AdjustToContents</enum>
               </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
               <item>
                <property name="text">
                 <string>free</string>
@@ -416,7 +413,7 @@ padding-right: 3px;</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="Line" name="line_5">
+                   <widget class="Line" name="line_8">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
                     </property>
@@ -439,6 +436,30 @@ padding-right: 3px;</string>
                    </widget>
                   </item>
                   <item>
+                   <widget class="Line" name="line_5">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="QPBtn_OpenInGE">
+                    <property name="toolTip">
+                     <string>Open the current point in Google Earth (KML)</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="icon">
+                     <iconset>
+                      <normaloff>:/plugins/thrase/icons/open_in_ge.svg</normaloff>:/plugins/thrase/icons/open_in_ge.svg</iconset>
+                    </property>
+                    <property name="autoRaise">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <widget class="Line" name="line_6">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -449,15 +470,15 @@ padding-right: 3px;</string>
                 </widget>
                </item>
                <item>
-                <widget class="QToolButton" name="QPBtn_BuildNavigationDialog">
+                <widget class="QToolButton" name="QPBtn_OpenNavigationDialog">
                  <property name="cursor">
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Open the build navigation dialog</string>
+                  <string>Open the build and view navigation dialog</string>
                  </property>
                  <property name="text">
-                  <string>Build Navigation</string>
+                  <string>Navigation</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -894,7 +915,7 @@ padding-right: 3px;</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Save all settings and configuration of ThRasE dialog, views, pixel table, navigation and status</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all settings and configuration of ThRasE dialog, views, pixel table, navigation and status&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Save</string>

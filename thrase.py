@@ -150,6 +150,13 @@ class ThRasE:
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin is closed"""
+        from ThRasE.core.edition import LayerToEdit
+
+        # first close the navigation dialog if is open
+        if LayerToEdit.current and LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.isVisible():
+            LayerToEdit.current.navigation_dialog.close()
+            LayerToEdit.current.navigation_dialog = None
+
         self.removes_temporary_files()
 
         # remove this statement if dialog is to remain
@@ -160,7 +167,6 @@ class ThRasE:
         ThRasE.dialog = None
 
         # reset some variables
-        from ThRasE.core.edition import LayerToEdit
         self.pluginIsActive = False
         ThRasEDialog.view_widgets = []
         LayerToEdit.instances = {}
