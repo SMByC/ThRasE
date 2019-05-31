@@ -441,7 +441,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             disable()
             return
         # show warning for layer to edit different to tif format
-        if layer_selected.dataProvider().dataSourceUri()[-3::].lower() != "tif":
+        if layer_selected.source()[-3::].lower() != "tif":
             quit_msg = "Use raster files different to GTiff format has not been fully tested. " \
                        "GTiff files are recommended for editing.\n\n" \
                        "Do you want to continue anyway?"
