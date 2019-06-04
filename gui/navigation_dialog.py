@@ -152,6 +152,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.layer_to_edit.navigation.tiles_color = color
             self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
 
+    @pyqtSlot(str)
     def set_navigation_type_tool(self, nav_type):
         # first unselect the vector file
         self.QCBox_VectorFile.setCurrentIndex(-1)
@@ -186,6 +187,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             # enable draw
             self.render_widget.canvas.setMapTool(AOIPickerTool(self), clean=True)
 
+    @pyqtSlot()
     def clean_all_aoi_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.aoi_drawn:
@@ -195,6 +197,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.render_widget.canvas.mapTool().finish()
         self.DeleteAllAOI.setEnabled(False)
 
+    @pyqtSlot()
     def call_to_build_navigation(self):
         # first prompt if the user do some progress in tile navigation
         if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
@@ -335,6 +338,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         self.highlight_tile = tile.create(self.render_widget.canvas, line_width=5, rbs_in="highlight")
 
+    @pyqtSlot()
     def clean_navigation(self):
         # first prompt if the user do some progress in tile navigation
         if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:

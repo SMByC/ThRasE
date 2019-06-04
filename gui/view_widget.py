@@ -95,6 +95,7 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.CleanAllPolygons.clicked.connect(self.clean_all_polygons_drawn)
 
     @staticmethod
+    @pyqtSlot()
     def unhighlight_cells_in_recode_pixel_table():
         from ThRasE.thrase import ThRasE
         with block_signals_to(ThRasE.dialog.recodePixelTable):
@@ -329,6 +330,7 @@ class ViewWidget(QWidget, FORM_CLASS):
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
 
+    @pyqtSlot()
     def clean_all_lines_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.lines_drawn:
@@ -336,6 +338,7 @@ class ViewWidget(QWidget, FORM_CLASS):
         self.lines_drawn = []
         self.CleanAllLines.setEnabled(False)
 
+    @pyqtSlot()
     def clean_all_polygons_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.polygons_drawn:

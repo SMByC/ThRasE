@@ -67,7 +67,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         self.QCBox_ThematicFile.setExceptedLayerList([LayerToEdit.current.qgs_layer])
         # handle connect layer selection with render canvas
         self.QCBox_ThematicFile.layerChanged.connect(self.select_thematic_file_classes)
-        self.QCBox_band_ThematicFile.currentIndexChanged.connect(lambda: self.setup_thematic_file_classes())
+        self.QCBox_band_ThematicFile.currentIndexChanged.connect(self.setup_thematic_file_classes)
         # call to browse the render file
         self.QPBtn_BrowseThematicFile.clicked.connect(lambda: self.browser_dialog_to_load_file(
             self.QCBox_ThematicFile,
@@ -132,6 +132,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
         self.setup_thematic_file_classes()
 
+    @pyqtSlot()
     @error_handler
     def setup_thematic_file_classes(self):
         # extract pixel classes from file
@@ -214,6 +215,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             self.TableBlock.setMaximumWidth(table_width)
             self.TableBlock.setMinimumWidth(table_width)
 
+    @pyqtSlot()
     def table_item_clicked(self, table_item):
         if table_item.text() == "none":
             return

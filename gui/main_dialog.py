@@ -146,13 +146,13 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # call to browse the render file
         self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
         # update recode pixel table
-        self.recodePixelTable.itemChanged.connect(lambda: self.update_recode_pixel_table())
+        self.recodePixelTable.itemChanged.connect(self.update_recode_pixel_table)
         # for change the class color
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
 
         # ######### others ######### #
-        self.QPBtn_ReloadRecodeTable.clicked.connect(lambda: self.reload_recode_table())
-        self.QPBtn_RestoreRecodeTable.clicked.connect(lambda: self.restore_recode_table())
+        self.QPBtn_ReloadRecodeTable.clicked.connect(self.reload_recode_table)
+        self.QPBtn_RestoreRecodeTable.clicked.connect(self.restore_recode_table)
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
         self.apply_from_thematic_classes = ApplyFromThematicClasses()
@@ -497,6 +497,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.Widget_GlobalEditTools.setEnabled(True)
         self.SaveConfig.setEnabled(True)
 
+    @pyqtSlot()
     @error_handler
     def update_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current
@@ -630,6 +631,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     ((color.red(), color.green(), color.blue(), color.alpha()),)
                 self.update_recode_pixel_table()
 
+    @pyqtSlot()
     @error_handler
     def reload_recode_table(self):
         old_pixels = LayerToEdit.current.pixels
@@ -656,6 +658,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setup_layer_to_edit()
         self.update_recode_pixel_table()
 
+    @pyqtSlot()
     @error_handler
     def restore_recode_table(self):
         # restore the pixels and symbology variables
