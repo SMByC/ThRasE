@@ -293,7 +293,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
             self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical)
 
-    @pyqtSlot()
+    @pyqtSlot(int)
     def change_tile_from_slider(self, idx_tile):
         with block_signals_to(self.currentTile):
             self.currentTile.setValue(idx_tile)

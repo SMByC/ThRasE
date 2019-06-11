@@ -418,6 +418,10 @@ class LayerToEdit(object):
                 "horizontal" if self.navigation_dialog.nav_horizontal_mode.isChecked() else "vertical"
             data["navigation"]["tiles_color"] = self.navigation.tiles_color.name()
             data["navigation"]["current_tile_id"] = self.navigation.current_tile.idx
+            data["navigation"]["size_dialog"] = (self.navigation_dialog.size().width(), self.navigation_dialog.size().height())
+            data["navigation"]["extent_dialog"] = self.navigation_dialog.render_widget.canvas.extent().toRectF().getCoords()
+            data["navigation"]["build_tools"] = self.navigation_dialog.QPBtn_BuildNavigationTools.isChecked()
+            data["navigation"]["keep_above"] = self.navigation_dialog.WindowKeepAbove.isChecked()
             # special type navigation
             if data["navigation"]["type"] == "AOIs":
                 aois = [[[[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asPolygon()][0]
@@ -428,11 +432,6 @@ class LayerToEdit(object):
                                               "centroid of polygons"]:
                 data["navigation"]["vector_file"] = \
                     get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer())
-
-            # TODO save the new refactoring in navigation dialog:
-            # - enable/disable build tools
-            # - keep above others windows
-            # - status and highlight the tile
 
         with open(file_out, 'w') as yaml_file:
             yaml.dump(data, yaml_file)

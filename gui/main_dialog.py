@@ -265,6 +265,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 yaml_config["navigation"]["type"] = "points"
             if yaml_config["navigation"]["type"] == "by tiles throughout centroid of polygons":
                 yaml_config["navigation"]["type"] = "centroid of polygons"
+            if "keep_above" not in yaml_config["navigation"]:
+                yaml_config["navigation"]["keep_above"] = True
+            if "build_tools" not in yaml_config["navigation"]:
+                yaml_config["navigation"]["build_tools"] = True
 
             self.QCBox_NavType.setCurrentIndex(1)
             selected_index = LayerToEdit.current.navigation_dialog.QCBox_BuildNavType.findText(
@@ -300,6 +304,16 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             current_tile_id = yaml_config["navigation"]["current_tile_id"]
             LayerToEdit.current.navigation.current_tile = \
                 next((tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None)
+            # navigation dialog
+            LayerToEdit.current.navigation_dialog.WindowKeepAbove.setChecked(yaml_config["navigation"]["keep_above"])
+            LayerToEdit.current.navigation_dialog.QPBtn_BuildNavigationTools.setChecked(yaml_config["navigation"]["build_tools"])
+            LayerToEdit.current.navigation_dialog.build_tools()
+            if "size_dialog" in yaml_config["navigation"] and yaml_config["navigation"]:
+                LayerToEdit.current.navigation_dialog.resize(*yaml_config["navigation"]["size_dialog"])
+            if "extent_dialog" in yaml_config["navigation"] and yaml_config["navigation"]["extent_dialog"]:
+                LayerToEdit.current.navigation_dialog.render_widget.canvas.setExtent(QgsRectangle(*yaml_config["navigation"]["extent_dialog"]))
+            LayerToEdit.current.navigation_dialog.change_tile_from_slider(current_tile_id)
+            LayerToEdit.current.navigation_dialog.change_tile_from_spinbox(current_tile_id)
             # navigation block widget
             self.currentTileKeepVisible.setChecked(yaml_config["navigation"]["tile_keep_visible"])
             self.set_navigation_tool("by tiles")
