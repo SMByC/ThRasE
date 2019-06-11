@@ -237,7 +237,9 @@ class Navigation(object):
                 tile.rbs_in_nav_dialog = []
 
     def delete(self):
+        from ThRasE.thrase import ThRasE
         from ThRasE.core.edition import LayerToEdit
+
         self.clean(rbs_in="main_dialog")
         self.clean(rbs_in="nav_dialog")
         if LayerToEdit.current.navigation_dialog.highlight_tile:
@@ -246,4 +248,6 @@ class Navigation(object):
         self.current_tile = None
         self.tiles = []
 
-        # TODO: disable navigation controls in main dialog and navigation dialog
+        # disable navigations widgets
+        LayerToEdit.current.navigation_dialog.SliderNavigationBlock.setEnabled(False)
+        ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
