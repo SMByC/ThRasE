@@ -184,7 +184,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.symbology = yaml_config["symbology"]
         LayerToEdit.current.pixels = yaml_config["recode_pixel_table"]
         LayerToEdit.current.pixels_backup = yaml_config["recode_pixel_table_backup"]
-        self.reload_recode_table()
+        self.set_recode_pixel_table()
+        self.update_recode_pixel_table()
         # view_widgets, active layers and edit tool
         if "active_layers_widget" in yaml_config and yaml_config["active_layers_widget"]:
             ThRasEDialog.view_widgets[0].active_layers_widget()
