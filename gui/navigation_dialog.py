@@ -336,7 +336,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.highlight_tile:
             self.highlight_tile.reset(QgsWkbTypes.PolygonGeometry)
 
-        self.highlight_tile = tile.create(self.render_widget.canvas, line_width=5, rbs_in="highlight")
+        self.highlight_tile = tile.create(self.render_widget.canvas, line_width=6, rbs_in="highlight")
 
     @pyqtSlot()
     def clean_navigation(self):

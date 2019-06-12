@@ -43,7 +43,10 @@ class Tile(object):
         points = [QgsPointXY(self.xmin, self.ymax), QgsPointXY(self.xmax, self.ymax),
                   QgsPointXY(self.xmax, self.ymin), QgsPointXY(self.xmin, self.ymin)]
         rubber_band.setToGeometry(QgsGeometry.fromPolygonXY([points]), None)
-        rubber_band.setColor(self.tile_color)
+        if rbs_in == "highlight":
+            rubber_band.setColor(QColor("yellow"))
+        else:
+            rubber_band.setColor(self.tile_color)
         rubber_band.setFillColor(QColor(0, 0, 0, 0))
         rubber_band.setWidth(line_width)
         rubber_band.show()
