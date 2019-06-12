@@ -21,13 +21,15 @@
 
 import os
 import configparser
+import tempfile
 from copy import deepcopy
 from pathlib import Path
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
-from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY
+from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
+    QgsCoordinateTransform, QgsProject
 from qgis.PyQt.QtGui import QColor, QFont
 
 from ThRasE.core.edition import LayerToEdit
@@ -35,7 +37,7 @@ from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology
-from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
+from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -86,6 +88,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.previousTile.clicked.connect(self.go_to_previous_tile)
         self.nextTile.clicked.connect(self.go_to_next_tile)
         self.currentTileKeepVisible.clicked.connect(self.current_tile_keep_visible)
+        # open in Google Earth
+        self.QPBtn_OpenInGE.clicked.connect(self.open_current_tile_in_google_engine)
 
         # ######### build the view render widgets windows ######### #
         init_dialog = InitDialog()
@@ -424,6 +428,74 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.navigation.current_tile.hide()
 
         [view_widget.render_widget.refresh() for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
+
+    @pyqtSlot()
+    @error_handler
+    def open_current_tile_in_google_engine(self):
+        # create temp file
+        from ThRasE.thrase import ThRasE
+        if ThRasE.tmp_dir is None:
+            ThRasE.tmp_dir = tempfile.mkdtemp()
+        kml_file = tempfile.mktemp(
+            prefix="TileNavigation_Num_{}_".format(LayerToEdit.current.navigation.current_tile.idx),
+            suffix=".kml", dir=ThRasE.tmp_dir)
+        # convert coordinates
+        crsSrc = QgsCoordinateReferenceSystem(LayerToEdit.current.qgs_layer.crs())
+        crsDest = QgsCoordinateReferenceSystem(4326)  # WGS84
+        transform = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
+        # forward transformation: src -> dest
+        polygon = transform.transformBoundingBox(LayerToEdit.current.navigation.current_tile.extent)
+        xmin, ymin, xmax, ymax = polygon.toRectF().getCoords()
+
+        # make file and save
+        description = "Tile navigation Num: <b>{Num}</b>/{total_tiles}<br/>" \
+                      "Thematic editing: <em>{thematic_file}</em><br/>" \
+                      "ThRasE Qgis-plugin".format(
+                        Num=LayerToEdit.current.navigation.current_tile.idx,
+                        total_tiles=len(LayerToEdit.current.navigation.tiles),
+                        thematic_file=LayerToEdit.current.qgs_layer.name())
+        kml_raw = """<?xml version="1.0" encoding="UTF-8"?>
+            <kml xmlns="http://www.opengis.net/kml/2.2">
+              <Document>
+                <Style id="transBluePoly">
+                  <LineStyle>
+                    <width>1.5</width>
+                  </LineStyle>
+                  <PolyStyle>
+                    <color>{kml_color}</color>
+                  </PolyStyle>
+                </Style>
+                <Placemark>
+                  <name>{name}</name>
+                  <description>{desc}</description>
+                  <styleUrl>#transBluePoly</styleUrl>
+                  <Polygon>
+                    <extrude>1</extrude>
+                    <altitudeMode>relativeToGround</altitudeMode>
+                    <outerBoundaryIs>
+                      <LinearRing>
+                        <coordinates>
+                         {coord1},{alt}
+                         {coord2},{alt}
+                         {coord3},{alt}
+                         {coord4},{alt}
+                         {coord1},{alt}
+                        </coordinates>
+                      </LinearRing>
+                    </outerBoundaryIs>
+                  </Polygon>
+                </Placemark>
+              </Document>
+            </kml>
+            """.format(name="Tile Navigation Num {}".format(LayerToEdit.current.navigation.current_tile.idx),
+                       desc=description, kml_color="00000000",
+                       coord1="{},{}".format(xmin, ymin), coord2="{},{}".format(xmin, ymax),
+                       coord3="{},{}".format(xmax, ymax), coord4="{},{}".format(xmax, ymin), alt=1000)
+        outfile = open(kml_file, "w")
+        outfile.writelines(kml_raw)
+        outfile.close()
+
+        open_file(kml_file)
 
     @pyqtSlot()
     def open_navigation_dialog(self):

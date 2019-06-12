@@ -38,8 +38,8 @@
      id="namedview8"
      showgrid="false"
      inkscape:zoom="45.254834"
-     inkscape:cx="3.3435241"
-     inkscape:cy="7.9056276"
+     inkscape:cx="9.9505531"
+     inkscape:cy="7.750948"
      inkscape:window-x="0"
      inkscape:window-y="34"
      inkscape:window-maximized="1"
@@ -96,19 +96,32 @@
         color:#4d4d4d;
       }
       </style>
+    <style
+       id="current-color-scheme-67"
+       type="text/css">
+      .ColorScheme-Text {
+        color:#232629;
+      }
+      </style>
   </defs>
-  <path
-     sodipodi:type="inkscape:offset"
-     inkscape:radius="0"
-     inkscape:original="M 2.3085938 7.8007812 L 2.3085938 9.3242188 L 5.7988281 9.3242188 L 0.78515625 14.335938 L 1.8613281 15.414062 L 6.875 10.400391 L 6.875 13.890625 L 8.3964844 13.890625 L 8.3964844 7.8007812 L 6.875 7.8007812 L 2.3085938 7.8007812 z "
-     style="color:#4d4d4d;fill:currentColor;fill-opacity:1;stroke:none;stroke-width:0.99999994"
-     id="path4534"
-     d="M 2.3085938,7.8007812 V 9.3242188 H 5.7988281 L 0.78515625,14.335938 1.8613281,15.414062 6.875,10.400391 v 3.490234 H 8.3964844 V 7.8007812 H 6.875 Z"
-     transform="translate(-0.26516509,0.243068)" />
-  <circle
-     id="path4502"
-     cx="11.869013"
-     cy="4.2858434"
-     r="3.1861255"
-     style="fill:#00b2ff;fill-opacity:1;stroke:#4d4d4d;stroke-width:1.28100002;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <g
+     id="g835"
+     transform="matrix(0.92514161,0,0,0.9251469,1.0284591,0.01485524)"
+     style="stroke-width:1.08091247">
+    <path
+       transform="matrix(0.91770588,0,0,0.91771119,-0.20055134,1.5114729)"
+       d="M 2.3085938,7.8007812 V 9.3242188 H 5.7988281 L 0.78515625,14.335938 1.8613281,15.414062 6.875,10.400391 v 3.490234 H 8.3964844 V 7.8007812 H 6.875 Z"
+       id="path4534"
+       style="color:#4d4d4d;fill:#232629;fill-opacity:1;stroke:none;stroke-width:1.17783844"
+       inkscape:original="M 2.3085938 7.8007812 L 2.3085938 9.3242188 L 5.7988281 9.3242188 L 0.78515625 14.335938 L 1.8613281 15.414062 L 6.875 10.400391 L 6.875 13.890625 L 8.3964844 13.890625 L 8.3964844 7.8007812 L 6.875 7.8007812 L 2.3085938 7.8007812 z "
+       inkscape:radius="0"
+       sodipodi:type="inkscape:offset" />
+    <ellipse
+       ry="2.9239435"
+       rx="2.9239261"
+       style="fill:#00b2ff;fill-opacity:1;stroke:#232629;stroke-width:1.38464892;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       cy="5.2215743"
+       cx="10.935053"
+       id="path4502" />
+  </g>
 </svg>
