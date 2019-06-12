@@ -215,7 +215,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             self.TableBlock.setMaximumWidth(table_width)
             self.TableBlock.setMinimumWidth(table_width)
 
-    @pyqtSlot()
+    @pyqtSlot(QTableWidgetItem)
     def table_item_clicked(self, table_item):
         if table_item.text() == "none":
             return

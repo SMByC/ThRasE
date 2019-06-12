@@ -704,6 +704,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.EditionBlock.setMaximumWidth(table_width)
             self.EditionBlock.setMinimumWidth(table_width)
 
+    @pyqtSlot(QTableWidgetItem)
     def table_item_clicked(self, table_item):
         if table_item.text() == "none":
             return
