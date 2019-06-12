@@ -15,13 +15,13 @@ The plugin will be available in the `Plugins` menu and `Plugins toolbar`.
 ## Source code
 
 The official version control system repository of the plugin:
-[https://bitbucket.org/smbyc/qgisplugin-thrase](https://bitbucket.org/smbyc/qgisplugin-thrase)
+[https://github.com/SMByC/ThRasE](https://github.com/SMByC/ThRasE)
 
 The home plugin in plugins.qgis.org: [http://plugins.qgis.org/plugins/ThRasE/](http://plugins.qgis.org/plugins/ThRasE/)
 
 ## Issue Tracker
 
-Issues, ideas and enhancements: [https://bitbucket.org/smbyc/qgisplugin-thrase/issues](https://bitbucket.org/smbyc/qgisplugin-thrase/issues)
+Issues, ideas and enhancements: [https://github.com/SMByC/ThRasE/issues](https://github.com/SMByC/ThRasE/issues)
 
 ## Get involved
 
