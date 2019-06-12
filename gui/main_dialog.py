@@ -99,7 +99,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             if init_dialog.tabWidget.currentIndex() == 1:
                 settings_type = "load"
                 file_path = init_dialog.QgsFile_LoadConfigFile.filePath()
-                if file_path != '' and os.path.isfile(file_path):
+                if file_path != '' and os.path.isfile(file_path) and os.access(file_path, os.R_OK):
                     # load classification from yaml file
                     import yaml
                     with open(file_path, 'r') as yaml_file:
@@ -113,6 +113,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     # restore rows/columns
                     self.grid_rows = yaml_config["grid_view_widgets"]["rows"]
                     self.grid_columns = yaml_config["grid_view_widgets"]["columns"]
+                else:
+                    msg = "Opening the config ThRasE file:\n{}\n\nFile does not exist, or you do not " \
+                          "have read access to the file".format(init_dialog.QgsFile_LoadConfigFile.filePath())
+                    QMessageBox.critical(init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
+                    self.close()
+                    return False
         else:
             self.close()
             return False
