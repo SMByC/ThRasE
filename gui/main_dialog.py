@@ -90,7 +90,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.nextTile.clicked.connect(self.go_to_next_tile)
         self.currentTileKeepVisible.clicked.connect(self.current_tile_keep_visible)
         # open in Google Earth
-        self.QPBtn_OpenInGE.clicked.connect(self.open_current_tile_in_google_engine)
+        self.QPBtn_OpenInGE.clicked.connect(self.open_current_tile_navigation_in_google_engine)
 
         # ######### build the view render widgets windows ######### #
         init_dialog = InitDialog()
@@ -432,7 +432,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     @error_handler
-    def open_current_tile_in_google_engine(self):
+    def open_current_tile_navigation_in_google_engine(self):
         # create temp file
         from ThRasE.thrase import ThRasE
         if ThRasE.tmp_dir is None:
