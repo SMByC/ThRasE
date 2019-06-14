@@ -267,7 +267,7 @@ padding-right: 3px;</string>
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Go to the previous tile</string>
+                        <string>Go to the previous navigation tile</string>
                        </property>
                        <property name="text">
                         <string>Previous</string>
@@ -321,7 +321,7 @@ padding-right: 3px;</string>
                            <cursorShape>PointingHandCursor</cursorShape>
                           </property>
                           <property name="toolTip">
-                           <string>Go to current tile</string>
+                           <string>Go to current navigation tile</string>
                           </property>
                           <property name="text">
                            <string>Current Tile</string>
@@ -389,7 +389,7 @@ padding-right: 3px;</string>
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Go to the next tile</string>
+                        <string>Go to the next navigation tile</string>
                        </property>
                        <property name="layoutDirection">
                         <enum>Qt::RightToLeft</enum>
@@ -475,7 +475,7 @@ padding-right: 3px;</string>
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Open the build and view navigation dialog</string>
+                  <string>Open the navigation dialog</string>
                  </property>
                  <property name="text">
                   <string>Navigation</string>

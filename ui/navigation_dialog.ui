@@ -168,7 +168,7 @@
             <item>
              <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>Navigation by tiles throughout:</string>
+               <string>Build navigation by tiles throughout:</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
