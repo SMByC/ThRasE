@@ -798,6 +798,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 new_item["s/h"] = old_item["s/h"]
         self.setup_layer_to_edit()
         self.update_recode_pixel_table()
+        # restore the opacity of all active layers
+        [al.update_layer_opacity() for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets]
+         for al in als]
 
     @pyqtSlot()
     @error_handler
@@ -809,6 +812,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_recode_pixel_table()
         # update pixel class visibility
         apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
+        # restore the opacity of all active layers
+        [al.update_layer_opacity() for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets]
+         for al in als]
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]

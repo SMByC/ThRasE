@@ -131,7 +131,10 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.render_widget.update_render_layers()
 
     @pyqtSlot(int)
-    def update_layer_opacity(self, opacity):
+    def update_layer_opacity(self, opacity=None):
+        if opacity is None:
+            opacity = self.layerOpacity.value()
+
         if self.layer:
             if self.layer.type() == QgsMapLayer.VectorLayer:
                 self.layer.setOpacity(opacity/100.0)
