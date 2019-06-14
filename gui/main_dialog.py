@@ -36,7 +36,8 @@ from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
-from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology
+from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
+    get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
@@ -550,6 +551,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                                     level=Qgis.Warning)
             disable()
             return
+
         # set band count
         with block_signals_to(self.QCBox_band_LayerToEdit):
             self.QCBox_band_LayerToEdit.clear()
@@ -561,6 +563,51 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def setup_layer_to_edit(self):
         layer = self.QCBox_LayerToEdit.currentLayer()
         band = int(self.QCBox_band_LayerToEdit.currentText())
+        nodata = get_nodata_value(layer, band)
+
+        # check if nodata is set, to handle it: unset or hide in recode table
+        if nodata is not None:
+            msgBox = QMessageBox()
+            msgBox.setTextFormat(Qt.RichText)
+            msgBox.setWindowTitle("ThRasE - How to handle the nodata")
+            msgBox.setText("The '{}' has {} as nodata. ThRasE cannot edit the values assigned ​​as nodata, "
+                           "there are two options:".format(layer.name(), int(nodata)))
+            msgBox.setInformativeText("<ul><li>Unset the nodata to the thematic layer</li>"
+                                      "<li>Hide the nodata value in the recode table</li></ul>")
+            unset_button = msgBox.addButton("Unset the nodata", QMessageBox.NoRole)
+            hide_button = msgBox.addButton("Hide the nodata", QMessageBox.NoRole)
+            msgBox.setStandardButtons(QMessageBox.Cancel)
+            msgBox.setDefaultButton(QMessageBox.Cancel)
+            msgBox.exec()
+
+            if msgBox.clickedButton() == unset_button:
+                if unset_the_nodata_value(layer) == 0:
+                    with block_signals_to(self.QCBox_LayerToEdit):
+                        layer_name = layer.name()
+                        layer_path = get_file_path_of_layer(layer)
+                        self.QCBox_LayerToEdit.setCurrentIndex(-1)
+                        unload_layer(layer_path)
+                        layer = load_layer(layer_path, name=layer_name)
+                        # select the sampling file in combobox
+                        selected_index = self.QCBox_LayerToEdit.findText(layer.name(), Qt.MatchFixedString)
+                        self.QCBox_LayerToEdit.setCurrentIndex(selected_index)
+                    with block_signals_to(self.QCBox_band_LayerToEdit):
+                        band_idx = self.QCBox_band_LayerToEdit.findText(str(band), Qt.MatchFixedString)
+                        self.QCBox_band_LayerToEdit.setCurrentIndex(band_idx)
+                    layer.reload()
+                    layer.triggerRepaint()
+                    nodata = None
+                    self.MsgBar.pushMessage(
+                        "Unset the nodata value to the thematic layer '{}' was successful".format(layer.name()),
+                        level=Qgis.Success)
+                else:
+                    self.MsgBar.pushMessage(
+                        "It was not possible unset the nodata value to the thematic layer '{}'".format(layer.name()),
+                        level=Qgis.Critical, duration=20)
+                    return
+            elif msgBox.clickedButton() != hide_button:
+                # cancel
+                return
 
         if (layer.id(), band) in LayerToEdit.instances:
             layer_to_edit = LayerToEdit.instances[(layer.id(), band)]
@@ -568,7 +615,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # create new instance
             layer_to_edit = LayerToEdit(layer, band)
             # init data for recode pixel table
-            recode_pixel_table_status = layer_to_edit.setup_pixel_table()
+            recode_pixel_table_status = layer_to_edit.setup_pixel_table(nodata=nodata)
             if recode_pixel_table_status is False:  # wrong style for set the recode pixel table
                 del LayerToEdit.instances[(layer_to_edit.qgs_layer.id(), layer_to_edit.band)]
                 self.QCBox_LayerToEdit.setCurrentIndex(-1)

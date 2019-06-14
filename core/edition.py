@@ -95,7 +95,7 @@ class LayerToEdit(object):
     def get_pixel_value_from_pnt(self, point):
         return self.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[self.band]
 
-    def setup_pixel_table(self, force_update=False):
+    def setup_pixel_table(self, force_update=False, nodata=None):
         if self.pixels is None or force_update is True:
             xml_style_items = get_xml_style(self.qgs_layer, self.band)
             if xml_style_items is None:
@@ -104,6 +104,9 @@ class LayerToEdit(object):
 
             self.pixels = []
             for xml_item in xml_style_items:
+                if nodata is not None and int(xml_item.get("value")) == int(nodata):
+                    continue
+
                 pixel = {"value": int(xml_item.get("value")), "color": {}, "new_value": None, "s/h": True}
 
                 item_color = xml_item.get("color").lstrip('#')

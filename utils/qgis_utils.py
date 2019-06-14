@@ -19,7 +19,10 @@
  ***************************************************************************/
 """
 import os
+import platform
+from math import isnan
 from pathlib import Path
+from subprocess import call
 
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
 from qgis.PyQt import uic
@@ -103,6 +106,19 @@ def unload_layer(layer_path):
     for layer_loaded in layers_loaded:
         if layer_path == get_file_path_of_layer(layer_loaded):
             QgsProject.instance().removeMapLayer(layer_loaded.id())
+
+
+def get_nodata_value(layer, band=1):
+    if layer is not None:
+        nodata = layer.dataProvider().sourceNoDataValue(band)
+        if not isnan(nodata):
+            return nodata
+
+
+def unset_the_nodata_value(layer):
+    cmd = ['gdal_edit' if platform.system() == 'Windows' else 'gdal_edit.py', get_file_path_of_layer(layer), "-unsetnodata"]
+    return_code = call(" ".join(cmd), shell=True)
+    return return_code
 
 
 # plugin path
