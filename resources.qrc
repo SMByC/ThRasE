@@ -27,6 +27,5 @@
         <file>icons/save.svg</file>
         <file>icons/zoom_to_layer.svg</file>
         <file>icons/open_in_ge.svg</file>
-        <file>icons/window_keep_above.svg</file>
     </qresource>
 </RCC>

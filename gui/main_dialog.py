@@ -276,8 +276,6 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 yaml_config["navigation"]["type"] = "points"
             if yaml_config["navigation"]["type"] == "by tiles throughout centroid of polygons":
                 yaml_config["navigation"]["type"] = "centroid of polygons"
-            if "keep_above" not in yaml_config["navigation"]:
-                yaml_config["navigation"]["keep_above"] = True
             if "build_tools" not in yaml_config["navigation"]:
                 yaml_config["navigation"]["build_tools"] = True
 
@@ -316,7 +314,6 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.navigation.current_tile = \
                 next((tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None)
             # navigation dialog
-            LayerToEdit.current.navigation_dialog.WindowKeepAbove.setChecked(yaml_config["navigation"]["keep_above"])
             LayerToEdit.current.navigation_dialog.QPBtn_BuildNavigationTools.setChecked(yaml_config["navigation"]["build_tools"])
             LayerToEdit.current.navigation_dialog.build_tools()
             if "size_dialog" in yaml_config["navigation"] and yaml_config["navigation"]:

@@ -59,7 +59,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.render_widget.canvas.setMapTool(self.map_tool_pan, clean=True)
 
         # flags
-        self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
 
     def setup_gui(self):
         self.NavTiles_widgetFile.setHidden(True)
@@ -84,7 +84,6 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.CleanNavigation.clicked.connect(self.clean_navigation)
         self.AOI_Picker.clicked.connect(self.activate_deactivate_AOI_picker)
         self.DeleteAllAOI.clicked.connect(self.clean_all_aoi_drawn)
-        self.WindowKeepAbove.clicked.connect(self.window_keep_above)
         self.ZoomToTiles.clicked.connect(self.zoom_to_tiles)
         # slider and spinbox connection
         self.SliderNavigation.valueChanged.connect(self.highlight)
@@ -117,10 +116,12 @@ class NavigationDialog(QDialog, FORM_CLASS):
     @pyqtSlot()
     def build_tools(self):
         if self.QPBtn_BuildNavigationTools.isChecked():
+            self.QPBtn_BuildNavigationTools.setArrowType(Qt.DownArrow)
             self.build_tools_line.setVisible(True)
             self.NavBuildTypeBlock.setVisible(True)
             self.NavBuildToolsBlock.setVisible(True)
         else:
+            self.QPBtn_BuildNavigationTools.setArrowType(Qt.UpArrow)
             self.build_tools_line.setHidden(True)
             self.NavBuildTypeBlock.setHidden(True)
             self.NavBuildToolsBlock.setHidden(True)
@@ -351,15 +352,6 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         self.layer_to_edit.navigation.delete()
         self.CleanNavigation.setEnabled(False)
-
-    @pyqtSlot()
-    def window_keep_above(self):
-        # TODO check the behavior of this function
-        if self.WindowKeepAbove.isChecked():
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        else:
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-        self.show()
 
     @pyqtSlot()
     def zoom_to_tiles(self):

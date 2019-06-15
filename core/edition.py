@@ -424,7 +424,6 @@ class LayerToEdit(object):
             data["navigation"]["size_dialog"] = (self.navigation_dialog.size().width(), self.navigation_dialog.size().height())
             data["navigation"]["extent_dialog"] = self.navigation_dialog.render_widget.canvas.extent().toRectF().getCoords()
             data["navigation"]["build_tools"] = self.navigation_dialog.QPBtn_BuildNavigationTools.isChecked()
-            data["navigation"]["keep_above"] = self.navigation_dialog.WindowKeepAbove.isChecked()
             # special type navigation
             if data["navigation"]["type"] == "AOIs":
                 aois = [[[[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asPolygon()][0]

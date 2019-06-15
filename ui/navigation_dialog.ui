@@ -106,16 +106,12 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QToolButton" name="WindowKeepAbove">
+             <widget class="QToolButton" name="QPBtn_BuildNavigationTools">
               <property name="toolTip">
-               <string>Keep above others windows</string>
+               <string>Show/hide the build navigation tools</string>
               </property>
               <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/window_keep_above.svg</normaloff>:/plugins/thrase/icons/window_keep_above.svg</iconset>
+               <string>build tools</string>
               </property>
               <property name="checkable">
                <bool>true</bool>
@@ -124,10 +120,13 @@
                <bool>true</bool>
               </property>
               <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonIconOnly</enum>
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
               <property name="autoRaise">
                <bool>true</bool>
+              </property>
+              <property name="arrowType">
+               <enum>Qt::DownArrow</enum>
               </property>
              </widget>
             </item>
@@ -258,25 +257,6 @@
                </size>
               </property>
              </spacer>
-            </item>
-            <item>
-             <widget class="QToolButton" name="QPBtn_BuildNavigationTools">
-              <property name="toolTip">
-               <string>Show/hide the build navigation tools</string>
-              </property>
-              <property name="text">
-               <string>build tools</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
-             </widget>
             </item>
            </layout>
           </widget>
