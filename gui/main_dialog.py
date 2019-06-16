@@ -223,6 +223,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 if file_index > 0:
                     # select layer if exists in Qgis
                     active_layer.QCBox_RenderFile.setCurrentIndex(file_index)
+                    active_layer.set_render_layer(active_layer.QCBox_RenderFile.currentLayer())
                 elif yaml_active_layer["layer_path"] and os.path.isfile(yaml_active_layer["layer_path"]):
                     # load file and select in view if this exists and not load in Qgis
                     layer = load_and_select_filepath_in(active_layer.QCBox_RenderFile, yaml_active_layer["layer_path"],
@@ -240,10 +241,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 active_layer.layerOpacity.setValue(yaml_active_layer["opacity"])
                 # on/off
                 if not yaml_active_layer["is_active"]:
-                    active_layer.on_off_layer(False)
                     with block_signals_to(active_layer.OnOffActiveLayer):
                         active_layer.OnOffActiveLayer.setChecked(False)
-                        active_layer.widget_ActiveLayer.setDisabled(True)
+                    active_layer.widget_ActiveLayer.setDisabled(True)
+                    active_layer.disable()
             # edit tool
             if yaml_view_widget["mouse_pixel_value"]:
                 view_widget.mousePixelValue2Table.setChecked(True)

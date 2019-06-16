@@ -56,7 +56,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         # set properties to QgsMapLayerComboBox
         self.QCBox_RenderFile.setCurrentIndex(-1)
         # handle connect layer selection with render canvas
-        self.QCBox_RenderFile.currentIndexChanged.connect(lambda: self.set_render_layer(self.QCBox_RenderFile.currentLayer()))
+        self.QCBox_RenderFile.layerChanged.connect(self.set_render_layer)
         self.QCBox_RenderFile.setToolTip("{} layer".format({1: "upper", 2: "intermediate", 3: "lower"}[self.id]))
         # call to browse the render file
         self.QCBox_browseRenderFile.clicked.connect(lambda: self.browser_dialog_to_load_file(
@@ -105,7 +105,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         if style_editor_dlg.exec_():
             style_editor_dlg.apply()
 
-    @pyqtSlot()
+    @pyqtSlot(QgsMapLayer)
     def set_render_layer(self, layer):
         if not layer:
             self.disable()
