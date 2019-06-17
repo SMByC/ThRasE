@@ -147,7 +147,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
             from ThRasE.gui.main_dialog import ThRasEDialog
             same_layer_in_others_active_layer = \
                 [active_layer for active_layer in [al for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets] for al in als]
-                 if active_layer.is_active and active_layer != self and active_layer.layer == self.layer]
+                 if active_layer != self and active_layer.layer == self.layer]
 
             for active_layer in same_layer_in_others_active_layer:
                 with block_signals_to(active_layer.layerOpacity):
