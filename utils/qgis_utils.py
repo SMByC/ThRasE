@@ -116,7 +116,8 @@ def get_nodata_value(layer, band=1):
 
 
 def unset_the_nodata_value(layer):
-    cmd = ['gdal_edit' if platform.system() == 'Windows' else 'gdal_edit.py', get_file_path_of_layer(layer), "-unsetnodata"]
+    cmd = ['gdal_edit' if platform.system() == 'Windows' else 'gdal_edit.py',
+           '"{}"'.format(get_file_path_of_layer(layer)), "-unsetnodata"]
     return_code = call(" ".join(cmd), shell=True)
     return return_code
 
