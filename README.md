@@ -17,7 +17,7 @@ The plugin will be available in the `Plugins` menu and `Plugins toolbar`.
 The official version control system repository of the plugin:
 [https://github.com/SMByC/ThRasE](https://github.com/SMByC/ThRasE)
 
-The home plugin in plugins.qgis.org: [http://plugins.qgis.org/plugins/ThRasE/](http://plugins.qgis.org/plugins/ThRasE/)
+The home plugin in plugins.qgis.org: [https://plugins.qgis.org/plugins/ThRasE/](https://plugins.qgis.org/plugins/ThRasE/)
 
 ## Issue Tracker
 
