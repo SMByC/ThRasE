@@ -264,11 +264,11 @@ class ViewWidget(QWidget, FORM_CLASS):
             # open to close
             if view_widget.widget_ActiveLayers.isVisible():
                 view_widget.widget_ActiveLayers.setHidden(True)
-                view_widget.QPBtn_ConfActiveLayers.setStyleSheet('QToolButton {color: gray;}')
+                view_widget.QPBtn_ConfActiveLayers.setChecked(False)
             # close to open
             else:
                 view_widget.widget_ActiveLayers.setVisible(True)
-                view_widget.QPBtn_ConfActiveLayers.setStyleSheet('')
+                view_widget.QPBtn_ConfActiveLayers.setChecked(True)
 
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
@@ -283,11 +283,11 @@ class ViewWidget(QWidget, FORM_CLASS):
             # open to close
             if view_widget.widget_EditionTools.isVisible():
                 view_widget.widget_EditionTools.setHidden(True)
-                view_widget.QPBtn_EditionTools.setStyleSheet('QToolButton {color: gray;}')
+                view_widget.QPBtn_EditionTools.setChecked(False)
             # close to open
             else:
                 view_widget.widget_EditionTools.setVisible(True)
-                view_widget.QPBtn_EditionTools.setStyleSheet('')
+                view_widget.QPBtn_EditionTools.setChecked(True)
 
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]

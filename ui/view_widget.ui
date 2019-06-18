@@ -80,15 +80,15 @@
         <property name="toolTip">
          <string>Show/hide the active layers config</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">color: gray</string>
-        </property>
         <property name="text">
          <string>0 active layers</string>
         </property>
         <property name="icon">
          <iconset>
           <normaloff>:/plugins/thrase/icons/active_layers_tool.svg</normaloff>:/plugins/thrase/icons/active_layers_tool.svg</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -112,15 +112,15 @@
         <property name="toolTip">
          <string>Show/hide the edition tools</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">color: gray</string>
-        </property>
         <property name="text">
          <string>edition</string>
         </property>
         <property name="icon">
          <iconset>
           <normaloff>:/plugins/thrase/icons/edit_tool.svg</normaloff>:/plugins/thrase/icons/edit_tool.svg</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
