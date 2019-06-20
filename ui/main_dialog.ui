@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ThRasE - Thematic Raster Edition</string>
+   <string>ThRasE - Thematic Raster Editor</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">

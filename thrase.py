@@ -3,7 +3,7 @@
 /***************************************************************************
  ThRasE
                                  A QGIS plugin
- ThRasE is a Qgis plugin for Thematic Raster Edition
+ ThRasE is a Thematic Raster Editor plugin of Qgis
                               -------------------
         copyright            : (C) 2019 by Xavier Corredor Llano, SMByC
         email                : xcorredorl@ideam.gov.co
@@ -65,7 +65,7 @@ class ThRasE:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-        self.menu_name_plugin = self.tr("ThRasE - Thematic Raster Edition")
+        self.menu_name_plugin = self.tr("ThRasE - Thematic Raster Editor")
         self.pluginIsActive = False
         ThRasE.dialog = None
 
@@ -173,7 +173,7 @@ class ThRasE:
         LayerToEdit.current = None
 
         from qgis.utils import reloadPlugin
-        reloadPlugin("ThRasE - Thematic Raster Edition")
+        reloadPlugin("ThRasE - Thematic Raster Editor")
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

@@ -3,7 +3,7 @@
 /***************************************************************************
  ThRasE
                                  A QGIS plugin
- ThRasE is a Qgis plugin for Thematic Raster Edition
+ ThRasE is a Thematic Raster Editor plugin of Qgis
                               -------------------
         copyright            : (C) 2019 by Xavier Corredor Llano, SMByC
         email                : xcorredorl@ideam.gov.co

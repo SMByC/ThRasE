@@ -2,7 +2,7 @@
 
 ![](docs/img/thrase.svg)
 
-ThRasE is a Qgis plugin for Thematic Raster Edition
+ThRasE is a Thematic Raster Editor plugin of Qgis
 
 Read more in: [https://smbyc.github.io/ThRasE](https://smbyc.github.io/ThRasE)
 

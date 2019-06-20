@@ -1,7 +1,7 @@
 [general]
 name=ThRasE
-description=ThRasE is a Qgis plugin for Thematic Raster Edition
-about=ThRasE is a Qgis plugin for Thematic Raster Edition
+description=ThRasE is a Thematic Raster Editor plugin of Qgis
+about=ThRasE is a Thematic Raster Editor plugin of Qgis
 
 version=19.dev
 qgisMinimumVersion=3.0
