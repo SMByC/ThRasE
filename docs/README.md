@@ -8,7 +8,7 @@ ThRasE is a Qgis plugin for Thematic Raster Edition
 
 ![](img/UGQn.gif)
 
-Home page documentation: [https://smbyc.bitbucket.io/qgisplugins/thrase](https://smbyc.bitbucket.io/qgisplugins/thrase)
+Home page documentation: [https://smbyc.github.io/ThRasE](https://smbyc.github.io/ThRasE)
 
 ## Installation
 

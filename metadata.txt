@@ -3,24 +3,24 @@ name=ThRasE
 description=ThRasE is a Qgis plugin for Thematic Raster Edition
 about=ThRasE is a Qgis plugin for Thematic Raster Edition
 
-version=x.x.x
+version=19.dev
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 
 author=Xavier Corredor Llano, SMByC
 email=xcorredorl@ideam.gov.co
 
-homepage=https://smbyc.bitbucket.io/qgisplugins/thrase
-tracker=https://bitbucket.org/smbyc/qgisplugin-thrase/issues
-repository=https://bitbucket.org/smbyc/qgisplugin-thrase
+homepage=https://smbyc.github.io/ThRasE
+tracker=https://github.com/SMByC/ThRasE/issues
+repository=https://github.com/SMByC/ThRasE
 
 changelog=
     x.x.x:
     - First public, tested and stable version. All comments, suggestions and issues to:
-      https://bitbucket.org/smbyc/qgisplugin-thrase/issues or to email.
+      https://github.com/SMByC/ThRasE/issues or to email.
 
     Previous versions:
-    - All commits in: https://bitbucket.org/smbyc/qgisplugin-thrase/commits/all
+    - All commits in: https://github.com/SMByC/ThRasE/commits/all
 
 tags=raster,editing,pixel,thematic
 

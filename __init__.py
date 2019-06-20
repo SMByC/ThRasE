@@ -57,7 +57,7 @@ def pre_init_plugin(iface):
                              'An error occurred during the installation of Python packages. ' +
                              'Click on "Stack Trace" in the QGIS message bar for details.')
         raise RuntimeError('\nThRasE: Error installing Python packages. Read install instruction: '
-                           'https://smbyc.bitbucket.io/qgisplugins/thrase\nLog:\n' + log) from e
+                           'https://smbyc.github.io/ThRasE\nLog:\n' + log) from e
 
 
 # noinspection PyPep8Naming
