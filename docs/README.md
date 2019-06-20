@@ -1,12 +1,12 @@
 # ThRasE
 
-![](imgs/thrase.svg)
+![](img/thrase.svg)
 
 ThRasE is a Qgis plugin for Thematic Raster Edition
 
 ## Documentation
 
-![](imgs/UGQn.gif)
+![](img/UGQn.gif)
 
 Home page documentation: [https://smbyc.bitbucket.io/qgisplugins/thrase](https://smbyc.bitbucket.io/qgisplugins/thrase)
 
