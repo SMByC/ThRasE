@@ -359,7 +359,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.tr("Raster files (*.tif *.img);;All files (*.*)"))
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_and_select_filepath_in(self.QCBox_RenderFile, file_path)
+            layer = load_and_select_filepath_in(self.QCBox_LayerToEdit, file_path)
+            self.select_layer_to_edit(layer)
 
     def set_navigation_tool(self, nav_type):
         if not LayerToEdit.current:
