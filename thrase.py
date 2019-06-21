@@ -152,7 +152,15 @@ class ThRasE:
         """Cleanup necessary items here when plugin is closed"""
         from ThRasE.core.edition import LayerToEdit
 
-        # first close the navigation dialog if is open
+        # restore the recode pixel table to original (if was changed) of the thematic raster to edit
+        if LayerToEdit.current:
+            ThRasE.dialog.restore_recode_table()
+
+        # restore the opacity of all active layers to 100%
+        [al.update_layer_opacity(100) for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets]
+         for al in als if al.opacity < 100]
+
+        # close the navigation dialog if is open
         if LayerToEdit.current and LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.isVisible():
             LayerToEdit.current.navigation_dialog.close()
             LayerToEdit.current.navigation_dialog = None
