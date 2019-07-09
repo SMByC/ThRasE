@@ -191,6 +191,9 @@
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
+              <property name="toolTip">
+               <string>Select the type navigation to build</string>
+              </property>
               <property name="styleSheet">
                <string notr="true">padding-left: 3px;padding-right: 3px;</string>
               </property>
@@ -620,7 +623,8 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Horizontal navigation (left-right and top-bottom)</string>
+               <string>Horizontal navigation (left-right and top-bottom)
+(rebuild the navigation to make the changes)</string>
               </property>
               <property name="text">
                <string/>
@@ -649,7 +653,8 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Vertical navigation (top-bottom and left-right)</string>
+               <string>Vertical navigation (top-bottom and left-right)
+(rebuild the navigation to make the changes)</string>
               </property>
               <property name="text">
                <string/>
@@ -723,7 +728,8 @@
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the color for the tiles navigation (requires rebuild the navigation)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Select the color for the tiles navigation
+(rebuild the navigation to make the changes)</string>
            </property>
            <property name="styleSheet">
             <string notr="true">
@@ -873,6 +879,9 @@ QToolButton
          </property>
          <item>
           <widget class="QSlider" name="SliderNavigation">
+           <property name="toolTip">
+            <string>Quick navigation slider</string>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -883,6 +892,9 @@ QToolButton
          </item>
          <item>
           <widget class="QSpinBox" name="currentTile">
+           <property name="toolTip">
+            <string>Go to the specific tile</string>
+           </property>
            <property name="frame">
             <bool>false</bool>
            </property>

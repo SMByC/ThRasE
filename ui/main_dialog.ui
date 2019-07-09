@@ -824,6 +824,9 @@ padding-right: 3px;</string>
                  <property name="cursor">
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Applies the changes set in recode pixels table only in the areas inside the all picked classes from another thematic file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
                  <property name="text">
                   <string>From thematic file classes</string>
                  </property>

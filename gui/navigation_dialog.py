@@ -98,7 +98,8 @@ class NavigationDialog(QDialog, FORM_CLASS):
         # https://qgis.org/api/classQgsUnitTypes.html
         self.tileSize.setSuffix(" {}".format(abbr_unit))
         self.tileSize.setToolTip("The height/width of the tile to build the navigation, in {}\n"
-                                 "(units based on the current thematic layer to edit)".format(str_unit))
+                                 "(units based on the current thematic layer to edit)\n"
+                                 "(rebuild the navigation to make the changes)".format(str_unit))
         self.tileSize.setRange(0, 360 if layer_unit == QgsUnitTypes.DistanceDegrees else 10e10)
         self.tileSize.setDecimals(
             4 if layer_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,

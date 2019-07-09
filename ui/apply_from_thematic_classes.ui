@@ -54,7 +54,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>This tool applies the changes set in recode pixels table to the current thematic layer to edit in the main dialog, only in the areas inside the all picked classes from another thematic file selected here.</string>
+         <string>This tool applies the changes set in recode pixels table (to the current thematic layer to edit in the main dialog) only in the areas inside the all picked classes from another thematic file selected here.</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignJustify|Qt::AlignVCenter</set>
