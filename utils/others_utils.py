@@ -62,7 +62,7 @@ def get_xml_style(layer, band):
     if not xml_style_items or False in check_int_values:
         msg = "The selected layer \"{}\" {}doesn't have an appropriate colors/values style for ThRasE, " \
               "it must be unique values or singleband pseudocolor with integer values. " \
-              "<a href='https://smbyc.github.io/ThRasE/how_to_use/#valid-types-of-thematic-rasters'>" \
+              "<a href='https://smbyc.github.io/ThRasE/#thematic-raster-to-edit'>" \
               "See more</a>.".format(layer.name(), "in the band {} ".format(band) if layer.bandCount() > 1 else "")
         QMessageBox.warning(None, 'Reading the symbology layer style...', msg)
         return
