@@ -84,7 +84,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_OpenNavigationDialog.clicked.connect(self.open_navigation_dialog)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
-        self.Widget_GlobalEditTools.setDisabled(True)
+        self.Widget_GlobalEditingTools.setDisabled(True)
         self.currentTile.clicked.connect(self.go_to_current_tile)
         self.previousTile.clicked.connect(self.go_to_previous_tile)
         self.nextTile.clicked.connect(self.go_to_next_tile)
@@ -517,7 +517,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.NavigationBlockWidget.setDisabled(True)
             self.QPBtn_ReloadRecodeTable.setDisabled(True)
             self.QPBtn_RestoreRecodeTable.setDisabled(True)
-            self.Widget_GlobalEditTools.setDisabled(True)
+            self.Widget_GlobalEditingTools.setDisabled(True)
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
             self.SaveConfig.setDisabled(True)
             with block_signals_to(self.QCBox_band_LayerToEdit):
@@ -633,7 +633,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
         self.QPBtn_ReloadRecodeTable.setEnabled(True)
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
-        self.Widget_GlobalEditTools.setEnabled(True)
+        self.Widget_GlobalEditingTools.setEnabled(True)
         self.SaveConfig.setEnabled(True)
 
     @pyqtSlot()
@@ -785,7 +785,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             # disable some components
             self.NavigationBlockWidget.setEnabled(False)
             [view_widget.widget_EditionTools.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
-            self.Widget_GlobalEditTools.setEnabled(False)
+            self.Widget_GlobalEditingTools.setEnabled(False)
             return
         # restore backup
         LayerToEdit.current.pixels_backup = pixels_backup
@@ -817,7 +817,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
-        self.Widget_GlobalEditTools.setEnabled(True)
+        self.Widget_GlobalEditingTools.setEnabled(True)
 
     @pyqtSlot()
     def apply_whole_image(self):
