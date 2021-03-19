@@ -3,7 +3,7 @@ name=ThRasE
 description=ThRasE is a Thematic Raster Editor plugin of Qgis
 about=ThRasE is a Thematic Raster Editor plugin of Qgis, it uses a recode pixel table to modify several classes at the same time using pixels, lines or polygons tools. The plugin has a navigation tool to guarantee the revision of the thematic raster.
 
-version=20.3.23
+version=21.3.19
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 
@@ -15,8 +15,10 @@ tracker=https://github.com/SMByC/ThRasE/issues
 repository=https://github.com/SMByC/ThRasE
 
 changelog=
-    20.3.23:
-    - Fix broken link to ThRasE guide
+    21.3.19:
+    - Apply symbology to raster layer using only Paletted/Unique values, fixing problems like layers with 0 that user want to edit
+    - Restore the original symbology when the plugin unset the nodata value
+    - Several UI improvements and tweaks
     - All commits in: https://github.com/SMByC/ThRasE/commits
 
 tags=raster,editing,pixel,thematic
