@@ -49,8 +49,13 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>28</height>
+          <height>30</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
         </property>
         <property name="frame">
          <bool>false</bool>
@@ -71,8 +76,13 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>28</height>
+          <height>30</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
         </property>
         <property name="cursor">
          <cursorShape>PointingHandCursor</cursorShape>
@@ -94,7 +104,7 @@
          <enum>Qt::ToolButtonTextBesideIcon</enum>
         </property>
         <property name="autoRaise">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -103,8 +113,13 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>28</height>
+          <height>30</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
         </property>
         <property name="cursor">
          <cursorShape>PointingHandCursor</cursorShape>
@@ -126,7 +141,7 @@
          <enum>Qt::ToolButtonTextBesideIcon</enum>
         </property>
         <property name="autoRaise">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -199,10 +214,23 @@
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonIconOnly</enum>
         </property>
-        <property name="autoRaise">
-         <bool>true</bool>
-        </property>
        </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_13">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>3</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="Line" name="line_3">
@@ -265,8 +293,13 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>26</height>
+                <height>30</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+               </font>
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
@@ -286,9 +319,6 @@
               </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -313,7 +343,7 @@
            <property name="maximumSize">
             <size>
              <width>16777215</width>
-             <height>22</height>
+             <height>30</height>
             </size>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -350,11 +380,6 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -377,11 +402,6 @@
              <widget class="QToolButton" name="RedoPixel">
               <property name="enabled">
                <bool>false</bool>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
@@ -481,8 +501,13 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>26</height>
+                <height>30</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+               </font>
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
@@ -503,9 +528,6 @@
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
              </widget>
             </item>
             <item>
@@ -513,8 +535,13 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>26</height>
+                <height>30</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+               </font>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The N times the pixel size for defining the buffer around the line&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -524,9 +551,6 @@
               </property>
               <property name="sizeAdjustPolicy">
                <enum>QComboBox::AdjustToContents</enum>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
               </property>
               <item>
                <property name="text">
@@ -584,8 +608,8 @@
              <widget class="QToolButton" name="LinesColor">
               <property name="maximumSize">
                <size>
-                <width>18</width>
-                <height>18</height>
+                <width>20</width>
+                <height>20</height>
                </size>
               </property>
               <property name="cursor">
@@ -627,7 +651,7 @@ QToolButton
            <property name="maximumSize">
             <size>
              <width>16777215</width>
-             <height>22</height>
+             <height>30</height>
             </size>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -664,11 +688,6 @@ QToolButton
               <property name="enabled">
                <bool>false</bool>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -692,11 +711,6 @@ QToolButton
               <property name="enabled">
                <bool>false</bool>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -719,11 +733,6 @@ QToolButton
              <widget class="QToolButton" name="CleanAllLines">
               <property name="enabled">
                <bool>false</bool>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
@@ -823,8 +832,13 @@ QToolButton
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>26</height>
+                <height>30</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+               </font>
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
@@ -845,17 +859,14 @@ QToolButton
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
              </widget>
             </item>
             <item>
              <widget class="QToolButton" name="PolygonsColor">
               <property name="maximumSize">
                <size>
-                <width>18</width>
-                <height>18</height>
+                <width>20</width>
+                <height>20</height>
                </size>
               </property>
               <property name="cursor">
@@ -897,7 +908,7 @@ QToolButton
            <property name="maximumSize">
             <size>
              <width>16777215</width>
-             <height>22</height>
+             <height>30</height>
             </size>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -934,11 +945,6 @@ QToolButton
               <property name="enabled">
                <bool>false</bool>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -962,11 +968,6 @@ QToolButton
               <property name="enabled">
                <bool>false</bool>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -989,11 +990,6 @@ QToolButton
              <widget class="QToolButton" name="CleanAllPolygons">
               <property name="enabled">
                <bool>false</bool>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
