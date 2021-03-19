@@ -704,7 +704,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setToolTip("Color for this class, click to edit.\n"
-                                              "Info: edit the color is only temporarily")
+                                              "INFO: editing the color is only temporary and does not affect the layer")
                         item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
                                                         pixel["color"]["B"], pixel["color"]["A"]))
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
@@ -739,8 +739,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        item_table.setToolTip("Show/hide the pixel class value. \nIf it is "
-                                              "hidden it does not avoid being edited!")
+                        item_table.setToolTip("Show/Hide the pixel class value. \n"
+                                              "WARNING: If the class is hidden it does not avoid being edited!")
                         if pixel["s/h"]:
                             item_table.setCheckState(Qt.Checked)
                         else:
