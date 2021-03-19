@@ -132,8 +132,8 @@ class LayerToEdit(object):
     def setup_symbology(self):
         # fill/restart the symbology based on the real pixel-color values from file
         self.symbology = \
-            [(str(pixel["value"]), pixel["value"], (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"],
-                                                    255 if pixel["s/h"] else 0))
+            [(str(pixel["value"]), pixel["value"],
+              (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], 255 if pixel["s/h"] else 0))
              for pixel in self.pixels]
 
         apply_symbology(self.qgs_layer, self.band, self.symbology)
