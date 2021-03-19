@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import Qt, QTimer, QSettings
+from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QWidget, QGridLayout
 from qgis.core import QgsCoordinateTransform, QgsProject

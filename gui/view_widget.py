@@ -25,7 +25,7 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget, QColorDialog
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsProject, QgsWkbTypes, QgsFeature, QgsRaster, Qgis
+from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster, Qgis
 from qgis.gui import QgsMapTool, QgsRubberBand
 
 from ThRasE.core.edition import LayerToEdit, edit_layer

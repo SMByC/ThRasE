@@ -154,12 +154,12 @@ class StyleEditorDialog(QDialog, FORM_CLASS):
 
 
 def apply_symbology(rlayer, rband, symbology):
-    """Apply symbology to raster layer using Palleted/Unique values"""
-    palleted_classes = []
+    """Apply symbology to raster layer using Paletted/Unique values"""
+    paletted_classes = []
     for name, value, color in symbology:
-        palleted_classes.append(QgsPalettedRasterRenderer.Class(value, QColor(color[0], color[1], color[2], color[3]), name))
+        paletted_classes.append(QgsPalettedRasterRenderer.Class(value, QColor(color[0], color[1], color[2], color[3]), name))
 
-    renderer = QgsPalettedRasterRenderer(rlayer.dataProvider(), rband, palleted_classes)
+    renderer = QgsPalettedRasterRenderer(rlayer.dataProvider(), rband, paletted_classes)
     # Set renderer for raster layer
     rlayer.setRenderer(renderer)
 
