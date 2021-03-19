@@ -581,20 +581,23 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
             if msgBox.clickedButton() == unset_button:
                 if unset_the_nodata_value(layer) == 0:
+                    symbology_render = layer.renderer().clone()  # save the symbology before reload
                     with block_signals_to(self.QCBox_LayerToEdit):
                         layer_name = layer.name()
                         layer_path = get_file_path_of_layer(layer)
                         self.QCBox_LayerToEdit.setCurrentIndex(-1)
                         unload_layer(layer_path)
                         layer = load_layer(layer_path, name=layer_name)
+                        # restore symbology
+                        layer.setRenderer(symbology_render)
+                        layer.triggerRepaint()
+                        layer.reload()
                         # select the sampling file in combobox
                         selected_index = self.QCBox_LayerToEdit.findText(layer.name(), Qt.MatchFixedString)
                         self.QCBox_LayerToEdit.setCurrentIndex(selected_index)
                     with block_signals_to(self.QCBox_band_LayerToEdit):
                         band_idx = self.QCBox_band_LayerToEdit.findText(str(band), Qt.MatchFixedString)
                         self.QCBox_band_LayerToEdit.setCurrentIndex(band_idx)
-                    layer.reload()
-                    layer.triggerRepaint()
                     nodata = None
                     self.MsgBar.pushMessage(
                         "Unset the nodata value to the thematic layer '{}' was successful".format(layer.name()),
