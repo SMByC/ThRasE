@@ -40,6 +40,7 @@ from ThRasE.utils.qgis_utils import unload_layer
 class ThRasE:
     """QGIS Plugin Implementation."""
     dialog = None
+    # tmp dir for all process and intermediate files, only on demand
     tmp_dir = None
 
     def __init__(self, iface):
@@ -123,8 +124,6 @@ class ThRasE:
             if ThRasE.dialog is None:
                 ThRasE.dialog = ThRasEDialog()
 
-            # init tmp dir for all process and intermediate files
-            #ThRasE.tmp_dir = tempfile.mkdtemp() ## TODO: is necessary?
             # connect to provide cleanup on closing of dialog
             ThRasE.dialog.closingPlugin.connect(self.onClosePlugin)
 
