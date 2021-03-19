@@ -4,7 +4,7 @@
 # ThRasE is a Thematic Raster Editor plugin of Qgis
 #                             -------------------
 #        copyright            : (C) 2019 by Xavier Corredor Llano, SMByC
-#        email                : xcorredorl@ideam.gov.co
+#        email                : xavier.corredor.llano@gmail.com
 # ***************************************************************************/
 #
 #/***************************************************************************
