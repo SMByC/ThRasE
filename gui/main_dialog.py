@@ -687,7 +687,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             return
 
         with block_signals_to(self.recodePixelTable):
-            header = ["", "old value", "new value", "s/h"]
+            header = ["", "Curr Value", "New Value", "S/H"]
             row_length = len(layer_to_edit.pixels)
             # init table
             self.recodePixelTable.setRowCount(row_length)
@@ -708,7 +708,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
                                                         pixel["color"]["B"], pixel["color"]["A"]))
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "old value":
+                if header == "Curr Value":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem(str(pixel["value"]))
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
@@ -720,7 +720,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "new value":
+                if header == "New Value":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem(str(pixel["new_value"]) if pixel["new_value"] is not None else "")
                         item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled | Qt.ItemIsEditable)
@@ -732,7 +732,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "s/h":
+                if header == "S/H":
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() | Qt.ItemIsUserCheckable)
