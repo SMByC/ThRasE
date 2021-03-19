@@ -92,7 +92,12 @@ class NavigationDialog(QDialog, FORM_CLASS):
         # #### setup units in tile size
         # set/update the units in tileSize item
         layer_unit = self.layer_to_edit.qgs_layer.crs().mapUnits()
-        str_unit = QgsUnitTypes.toString(layer_unit)
+        if layer_unit == QgsUnitTypes.DistanceUnknownUnit:
+            layer_unit = QgsUnitTypes.DistanceMeters
+            str_unit = QgsUnitTypes.toString(layer_unit) + \
+                       "\nWARNING: the layer does not have a valid map unit considering meters as the base unit!"
+        else:
+            str_unit = QgsUnitTypes.toString(layer_unit)
         abbr_unit = QgsUnitTypes.toAbbreviatedString(layer_unit)
         # Set the properties of the QdoubleSpinBox based on the QgsUnitTypes of the thematic layer
         # https://qgis.org/api/classQgsUnitTypes.html
@@ -103,10 +108,10 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.tileSize.setRange(0, 360 if layer_unit == QgsUnitTypes.DistanceDegrees else 10e10)
         self.tileSize.setDecimals(
             4 if layer_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
-                                     QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
+                                QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
         self.tileSize.setSingleStep(
             0.0001 if layer_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
-                                          QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
+                                     QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
         default_tile_size = {QgsUnitTypes.DistanceMeters: 15000, QgsUnitTypes.DistanceKilometers: 15,
                              QgsUnitTypes.DistanceFeet: 49125, QgsUnitTypes.DistanceNauticalMiles: 8.125,
                              QgsUnitTypes.DistanceYards: 16500, QgsUnitTypes.DistanceMiles: 9.375,
