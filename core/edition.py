@@ -138,9 +138,9 @@ class LayerToEdit(object):
 
         apply_symbology(self.qgs_layer, self.band, self.symbology)
 
-    def get_the_new_pixel_value(self, point):
+    def get_the_old_new_pixel_value(self, point):
         old_value = self.get_pixel_value_from_pnt(point)
-        return self.old_new_value[old_value] \
+        return old_value, self.old_new_value[old_value] \
             if old_value in self.old_new_value and self.old_new_value[old_value] != old_value else None
 
     def highlight_value_in_recode_pixel_table(self, value_to_select):
@@ -170,31 +170,33 @@ class LayerToEdit(object):
         return True if self.bounds[0] <= point.x() <= self.bounds[2] \
                        and self.bounds[1] <= point.y() <= self.bounds[3] else False
 
-    def edit_pixel(self, point, new_value=None, check_bounds=True):
+    def edit_pixel(self, point, new_value=None, check_bounds=True, inside_geom=None):
         if check_bounds and not self.check_point_inside_layer(point):
             return
 
         if new_value is None:
-            new_value = self.get_the_new_pixel_value(point)
+            old_value, new_value = self.get_the_old_new_pixel_value(point)
             if new_value is None:
                 return
+        else:
+            old_value = self.get_pixel_value_from_pnt(point)
+
+        if inside_geom and not inside_geom.contains(QgsGeometry.fromPointXY(point)):
+            return
 
         px = int((point.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())  # num column position in x
         py = int((self.bounds[3] - point.y()) / self.qgs_layer.rasterUnitsPerPixelY())  # num row position in y
 
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
-        write_status = self.data_provider.writeBlock(rblock, self.band, px, py)
-        return write_status
+        if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
+            return point, old_value
 
     @wait_process
     @edit_layer
     def edit_from_pixel_picker(self, point):
-        # get the pixel and value before edit it for save in history pixels class
-        history_item = (point, self.get_pixel_value_from_pnt(point))
-        # edit
-        edit_status = self.edit_pixel(point)
-        if edit_status:  # the pixel was edited
+        history_item = self.edit_pixel(point)
+        if history_item:  # the pixel was edited
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
@@ -233,26 +235,17 @@ class LayerToEdit(object):
         # flat the list, clean None and duplicates
         pixels_to_process = set([item for sublist in pixels_to_process for item in sublist if item])
 
-        # function for edit each pixel
-        def edit_pixel(pixel_point):
-            # get the pixel and value before edit it for save in history pixels class
-            point_and_value = (pixel_point, self.get_pixel_value_from_pnt(pixel_point))
-            # edit
-            edit_status = self.edit_pixel(pixel_point)
-            if edit_status:  # the pixel was edited
-                return point_and_value
-
         # edit and return all the pixel and value before edit it, for save in history class
-        points_and_values = [edit_pixel(pixel_point) for pixel_point in pixels_to_process]
-        points_and_values = [item for item in points_and_values if item]  # clean None, unedited pixels
+        history_edition_entry = [self.edit_pixel(pixel_point) for pixel_point in pixels_to_process]
+        history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
 
-        if points_and_values:
+        if history_edition_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_lines.add((line_feature, points_and_values))
+            self.history_lines.add((line_feature, history_edition_entry))
             return True
 
     @wait_process
@@ -270,35 +263,22 @@ class LayerToEdit(object):
         y_max = self.bounds[3] - int((self.bounds[3] - box.yMaximum()) / ps_y) * ps_y - ps_y / 2
         x_min = self.bounds[0] + int((box.xMinimum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
         x_max = self.bounds[0] + int((box.xMaximum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
-        # analysis all pixel if is inside the polygon drawn
-        pixels_to_process = \
-            [QgsPointXY(x, y)
-             for y in np.arange(y_min, y_max + ps_y, ps_y)
-             for x in np.arange(x_min, x_max + ps_x, ps_x)
-             if polygon_feature.geometry().contains(QgsGeometry.fromPointXY(QgsPointXY(x, y)))]
-        # clean None and duplicates
-        pixels_to_process = set([item for item in pixels_to_process if item])
-
-        # function for edit each pixel
-        def edit_pixel(pixel_point):
-            # get the pixel and value before edit it for save in history pixels class
-            point_and_value = (pixel_point, self.get_pixel_value_from_pnt(pixel_point))
-            # edit
-            edit_status = self.edit_pixel(pixel_point)
-            if edit_status:  # the pixel was edited
-                return point_and_value
 
         # edit and return all the pixel and value before edit it, for save in history class
-        points_and_values = [edit_pixel(pixel_point) for pixel_point in pixels_to_process]
-        points_and_values = [item for item in points_and_values if item]  # clean None, unedited pixels
+        polygon_geom = polygon_feature.geometry()
+        history_edition_entry = \
+            [self.edit_pixel(QgsPointXY(x, y), inside_geom=polygon_geom)
+             for y in np.arange(y_min, y_max + ps_y, ps_y)
+             for x in np.arange(x_min, x_max + ps_x, ps_x)]
+        history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
 
-        if points_and_values:
+        if history_edition_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_polygons.add((polygon_feature, points_and_values))
+            self.history_polygons.add((polygon_feature, history_edition_entry))
             return True
 
     @wait_process
@@ -470,11 +450,11 @@ class History:
             return point, curr_value
         if self.edit_type in ["lines", "polygons"]:
             feature = item[0]
-            points_and_values = item[1]
-            curr_points_and_values = []
-            for point, value in points_and_values:
-                curr_points_and_values.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
-            return feature, curr_points_and_values
+            history_edition_entry = item[1]
+            curr_history_edition_entry = []
+            for point, value in history_edition_entry:
+                curr_history_edition_entry.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
+            return feature, curr_history_edition_entry
 
     def undo(self):
         if self.can_be_undone():

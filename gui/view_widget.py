@@ -202,7 +202,7 @@ class ViewWidget(QWidget, FORM_CLASS):
 
         if from_edit_tool == "line":
             if action == "undo":
-                line_feature, points_and_values = LayerToEdit.current.history_lines.undo()
+                line_feature, history_edition_entry = LayerToEdit.current.history_lines.undo()
                 # delete the line
                 rubber_band = next((rb for rb in self.lines_drawn if
                                     rb.asGeometry().equals(line_feature.geometry())), None)
@@ -210,7 +210,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                     rubber_band.reset(QgsWkbTypes.LineGeometry)
                     self.lines_drawn.remove(rubber_band)
             if action == "redo":
-                line_feature, points_and_values = LayerToEdit.current.history_lines.redo()
+                line_feature, history_edition_entry = LayerToEdit.current.history_lines.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
                 color = self.lines_color
@@ -220,7 +220,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                 rubber_band.addGeometry(line_feature.geometry())
                 self.lines_drawn.append(rubber_band)
             # make action
-            for point, value in points_and_values:
+            for point, value in history_edition_entry:
                 LayerToEdit.current.edit_pixel(point, value)
             # update status of undo/redo/clean buttons
             self.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
@@ -229,7 +229,7 @@ class ViewWidget(QWidget, FORM_CLASS):
 
         if from_edit_tool == "polygon":
             if action == "undo":
-                polygon_feature, points_and_values = LayerToEdit.current.history_polygons.undo()
+                polygon_feature, history_edition_entry = LayerToEdit.current.history_polygons.undo()
                 # delete the rubber band
                 rubber_band = next((rb for rb in self.polygons_drawn if
                                     rb.asGeometry().equals(polygon_feature.geometry())), None)
@@ -237,7 +237,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                     rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                     self.polygons_drawn.remove(rubber_band)
             if action == "redo":
-                polygon_feature, points_and_values = LayerToEdit.current.history_polygons.redo()
+                polygon_feature, history_edition_entry = LayerToEdit.current.history_polygons.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
                 color = self.polygons_color
@@ -248,7 +248,7 @@ class ViewWidget(QWidget, FORM_CLASS):
                 rubber_band.addGeometry(polygon_feature.geometry())
                 self.polygons_drawn.append(rubber_band)
             # make action
-            for point, value in points_and_values:
+            for point, value in history_edition_entry:
                 LayerToEdit.current.edit_pixel(point, value)
             # update status of undo/redo buttons
             self.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
