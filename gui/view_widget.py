@@ -99,7 +99,7 @@ class ViewWidget(QWidget, FORM_CLASS):
     def unhighlight_cells_in_recode_pixel_table():
         from ThRasE.thrase import ThRasE
         with block_signals_to(ThRasE.dialog.recodePixelTable):
-            [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white)
+            [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white)
              for idx in range(len(LayerToEdit.current.pixels))]
 
     def update(self):

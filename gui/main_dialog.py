@@ -30,7 +30,7 @@ from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
 from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
     QgsCoordinateTransform, QgsProject
-from qgis.PyQt.QtGui import QColor, QFont
+from qgis.PyQt.QtGui import QColor, QFont, QIcon
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
@@ -651,7 +651,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         for row_idx, pixel in enumerate(layer_to_edit.pixels):
             # assign the new value
-            new_value = self.recodePixelTable.item(row_idx, 2).text()
+            new_value = self.recodePixelTable.item(row_idx, 3).text()
             try:
                 if new_value == "":
                     pixel["new_value"] = None
@@ -661,14 +661,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             except:
                 pass
             # assign the on state
-            on = self.recodePixelTable.item(row_idx, 3)
+            on = self.recodePixelTable.item(row_idx, 1)
             if on.checkState() == 2:
                 pixel["s/h"] = True
             if on.checkState() == 0:
                 pixel["s/h"] = False
 
         # update pixel class visibility
-        pixel_class_visibility = [255 if self.recodePixelTable.item(row_idx, 3).checkState() == 2 else 0
+        pixel_class_visibility = [255 if self.recodePixelTable.item(row_idx, 1).checkState() == 2 else 0
                                   for row_idx in range(len(layer_to_edit.pixels))]
         layer_to_edit.symbology = [(row[0], row[1], (row[2][0], row[2][1], row[2][2], pcv))
                                    for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility)]
@@ -687,11 +687,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             return
 
         with block_signals_to(self.recodePixelTable):
-            header = ["", "Curr Value", "New Value", "S/H"]
+            header = ["", "", "Curr Value", "New Value", ""]
             row_length = len(layer_to_edit.pixels)
             # init table
             self.recodePixelTable.setRowCount(row_length)
-            self.recodePixelTable.setColumnCount(4)
+            self.recodePixelTable.setColumnCount(5)
             self.recodePixelTable.horizontalHeader().setMinimumSectionSize(45)
             # hidden row labels
             self.recodePixelTable.verticalHeader().setVisible(False)
@@ -699,16 +699,31 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.recodePixelTable.setHorizontalHeaderLabels(header)
             # insert items
             for col_idx, header in enumerate(header):
-                if header == "":
+                if col_idx == 0:  # color class
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
-                        item_table.setToolTip("Color for this class, click to edit.\n"
+                        item_table.setToolTip("Class color, click to edit.\n"
                                               "INFO: editing the color is only temporary and does not affect the layer")
                         item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
                                                         pixel["color"]["B"], pixel["color"]["A"]))
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "Curr Value":
+                if col_idx == 1:  # Show/Hide
+                    for row_idx, pixel in enumerate(layer_to_edit.pixels):
+                        item_table = QTableWidgetItem()
+                        item_table.setFlags(item_table.flags() | Qt.ItemIsUserCheckable)
+                        item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
+                        item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+                        item_table.setToolTip("Show/Hide the pixel class value.\n"
+                                              "INFO: It is only temporary and does not affect the layer.\n"
+                                              "WARNING: If the class is hidden it does not avoid being edited!")
+                        if pixel["s/h"]:
+                            item_table.setCheckState(Qt.Checked)
+                        else:
+                            item_table.setCheckState(Qt.Unchecked)
+                        self.recodePixelTable.setItem(row_idx, col_idx, item_table)
+                if col_idx == 2:  # Curr Value
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem(str(pixel["value"]))
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
@@ -720,7 +735,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "New Value":
+                if col_idx == 3:  # New Value
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem(str(pixel["new_value"]) if pixel["new_value"] is not None else "")
                         item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled | Qt.ItemIsEditable)
@@ -732,24 +747,23 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "S/H":
+                if col_idx == 4:  # clean new value
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
-                        item_table.setFlags(item_table.flags() | Qt.ItemIsUserCheckable)
-                        item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled)
+                        path = ':/plugins/thrase/icons/trash.svg'
+                        icon = QIcon(path)
+                        item_table.setIcon(icon)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
+                        item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        item_table.setToolTip("Show/Hide the pixel class value. \n"
-                                              "WARNING: If the class is hidden it does not avoid being edited!")
-                        if pixel["s/h"]:
-                            item_table.setCheckState(Qt.Checked)
-                        else:
-                            item_table.setCheckState(Qt.Unchecked)
+                        item_table.setToolTip("Clean this row")
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
 
             # adjust size of Table
+            self.recodePixelTable.horizontalHeader().setMinimumSectionSize(10)
             self.recodePixelTable.resizeColumnsToContents()
             self.recodePixelTable.resizeRowsToContents()
+            self.recodePixelTable.setColumnWidth(0, 45)
             # adjust the editor block based on table content
             table_width = self.recodePixelTable.horizontalHeader().length() + 40
             self.EditionBlock.setMaximumWidth(table_width)
@@ -775,6 +789,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     LayerToEdit.current.symbology[table_item.row()][0:2] + \
                     ((color.red(), color.green(), color.blue(), color.alpha()),)
                 self.update_recode_pixel_table()
+        # clean the current new value for the row clicked
+        elif table_item.column() == 4:
+            self.recodePixelTable.item(table_item.row(), 3).setText("")
+
 
     @pyqtSlot()
     @error_handler

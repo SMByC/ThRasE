@@ -155,21 +155,21 @@ class LayerToEdit(object):
         if value_to_select is None:
             ThRasE.dialog.recodePixelTable.clearSelection()
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white) for idx in range(len(self.pixels))]
+                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white) for idx in range(len(self.pixels))]
             return
 
         row_idx = next((idx for idx, i in enumerate(self.pixels) if i["value"] == value_to_select), None)
         if row_idx is not None:
             # select
-            ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 1)
+            ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 2)
             # set background
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white) for idx in range(len(self.pixels))]
-                ThRasE.dialog.recodePixelTable.item(row_idx, 1).setBackground(Qt.yellow)
+                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white) for idx in range(len(self.pixels))]
+                ThRasE.dialog.recodePixelTable.item(row_idx, 2).setBackground(Qt.yellow)
         else:
             ThRasE.dialog.recodePixelTable.clearSelection()
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 1).setBackground(Qt.white) for idx in range(len(self.pixels))]
+                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white) for idx in range(len(self.pixels))]
 
     def check_point_inside_layer(self, point):
         # check if the point is within active raster bounds
