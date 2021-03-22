@@ -39,10 +39,16 @@ from ThRasE.utils.system_utils import wait_process, block_signals_to
 def edit_layer(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        # check if the recode pixel table is empty
+        if not LayerToEdit.current.old_new_value:
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage(
+                "There are no changes to apply in the recode pixel table, set the new pixels values first",
+                level=Qgis.Warning)
+            return False
         # set layer for edit
         if not LayerToEdit.current.data_provider.isEditable():
-            success = LayerToEdit.current.data_provider.setEditable(True)
-            if not success:
+            if not LayerToEdit.current.data_provider.setEditable(True):
                 from ThRasE.thrase import ThRasE
                 ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Critical)
                 return False
@@ -247,6 +253,9 @@ class LayerToEdit(object):
             # save history item
             self.history_lines.add((line_feature, history_edition_entry))
             return True
+        else:
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn line", level=Qgis.Info)
 
     @wait_process
     @edit_layer
@@ -280,6 +289,9 @@ class LayerToEdit(object):
             # save history item
             self.history_polygons.add((polygon_feature, history_edition_entry))
             return True
+        else:
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn polygon", level=Qgis.Info)
 
     @wait_process
     @edit_layer

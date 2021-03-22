@@ -461,9 +461,6 @@ class PickerLineTool(QgsMapTool):
             if rubber_band:
                 rubber_band.reset(QgsWkbTypes.LineGeometry)
                 self.view_widget.lines_drawn.remove(rubber_band)
-            # inform to the user
-            from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn line", level=Qgis.Info)
 
     def canvasMoveEvent(self, event):
         # highlight the current pixel value from mouse picker
@@ -591,9 +588,6 @@ class PickerPolygonTool(QgsMapTool):
             if rubber_band:
                 rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                 self.view_widget.polygons_drawn.remove(rubber_band)
-            # inform to the user
-            from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn polygon", level=Qgis.Info)
 
     def canvasMoveEvent(self, event):
         # highlight the current pixel value from mouse picker

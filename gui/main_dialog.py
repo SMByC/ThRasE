@@ -826,30 +826,23 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def apply_whole_image(self):
-        # check if the recode pixel table is empty
-        if not LayerToEdit.current.old_new_value:
-            self.MsgBar.pushMessage(
-                "There are no changes to apply set in the recode pixel table, first configure it",
-                level=Qgis.Warning)
-            return
-
         # first prompt
         quit_msg = "This action apply the changes set in recode pixels table to the whole image, this cannot undone. \n\n" \
                    "Target layer: \"{}\"".format(LayerToEdit.current.qgs_layer.name())
         reply = QMessageBox.question(None, 'Applying changes to the whole image',
                                      quit_msg, QMessageBox.Apply | QMessageBox.Cancel, QMessageBox.Cancel)
         if reply == QMessageBox.Apply:
-            LayerToEdit.current.edit_whole_image()
-            self.MsgBar.pushMessage(
-                "Changes in recode pixels table were successfully applied to the whole thematic file",
-                level=Qgis.Success)
+            if LayerToEdit.current.edit_whole_image() is not False:
+                self.MsgBar.pushMessage(
+                    "Changes in recode pixels table were successfully applied to the whole thematic file",
+                    level=Qgis.Success)
 
     @pyqtSlot()
     def apply_from_thematic_classes_dialog(self):
         # check if the recode pixel table is empty
         if not LayerToEdit.current.old_new_value:
             self.MsgBar.pushMessage(
-                "There are no changes to apply set in the recode pixel table, first configure it",
+                "There are no changes to apply in the recode pixel table, set the new pixels values first",
                 level=Qgis.Warning)
             return
 
