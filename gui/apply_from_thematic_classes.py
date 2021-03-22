@@ -238,9 +238,9 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
     @wait_process
     @edit_layer
     def apply(self):
-
-        classes_selected = [int(self.PixelTable.item(row_idx, 1).text()) for row_idx in range(len(self.pixel_classes))
-                            if self.PixelTable.item(row_idx, 2).checkState() == 2]
+        pixel_table = self.PixelTable
+        classes_selected = [int(pixel_table.item(row_idx, 1).text()) for row_idx in range(len(self.pixel_classes))
+                            if pixel_table.item(row_idx, 2).checkState() == 2]
 
         if not classes_selected:
             self.MsgBar.pushMessage("Error, none of the class was selected to apply", level=Qgis.Warning)
