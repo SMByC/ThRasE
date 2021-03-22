@@ -706,7 +706,7 @@ padding-right: 3px;</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This reloads the recode table if its style has been changed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This reloads the recode table if its symbology (colors/values) style has been changed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Reload</string>
@@ -735,7 +735,7 @@ padding-right: 3px;</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This restore the recode table to original values when the layer was loaded in the plugin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This restores to the original symbology (colors/values) style when the layer was loaded in the plugin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Restore</string>
