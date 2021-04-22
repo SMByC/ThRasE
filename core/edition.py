@@ -418,7 +418,7 @@ class LayerToEdit(object):
             data["navigation"]["build_tools"] = self.navigation_dialog.QPBtn_BuildNavigationTools.isChecked()
             # special type navigation
             if data["navigation"]["type"] == "AOIs":
-                aois = [[[[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asPolygon()][0]
+                aois = [[[[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asMultiPolygon()[0]][0]
                         for aoi in self.navigation_dialog.aoi_drawn]
                 data["navigation"]["aois"] = aois
             if data["navigation"]["type"] in ["polygons",
