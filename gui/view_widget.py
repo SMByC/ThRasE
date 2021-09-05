@@ -25,7 +25,7 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget, QColorDialog
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster, Qgis
+from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster
 from qgis.gui import QgsMapTool, QgsRubberBand
 
 from ThRasE.core.edition import LayerToEdit, edit_layer
@@ -33,20 +33,9 @@ from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'view_widget.ui'))
 
 
-class ViewWidget(QWidget, FORM_CLASS):
-    def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
-        self.id = None
-        self.is_active = False
-        self.active_layers = []  # for save the active layers instances
-        self.setupUi(self)
-        # init as unactivated render widget for new instances
-        self.widget_ActiveLayers.setHidden(True)
-        self.widget_EditionTools.setHidden(True)
-        self.disable()
+class ViewWidget(QWidget):
 
     def setup_view_widget(self):
         self.render_widget.parent_view = self
@@ -346,6 +335,36 @@ class ViewWidget(QWidget, FORM_CLASS):
             rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.polygons_drawn = []
         self.CleanAllPolygons.setEnabled(False)
+
+
+# load a single view in the widget edition when columns == 1
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'view_widget_single.ui'))
+class ViewWidgetSingle(ViewWidget, FORM_CLASS):
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+        self.id = None
+        self.is_active = False
+        self.active_layers = []  # for save the active layers instances
+        self.setupUi(self)
+        # init as unactivated render widget for new instances
+        self.widget_ActiveLayers.setHidden(True)
+        self.widget_EditionTools.setHidden(True)
+        self.disable()
+
+
+# load a multi view (two rows) in the widget edition when columns > 1
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'view_widget_multi.ui'))
+class ViewWidgetMulti(ViewWidget, FORM_CLASS):
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+        self.id = None
+        self.is_active = False
+        self.active_layers = []  # for save the active layers instances
+        self.setupUi(self)
+        # init as unactivated render widget for new instances
+        self.widget_ActiveLayers.setHidden(True)
+        self.widget_EditionTools.setHidden(True)
+        self.disable()
 
 
 class PickerPixelTool(QgsMapTool):

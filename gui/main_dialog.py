@@ -34,7 +34,7 @@ from qgis.PyQt.QtGui import QColor, QFont, QIcon
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
-from ThRasE.gui.view_widget import ViewWidget
+from ThRasE.gui.view_widget import ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer
@@ -135,7 +135,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         view_widgets = []
         for row in range(self.grid_rows):
             for column in range(self.grid_columns):
-                new_view_widget = ViewWidget()
+                if self.grid_columns == 1:
+                    new_view_widget = ViewWidgetSingle()
+                else:
+                    new_view_widget = ViewWidgetMulti()
                 views_layout.addWidget(new_view_widget, row, column)
                 view_widgets.append(new_view_widget)
 
