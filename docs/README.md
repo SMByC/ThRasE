@@ -18,7 +18,7 @@ Thematic raster file to edit must be a categorical thematic layer **with byte or
 
 1. **Thematic with paletted or singleband pseudocolor on the fly**:
 
-    You can use any raster (of byte or integer as data type) with specific style loaded (from Qgis project or qml file style) or done on the fly in Qgis. Go to `properties` of the raster, then go to `style`, select `Paletted/Unique values` or `Singleband pseudocolor` and generate the desired pixel-value/color associated (manually or generated automatically using the several options that Qgis have to do this) with only one requirement: **the pixel-values associated must be integers**.
+    You can use any raster (of byte or integer as data type) with specific style loaded (from Qgis project or qml file style) or done on the fly in Qgis. Go to `properties` of the raster, then go to `style`, select `Paletted/Unique values` or `Singleband pseudocolor` (using `Exact` `Interpolation`) and generate the desired pixel-value/color associated (manually or generated automatically using the several options that Qgis have to do this) with only one requirement: **the pixel-values associated must be integers**.
 
     > *Optional:* After configure the style in Qgis for the raster is recommended save it in `.qml` Qgis style file, else Qgis save it in temporal file (or on the fly) and if you restart the Qgis and load the raster again you lost the pixel-value/color style associated. For save the style go to `Style` menu and click in `Save as default` Qgis save it in the same place and name of the raster with extension `.qml`.
 
