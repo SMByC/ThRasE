@@ -156,7 +156,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QCBox_LayerToEdit.setFilters(QgsMapLayerProxyModel.RasterLayer)
         # handle connect layer selection
         self.QCBox_LayerToEdit.layerChanged.connect(self.select_layer_to_edit)
-        self.QCBox_band_LayerToEdit.currentIndexChanged.connect(self.setup_layer_to_edit)
+        self.QCBox_band_LayerToEdit.currentIndexChanged.connect(lambda: self.setup_layer_to_edit())
         # call to browse the render file
         self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
         # update recode pixel table
