@@ -21,9 +21,12 @@
 import numpy as np
 import multiprocessing
 import xml.etree.ElementTree as ET
+from random import randrange
 from osgeo import gdal
 
+from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.core import QgsPalettedRasterRenderer
 
 from ThRasE.utils.qgis_utils import get_file_path_of_layer
 from ThRasE.utils.system_utils import wait_process
@@ -45,6 +48,26 @@ def mask(input_list, boolean_mask):
 # --------------------------------------------------------------------------
 
 
+@wait_process
+def auto_symbology_classification_render(layer, band):
+    # get the unique values in the band
+    rows = layer.height()
+    cols = layer.width()
+    provider = layer.dataProvider()
+    bl = provider.block(band, provider.extent(), cols, rows)
+    unique_values = list(set([bl.value(r, c) for r in range(rows) for c in range(cols)]))
+
+    # fill categories
+    categories = []
+    for unique_value in unique_values:
+        categories.append(QgsPalettedRasterRenderer.Class(
+            unique_value, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)), str(unique_value)))
+
+    renderer = QgsPalettedRasterRenderer(layer.dataProvider(), band, categories)
+    layer.setRenderer(renderer)
+    layer.triggerRepaint()
+
+
 def get_xml_style(layer, band):
     current_style = layer.styleManager().currentStyle()
     layer_style = layer.styleManager().style(current_style)
@@ -60,12 +83,18 @@ def get_xml_style(layer, band):
     check_int_values = [int(float(xml_item.get("value"))) == float(xml_item.get("value")) for xml_item in xml_style_items]
 
     if not xml_style_items or False in check_int_values:
-        msg = "The selected layer \"{}\" {}doesn't have an appropriate colors/values style for ThRasE, " \
-              "it must be unique values or singleband pseudocolor with integer values. " \
+        msg = "The selected layer \"{layer}\"{band} doesn't have an appropriate symbology for ThRasE, " \
+              "it must be set with unique/exact colors-values. " \
               "<a href='https://smbyc.github.io/ThRasE/#thematic-raster-to-edit'>" \
-              "See more</a>.".format(layer.name(), "in the band {} ".format(band) if layer.bandCount() > 1 else "")
-        QMessageBox.warning(None, 'Reading the symbology layer style...', msg)
-        return
+              "See more</a>.<br/><br/>" \
+              "Allow ThRasE apply an automatic classification symbology to the layer{band}?" \
+            .format(layer=layer.name(), band=" in the band {}".format(band) if layer.bandCount() > 1 else "")
+        reply = QMessageBox.question(None, 'Reading the symbology layer style...', msg, QMessageBox.Apply, QMessageBox.Cancel)
+        if reply == QMessageBox.Apply:
+            auto_symbology_classification_render(layer, band)
+            return get_xml_style(layer, band)
+        else:
+            return
     return xml_style_items
 
 
