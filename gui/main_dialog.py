@@ -237,7 +237,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         "Could not load the layer '{}' in the view {}: no such file {}".format(
                             layer_name,
                             "'{}'".format(yaml_view_widget["view_name"]) if yaml_view_widget["view_name"] else view_widget.id,
-                            yaml_active_layer["layer_path"]), level=Qgis.Warning, duration=20)
+                            yaml_active_layer["layer_path"]), level=Qgis.Warning)
                     continue
 
                 # opacity
@@ -608,7 +608,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 else:
                     self.MsgBar.pushMessage(
                         "It was not possible unset the nodata value to the thematic layer '{}'".format(layer.name()),
-                        level=Qgis.Critical, duration=20)
+                        level=Qgis.Critical)
                     return
             elif msgBox.clickedButton() != hide_button:
                 # cancel

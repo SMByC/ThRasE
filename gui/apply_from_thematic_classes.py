@@ -107,7 +107,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         if layer.crs() != LayerToEdit.current.qgs_layer.crs():
             self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same coordinate system with respect to "
                                     "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
-                                    level=Qgis.Critical, duration=20)
+                                    level=Qgis.Critical)
             clear()
             return
 
@@ -115,7 +115,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             round(layer.rasterUnitsPerPixelY(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY(), 3)):
             self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same pixel size with respect to "
                                     "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
-                                    level=Qgis.Critical, duration=20)
+                                    level=Qgis.Critical)
             clear()
             return
 
