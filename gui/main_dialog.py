@@ -509,7 +509,6 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             LayerToEdit.current.navigation_dialog.show()
 
-    @pyqtSlot(QgsMapLayer)
     def select_layer_to_edit(self, layer_selected):
         # first clear table
         self.recodePixelTable.setRowCount(0)

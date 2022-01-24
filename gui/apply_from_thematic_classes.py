@@ -87,7 +87,6 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
             self.select_thematic_file_classes(combo_box.currentLayer())
 
-    @pyqtSlot(QgsMapLayer)
     def select_thematic_file_classes(self, layer):
         def clear():
             with block_signals_to(self.QCBox_ThematicFile):

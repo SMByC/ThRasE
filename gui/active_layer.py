@@ -105,7 +105,6 @@ class ActiveLayer(QWidget, FORM_CLASS):
         if style_editor_dlg.exec_():
             style_editor_dlg.apply()
 
-    @pyqtSlot(QgsMapLayer)
     def set_render_layer(self, layer):
         if not layer:
             self.disable()
