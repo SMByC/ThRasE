@@ -59,12 +59,18 @@ class ViewWidget(QWidget):
         # picker pixel tool edit
         self.widget_EditionTools.setEnabled(False)
         self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
+        # undo/redo
+        self.UndoPixel.clicked.connect(lambda: self.go_to_history("undo", "pixel"))
+        self.RedoPixel.clicked.connect(lambda: self.go_to_history("redo", "pixel"))
 
         # picker line tool edit
         self.lines_drawn = []
         self.lines_color = QColor("red")
         self.LinesColor.clicked.connect(self.change_lines_color)
         self.LinesPicker.clicked.connect(self.use_lines_picker_for_edit)
+        # undo/redo
+        self.UndoLine.clicked.connect(lambda: self.go_to_history("undo", "line"))
+        self.RedoLine.clicked.connect(lambda: self.go_to_history("redo", "line"))
         # clean actions
         self.CleanAllLines.clicked.connect(self.clean_all_lines_drawn)
 
@@ -74,14 +80,21 @@ class ViewWidget(QWidget):
         self.PolygonsColor.clicked.connect(self.change_polygons_color)
         self.PolygonsPicker.clicked.connect(self.use_polygons_picker_for_edit)
         # undo/redo
-        self.UndoPixel.clicked.connect(lambda: self.go_to_history("undo", "pixel"))
-        self.RedoPixel.clicked.connect(lambda: self.go_to_history("redo", "pixel"))
-        self.UndoLine.clicked.connect(lambda: self.go_to_history("undo", "line"))
-        self.RedoLine.clicked.connect(lambda: self.go_to_history("redo", "line"))
         self.UndoPolygon.clicked.connect(lambda: self.go_to_history("undo", "polygon"))
         self.RedoPolygon.clicked.connect(lambda: self.go_to_history("redo", "polygon"))
         # clean actions
         self.CleanAllPolygons.clicked.connect(self.clean_all_polygons_drawn)
+
+        # picker freehand tool edit
+        self.freehand_drawn = []
+        self.freehand_color = QColor("red")
+        self.FreehandColor.clicked.connect(self.change_freehand_color)
+        self.FreehandPicker.clicked.connect(self.use_freehand_picker_for_edit)
+        # undo/redo
+        self.UndoFreehand.clicked.connect(lambda: self.go_to_history("undo", "freehand"))
+        self.RedoFreehand.clicked.connect(lambda: self.go_to_history("redo", "freehand"))
+        # clean actions
+        self.CleanAllFreehand.clicked.connect(self.clean_all_freehand_drawn)
 
     @staticmethod
     @pyqtSlot()
@@ -175,6 +188,20 @@ class ViewWidget(QWidget):
                     maptool_instance.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                 maptool_instance.start_new_polygon()
 
+    @pyqtSlot()
+    def change_freehand_color(self, color=None):
+        if not color:
+            color = QColorDialog.getColor(self.freehand_color, self)
+        if color.isValid():
+            self.freehand_color = color
+            self.FreehandColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            # restart a start draw again
+            maptool_instance = self.render_widget.canvas.mapTool()
+            if isinstance(maptool_instance, PickerFreehandTool):
+                if maptool_instance.rubber_band:
+                    maptool_instance.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                maptool_instance.start_new_freehand()
+
     @wait_process
     @edit_layer
     def go_to_history(self, action, from_edit_tool):
@@ -243,6 +270,33 @@ class ViewWidget(QWidget):
             self.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
             self.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
             self.CleanAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
+
+        if from_edit_tool == "freehand":
+            if action == "undo":
+                freehand_feature, history_edition_entry = LayerToEdit.current.history_freehand.undo()
+                # delete the rubber band
+                rubber_band = next((rb for rb in self.freehand_drawn if
+                                    rb.asGeometry().equals(freehand_feature.geometry())), None)
+                if rubber_band:
+                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    self.freehand_drawn.remove(rubber_band)
+            if action == "redo":
+                freehand_feature, history_edition_entry = LayerToEdit.current.history_freehand.redo()
+                # create, repaint and save the rubber band to redo
+                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+                color = self.freehand_color
+                color.setAlpha(140)
+                rubber_band.setColor(color)
+                rubber_band.setWidth(4)
+                rubber_band.addGeometry(freehand_feature.geometry())
+                self.freehand_drawn.append(rubber_band)
+            # make action
+            for point, value in history_edition_entry:
+                LayerToEdit.current.edit_pixel(point, value)
+            # update status of undo/redo buttons
+            self.UndoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_undone())
+            self.RedoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_redone())
+            self.CleanAllFreehand.setEnabled(len(self.freehand_drawn) > 0)
         # update changes done in the layer and view
         self.render_widget.refresh()
 
@@ -291,7 +345,7 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.mapTool().finish()
         else:
             # finish the other picker activation
-            if isinstance(self.render_widget.canvas.mapTool(), (PickerLineTool, PickerPolygonTool)):
+            if isinstance(self.render_widget.canvas.mapTool(), (PickerLineTool, PickerPolygonTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
@@ -303,7 +357,7 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.mapTool().finish()
         else:
             # finish the other picker activation
-            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerPolygonTool)):
+            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerPolygonTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerLineTool(self), clean=True)
@@ -315,10 +369,22 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.mapTool().finish()
         else:
             # finish the other picker activation
-            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool)):
+            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
+
+    @pyqtSlot()
+    def use_freehand_picker_for_edit(self):
+        if isinstance(self.render_widget.canvas.mapTool(), PickerFreehandTool):
+            # disable edit and return to normal map tool
+            self.render_widget.canvas.mapTool().finish()
+        else:
+            # finish the other picker activation
+            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool, PickerPolygonTool)):
+                self.render_widget.canvas.mapTool().finish()
+            # enable edit
+            self.render_widget.canvas.setMapTool(PickerFreehandTool(self), clean=True)
 
     @pyqtSlot()
     def clean_all_lines_drawn(self):
@@ -335,6 +401,14 @@ class ViewWidget(QWidget):
             rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.polygons_drawn = []
         self.CleanAllPolygons.setEnabled(False)
+
+    @pyqtSlot()
+    def clean_all_freehand_drawn(self):
+        # clean/reset all rubber bands
+        for rubber_band in self.freehand_drawn:
+            rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.freehand_drawn = []
+        self.CleanAllFreehand.setEnabled(False)
 
 
 # load a single view in the widget edition when columns == 1
@@ -560,20 +634,6 @@ class PickerPolygonTool(QgsMapTool):
         self.aux_rubber_band.setFillColor(QColor(0, 0, 0, 0))
         self.aux_rubber_band.setWidth(4)
 
-    def finish(self):
-        if self.rubber_band:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
-        if self.aux_rubber_band:
-            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
-        self.rubber_band = None
-        self.aux_rubber_band = None
-        self.view_widget.PolygonsPicker.setChecked(False)
-        self.view_widget.unhighlight_cells_in_recode_pixel_table()
-        # restart point tool
-        self.clean()
-        self.view_widget.render_widget.canvas.unsetMapTool(self)
-        self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
-
     def define_polygon(self):
         # clean the aux rubber band
         self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
@@ -661,3 +721,109 @@ class PickerPolygonTool(QgsMapTool):
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             self.finish()
+
+    def finish(self):
+        if self.rubber_band:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        if self.aux_rubber_band:
+            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = None
+        self.aux_rubber_band = None
+        self.view_widget.PolygonsPicker.setChecked(False)
+        self.view_widget.unhighlight_cells_in_recode_pixel_table()
+        # restart point tool
+        self.clean()
+        self.view_widget.render_widget.canvas.unsetMapTool(self)
+        self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
+
+
+class PickerFreehandTool(QgsMapTool):
+
+    def __init__(self, view_widget):
+        QgsMapTool.__init__(self, view_widget.render_widget.canvas)
+        self.view_widget = view_widget
+        # status rec icon and focus
+        self.view_widget.render_widget.canvas.setFocus()
+
+        self.start_new_freehand()
+
+    def start_new_freehand(self):
+        # set rubber band style
+        color = self.view_widget.freehand_color
+        color.setAlpha(140)
+        # create the main freehand rubber band
+        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band.setColor(color)
+        self.rubber_band.setFillColor(color)
+        self.rubber_band.setWidth(4)
+        self.drawing = False
+
+    def keyPressEvent(self, event):
+        # remove/ignore current freehand
+        if self.drawing and (event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete):
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.start_new_freehand()
+        # delete and finish
+        if event.key() == Qt.Key_Escape:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.finish()
+
+    def canvasPressEvent(self, event):
+        if self.drawing:
+            return
+
+        # start new freehand draw
+        if event.button() == Qt.LeftButton:
+            self.drawing = True
+            x = event.pos().x()
+            y = event.pos().y()
+            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+            self.rubber_band.addPoint(point)
+
+    def canvasMoveEvent(self, event):
+        if not self.drawing or not self.rubber_band:
+            return
+        self.rubber_band.addPoint(self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos()))
+
+    def canvasReleaseEvent(self, event):
+        self.drawing = False
+
+        if not self.rubber_band:
+            return
+
+        if self.rubber_band.numberOfVertices() > 2:
+            # save
+            new_feature = QgsFeature()
+            new_feature.setGeometry(self.rubber_band.asGeometry())
+            self.view_widget.freehand_drawn.append(self.rubber_band)
+            # edit pixels inside freehand polygon
+            QTimer.singleShot(180, lambda: self.edit(new_feature))
+
+        self.start_new_freehand()
+
+    def edit(self, new_feature):
+        status = LayerToEdit.current.edit_from_freehand_picker(new_feature)
+        if status:  # at least one pixel was edited
+            self.view_widget.render_widget.refresh()
+            # update status of undo/redo/clean buttons
+            self.view_widget.UndoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_undone())
+            self.view_widget.RedoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_redone())
+            self.view_widget.CleanAllFreehand.setEnabled(len(self.view_widget.freehand_drawn) > 0)
+        else:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            rubber_band = self.view_widget.freehand_drawn[-1]
+            if rubber_band:
+                rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                self.view_widget.freehand_drawn.remove(rubber_band)
+
+    def finish(self):
+        if self.rubber_band:
+            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+
+        self.rubber_band = None
+        self.view_widget.FreehandPicker.setChecked(False)
+        self.view_widget.unhighlight_cells_in_recode_pixel_table()
+        # restart point tool
+        self.clean()
+        self.view_widget.render_widget.canvas.unsetMapTool(self)
+        self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)

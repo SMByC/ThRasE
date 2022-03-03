@@ -87,6 +87,7 @@ class LayerToEdit(object):
         self.history_pixels = History("pixels")
         self.history_lines = History("lines")
         self.history_polygons = History("polygons")
+        self.history_freehand = History("polygons")
         # save config file
         self.config_file = None
 
@@ -292,6 +293,42 @@ class LayerToEdit(object):
         else:
             from ThRasE.thrase import ThRasE
             ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn polygon", level=Qgis.Info)
+
+    @wait_process
+    @edit_layer
+    def edit_from_freehand_picker(self, freehand_feature):
+        if freehand_feature is None:
+            return
+
+        box = freehand_feature.geometry().boundingBox()
+        ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
+        ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
+
+        # locate the pixel centroid in x and y for the pixel in min/max in the extent
+        y_min = self.bounds[3] - int((self.bounds[3] - box.yMinimum()) / ps_y) * ps_y - ps_y / 2
+        y_max = self.bounds[3] - int((self.bounds[3] - box.yMaximum()) / ps_y) * ps_y - ps_y / 2
+        x_min = self.bounds[0] + int((box.xMinimum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
+        x_max = self.bounds[0] + int((box.xMaximum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
+
+        # edit and return all the pixel and value before edit it, for save in history class
+        freehand_geom = freehand_feature.geometry()
+        history_edition_entry = \
+            [self.edit_pixel(QgsPointXY(x, y), inside_geom=freehand_geom)
+             for y in np.arange(y_min, y_max + ps_y, ps_y)
+             for x in np.arange(x_min, x_max + ps_x, ps_x)]
+        history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
+
+        if history_edition_entry:
+            if hasattr(self.qgs_layer, 'setCacheImage'):
+                self.qgs_layer.setCacheImage(None)
+            self.qgs_layer.reload()
+            self.qgs_layer.triggerRepaint()
+            # save history item
+            self.history_freehand.add((freehand_feature, history_edition_entry))
+            return True
+        else:
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the freehand drawn", level=Qgis.Info)
 
     @wait_process
     @edit_layer
