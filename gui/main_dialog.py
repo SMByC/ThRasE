@@ -267,6 +267,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 view_widget.use_polygons_picker_for_edit()
             if yaml_view_widget["polygons_color"]:
                 view_widget.change_polygons_color(QColor(yaml_view_widget["polygons_color"]))
+            if "freehand_picker_enabled" in yaml_view_widget and yaml_view_widget["freehand_picker_enabled"]:
+                view_widget.FreehandPicker.setChecked(True)
+                view_widget.use_freehand_picker_for_edit()
+            if "freehand_color" in yaml_view_widget and yaml_view_widget["freehand_color"]:
+                view_widget.change_freehand_color(QColor(yaml_view_widget["freehand_color"]))
         # navigation
         if yaml_config["navigation"]["type"] != "free":
             # TODO delete after some time, compatibility old yaml file

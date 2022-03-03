@@ -438,7 +438,9 @@ class LayerToEdit(object):
                                          "line_buffer": view_widget.LineBuffer.currentText(),
                                          "lines_color": view_widget.lines_color.name(),
                                          "polygons_picker_enabled": view_widget.PolygonsPicker.isChecked(),
-                                         "polygons_color": view_widget.polygons_color.name()})
+                                         "polygons_color": view_widget.polygons_color.name(),
+                                         "freehand_picker_enabled": view_widget.FreehandPicker.isChecked(),
+                                         "freehand_color": view_widget.freehand_color.name()})
         # navigation
         data["navigation"] = {}
         if ThRasE.dialog.QCBox_NavType.currentText() == "free" or not self.navigation.is_valid:
