@@ -60,7 +60,7 @@ def get_current_file_path_in(combo_box, show_message=True):
     if os.path.isfile(file_path):
         return file_path
     elif show_message:
-        iface.messageBar().pushMessage("ThRasE", "Error, please select a valid file", level=Qgis.Warning)
+        iface.messageBar().pushMessage("ThRasE", "Error, please select a valid file", level=Qgis.Warning, duration=5)
     return None
 
 
@@ -97,7 +97,8 @@ def load_layer(file_path, name=None, add_to_legend=True):
     if qgslayer.isValid():
         add_layer(qgslayer, add_to_legend)
     else:
-        iface.messageBar().pushMessage("ThRasE", "Could not load layer: {}".format(file_path))
+        iface.messageBar().pushMessage("ThRasE", "Could not load layer: {}".format(file_path),
+                                       level=Qgis.Warning, duration=5)
 
     return qgslayer
 

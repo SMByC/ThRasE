@@ -237,7 +237,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         "Could not load the layer '{}' in the view {}: no such file {}".format(
                             layer_name,
                             "'{}'".format(yaml_view_widget["view_name"]) if yaml_view_widget["view_name"] else view_widget.id,
-                            yaml_active_layer["layer_path"]), level=Qgis.Warning)
+                            yaml_active_layer["layer_path"]), level=Qgis.Warning, duration=5)
                     continue
 
                 # opacity
@@ -367,7 +367,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def set_navigation_tool(self, nav_type):
         if not LayerToEdit.current:
-            self.MsgBar.pushMessage("First select a valid thematic raster file to edit", level=Qgis.Warning)
+            self.MsgBar.pushMessage("First select a valid thematic raster file to edit", level=Qgis.Warning, duration=5)
             with block_signals_to(self.QCBox_NavType):
                 self.QCBox_NavType.setCurrentIndex(0)
             return
@@ -532,7 +532,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             disable()
             return
         if not valid_file_selected_in(self.QCBox_LayerToEdit):
-            self.MsgBar.pushMessage("The thematic raster layer to edit is not valid", level=Qgis.Warning)
+            self.MsgBar.pushMessage("The thematic raster layer to edit is not valid", level=Qgis.Warning, duration=5)
             disable()
             return
         # show warning for layer to edit different to tif format
@@ -549,7 +549,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
             self.MsgBar.pushMessage("The thematic raster layer to edit must be byte or integer as data type",
-                                    level=Qgis.Warning)
+                                    level=Qgis.Warning, duration=5)
             disable()
             return
 
@@ -603,11 +603,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     nodata = None
                     self.MsgBar.pushMessage(
                         "Unset the nodata value to the thematic layer '{}' was successful".format(layer.name()),
-                        level=Qgis.Success)
+                        level=Qgis.Success, duration=5)
                 else:
                     self.MsgBar.pushMessage(
                         "It was not possible unset the nodata value to the thematic layer '{}'".format(layer.name()),
-                        level=Qgis.Critical)
+                        level=Qgis.Critical, duration=5)
                     return
             elif msgBox.clickedButton() != hide_button:
                 # cancel
@@ -855,7 +855,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             if LayerToEdit.current.edit_whole_image() is not False:
                 self.MsgBar.pushMessage(
                     "Changes in recode pixels table were successfully applied to the whole thematic file",
-                    level=Qgis.Success)
+                    level=Qgis.Success, duration=5)
 
     @pyqtSlot()
     def apply_from_thematic_classes_dialog(self):
@@ -863,14 +863,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if not LayerToEdit.current.old_new_value:
             self.MsgBar.pushMessage(
                 "There are no changes to apply in the recode pixel table, set the new pixels values first",
-                level=Qgis.Warning)
+                level=Qgis.Warning, duration=5)
             return
 
         self.apply_from_thematic_classes.setup_gui()
         if self.apply_from_thematic_classes.exec_():
             self.MsgBar.pushMessage(
                 "Changes in recode pixels table were successfully applied using thematic file classes",
-                level=Qgis.Success)
+                level=Qgis.Success, duration=5)
 
     @pyqtSlot()
     def fileDialog_saveConfig(self):
@@ -885,7 +885,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                                                   self.tr("Yaml (*.yaml *.yml);;All files (*.*)"))
         if file_out != '':
             LayerToEdit.current.save_config(file_out)
-            self.MsgBar.pushMessage("ThRasE", "File saved successfully", level=Qgis.Success)
+            self.MsgBar.pushMessage("ThRasE", "File saved successfully", level=Qgis.Success, duration=5)
 
 
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'init_dialog.ui'))

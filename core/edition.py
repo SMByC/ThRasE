@@ -44,13 +44,14 @@ def edit_layer(func):
             from ThRasE.thrase import ThRasE
             ThRasE.dialog.MsgBar.pushMessage(
                 "There are no changes to apply in the recode pixel table, set the new pixels values first",
-                level=Qgis.Warning)
+                level=Qgis.Warning, duration=5)
             return False
         # set layer for edit
         if not LayerToEdit.current.data_provider.isEditable():
             if not LayerToEdit.current.data_provider.setEditable(True):
                 from ThRasE.thrase import ThRasE
-                ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster", level=Qgis.Critical)
+                ThRasE.dialog.MsgBar.pushMessage("ThRasE has problems for modify this thematic raster, non-editable layer?",
+                                                 level=Qgis.Critical, duration=5)
                 return False
         # do
         obj_returned = func(*args, **kwargs)
@@ -256,7 +257,7 @@ class LayerToEdit(object):
             return True
         else:
             from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn line", level=Qgis.Info)
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn line", level=Qgis.Info, duration=5)
 
     @wait_process
     @edit_layer
@@ -292,7 +293,7 @@ class LayerToEdit(object):
             return True
         else:
             from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn polygon", level=Qgis.Info)
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn polygon", level=Qgis.Info, duration=5)
 
     @wait_process
     @edit_layer
@@ -328,7 +329,7 @@ class LayerToEdit(object):
             return True
         else:
             from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the freehand drawn", level=Qgis.Info)
+            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the freehand drawn", level=Qgis.Info, duration=5)
 
     @wait_process
     @edit_layer

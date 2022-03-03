@@ -106,7 +106,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         if layer.crs() != LayerToEdit.current.qgs_layer.crs():
             self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same coordinate system with respect to "
                                     "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
-                                    level=Qgis.Critical)
+                                    level=Qgis.Critical, duration=10)
             clear()
             return
 
@@ -114,7 +114,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             round(layer.rasterUnitsPerPixelY(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY(), 3)):
             self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same pixel size with respect to "
                                     "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
-                                    level=Qgis.Critical)
+                                    level=Qgis.Critical, duration=10)
             clear()
             return
 
@@ -242,7 +242,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
                             if pixel_table.item(row_idx, 2).checkState() == 2]
 
         if not classes_selected:
-            self.MsgBar.pushMessage("Error, none of the class was selected to apply", level=Qgis.Warning)
+            self.MsgBar.pushMessage("Error, none of the class was selected to apply", level=Qgis.Warning, duration=5)
             return
 
         extent_intercepted = LayerToEdit.current.qgs_layer.extent().intersect(self.thematic_file_classes.extent())
@@ -282,7 +282,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             LayerToEdit.current.qgs_layer.reload()
             LayerToEdit.current.qgs_layer.triggerRepaint()
         else:
-            self.MsgBar.pushMessage("None of the pixel was edited with the classes selected", level=Qgis.Info)
+            self.MsgBar.pushMessage("None of the pixel was edited with the classes selected", level=Qgis.Info, duration=5)
             return
 
         # return to origin symbology
