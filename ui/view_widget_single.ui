@@ -308,7 +308,7 @@
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit the clicked pixel, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: change the pixel clicked&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>by pixels</string>
+               <string>pixels</string>
               </property>
               <property name="icon">
                <iconset>
@@ -490,7 +490,7 @@
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels around lines using buffer value, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the line&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current line&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>by lines</string>
+               <string>lines</string>
               </property>
               <property name="icon">
                <iconset>
@@ -660,7 +660,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Redo the last line undo</string>
+                  <string>Redo the last undone line</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -795,7 +795,7 @@ QToolButton
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels inside the polygon, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the polygon&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current polygon&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>by polygons</string>
+               <string>polygons</string>
               </property>
               <property name="icon">
                <iconset>
@@ -891,7 +891,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Redo the last polygon undo</string>
+                  <string>Redo the last undone polygon</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -943,6 +943,230 @@ QToolButton
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QWidget" name="EditionWidget_ByFreehand" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <property name="spacing">
+                <number>2</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QWidget" name="widget_4" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <spacer name="horizontalSpacer_14">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="FreehandPicker">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>30</height>
+                     </size>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
+                    <property name="cursor">
+                     <cursorShape>PointingHandCursor</cursorShape>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels inside the freehand drawn region, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse (click and hold): to start and draw a freehand region&lt;/p&gt;&lt;p&gt;- Release for finish the current freehand region&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                     <string>freehand</string>
+                    </property>
+                    <property name="icon">
+                     <iconset>
+                      <normaloff>:/plugins/thrase/icons/polygon_picker.svg</normaloff>:/plugins/thrase/icons/polygon_picker.svg</iconset>
+                    </property>
+                    <property name="checkable">
+                     <bool>true</bool>
+                    </property>
+                    <property name="toolButtonStyle">
+                     <enum>Qt::ToolButtonTextBesideIcon</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="FreehandColor">
+                    <property name="maximumSize">
+                     <size>
+                      <width>20</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                    <property name="cursor">
+                     <cursorShape>PointingHandCursor</cursorShape>
+                    </property>
+                    <property name="toolTip">
+                     <string>Select the color for the freehand regions</string>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">
+QToolButton
+{
+   background-color:red;
+}</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="Tools_pickerFreehand" native="true">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>30</height>
+                     </size>
+                    </property>
+                    <layout class="QHBoxLayout" name="horizontalLayout_10">
+                     <property name="spacing">
+                      <number>3</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QToolButton" name="UndoFreehand">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
+                       <property name="toolTip">
+                        <string>Undo the last freehand region created (limited to 20)</string>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/undo.svg</normaloff>:/plugins/thrase/icons/undo.svg</iconset>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonIconOnly</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QToolButton" name="RedoFreehand">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
+                       <property name="toolTip">
+                        <string>Redo the last undone freehand region</string>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/redo.svg</normaloff>:/plugins/thrase/icons/redo.svg</iconset>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonIconOnly</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QToolButton" name="CleanAllFreehand">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
+                       <property name="toolTip">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all freehand regions drawn, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/trash.svg</normaloff>:/plugins/thrase/icons/trash.svg</iconset>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonIconOnly</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_15">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
             </item>
            </layout>
           </widget>
