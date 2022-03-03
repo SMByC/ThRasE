@@ -337,9 +337,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.NavigationBlockWidgetControls.setEnabled(True)
             self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
             self.QPBar_TilesNavigation.setValue(current_tile_id)
-        # update extent
+        # restore the extent in the views using a view with a valid layer (not empty)
         if "extent" in yaml_config and yaml_config["extent"]:
-            ThRasEDialog.view_widgets[0].render_widget.canvas.setExtent(QgsRectangle(*yaml_config["extent"]))
+            for view_widget in ThRasEDialog.view_widgets:
+                if view_widget.is_active and not view_widget.render_widget.canvas.extent().isEmpty():
+                    view_widget.render_widget.canvas.setExtent(QgsRectangle(*yaml_config["extent"]))
+                    break
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog

@@ -420,7 +420,11 @@ class LayerToEdit(object):
         from ThRasE.gui.main_dialog import ThRasEDialog
         data["active_layers_widget"] = ThRasEDialog.view_widgets[0].widget_ActiveLayers.isVisible()
         data["edition_tools_widget"] = ThRasEDialog.view_widgets[0].widget_EditionTools.isVisible()
-        data["extent"] = ThRasEDialog.view_widgets[0].render_widget.canvas.extent().toRectF().getCoords()
+        # save the extent in the views using a view with a valid layer (not empty)
+        for view_widget in ThRasEDialog.view_widgets:
+            if view_widget.is_active and not view_widget.render_widget.canvas.extent().isEmpty():
+                data["extent"] = view_widget.render_widget.canvas.extent().toRectF().getCoords()
+                break
         # view_widgets, active layers and edit tool
         data["view_widgets"] = []
         for view_widget in ThRasEDialog.view_widgets:
