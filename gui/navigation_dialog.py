@@ -413,7 +413,7 @@ class AOIPickerTool(QgsMapTool):
         self.aux_rubber_band = None
         # adjust the color
         color = QColor("red")
-        color.setAlpha(80)
+        color.setAlpha(70)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(3)
         # save
