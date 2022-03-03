@@ -434,8 +434,7 @@ class LayerToEdit(object):
                                       "layer_name": active_layer.layer.name() if active_layer.layer else None,
                                       "layer_path": get_file_path_of_layer(active_layer.layer),
                                       "opacity": active_layer.opacity})
-            data["view_widgets"].append({"view_name": view_widget.QLabel_ViewName.text(),
-                                         "active_layers": active_layers,
+            data["view_widgets"].append({"active_layers": active_layers,
                                          "mouse_pixel_value": view_widget.mousePixelValue2Table.isChecked(),
                                          "pixels_picker_enabled": view_widget.PixelsPicker.isChecked(),
                                          "lines_picker_enabled": view_widget.LinesPicker.isChecked(),

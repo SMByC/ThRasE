@@ -115,7 +115,6 @@ class ViewWidget(QWidget):
     def enable(self):
         with block_signals_to(self.render_widget):
             # activate some parts of this view
-            self.QLabel_ViewName.setEnabled(True)
             self.render_widget.setEnabled(True)
             self.render_widget.canvas.setCanvasColor(QColor(255, 255, 255))
             # set status for view widget
@@ -130,7 +129,6 @@ class ViewWidget(QWidget):
         with block_signals_to(self.render_widget):
             self.render_widget.canvas.setLayers([])
             # deactivate some parts of this view
-            self.QLabel_ViewName.setDisabled(True)
             self.render_widget.setDisabled(True)
             self.render_widget.canvas.setCanvasColor(QColor(245, 245, 245))
             # set status for view widget

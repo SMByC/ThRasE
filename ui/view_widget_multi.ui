@@ -45,30 +45,6 @@
        <number>3</number>
       </property>
       <item>
-       <widget class="QLineEdit" name="QLabel_ViewName">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="frame">
-         <bool>false</bool>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-        <property name="placeholderText">
-         <string>view name</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QToolButton" name="QPBtn_ConfActiveLayers">
         <property name="enabled">
          <bool>true</bool>
@@ -144,6 +120,19 @@
          <bool>false</bool>
         </property>
        </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_19">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>

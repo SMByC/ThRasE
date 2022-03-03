@@ -206,7 +206,6 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if "edition_tools_widget" in yaml_config and yaml_config["edition_tools_widget"]:
             ThRasEDialog.view_widgets[0].edition_tools_widget()
         for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"]):
-            view_widget.QLabel_ViewName.setText(yaml_view_widget["view_name"])
             # active layers
             for active_layer, yaml_active_layer in zip(view_widget.active_layers, yaml_view_widget["active_layers"]):
                 # TODO delete after some time, compatibility old yaml file
