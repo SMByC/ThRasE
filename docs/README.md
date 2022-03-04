@@ -2,7 +2,7 @@
 
 ![](img/thrase.svg)
 
-ThRasE is a powerful and fast thematic raster editor Qgis plugin, it uses a recode pixel table to modify several classes at the same time using pixels, lines or polygons tools. The plugin has an additional navigation tool to ensure layer inspection.
+ThRasE is a powerful and fast thematic raster editor Qgis plugin, it uses a recode pixel table to modify several classes at the same time using pixels, lines, polygons or freehand tools. The plugin has an additional navigation tool to ensure layer inspection.
 
    > ThRasE is a tool for editing thematic or categorical raster layers, it means raster with integer values ([read more](#thematic-raster-to-edit)). If you want to edit raster with float values you can use [serval](https://plugins.qgis.org/plugins/Serval/) plugin for that.
 
@@ -45,7 +45,7 @@ Each view has the option of three layers, you can use one, two or three active l
 
 ![](img/editing.gif)
 
-Each view has an editing tool, there are three options to edit; pixels, lines or polygons. Each tool has a maximum of 20 actions to do undo or redo. You can use any view for edit, but always the image to edit is the thematic selected even if it is not showing in the view.
+Each view has an editing tool, there are four options to edit; pixels, lines, polygons and freehand. Each tool has a maximum of 20 actions to do undo or redo. You can use any view for edit, but always the image to edit is the thematic selected even if it is not showing in the view.
 
 ## Navigation
 

@@ -479,7 +479,7 @@ class LayerToEdit(object):
 
 
 class History:
-    """Class for store the items (pixels, lines or polygons) with the
+    """Class for store the items (pixels, lines, polygons, freehand) with the
     purpose to go undo or redo the edit actions by user
 
     For pixels:
