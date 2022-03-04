@@ -189,6 +189,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if "main_dialog_size" in yaml_config:
             self.resize(*yaml_config["main_dialog_size"])
         # thematic file to edit
+        if not os.path.isfile(yaml_config["thematic_file_to_edit"]["path"]):
+            self.MsgBar.pushMessage(
+                "Could not load the thematic layer '{}' ThRasE need this layer to setup the config, "
+                "check the path in the YML file".format(yaml_config["thematic_file_to_edit"]["path"]),
+                level=Qgis.Critical)
+            return
         if yaml_config["thematic_file_to_edit"]["path"]:
             load_and_select_filepath_in(self.QCBox_LayerToEdit, yaml_config["thematic_file_to_edit"]["path"])
             self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer())
