@@ -25,6 +25,11 @@ from copy import deepcopy
 from shutil import move
 from osgeo import gdal
 from collections import OrderedDict
+import yaml
+try:
+    from yaml import CDumper as Dumper
+except ImportError:
+    from yaml import Dumper
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
@@ -392,7 +397,6 @@ class LayerToEdit(object):
     @wait_process
     def save_config(self, file_out):
         from ThRasE.thrase import ThRasE
-        import yaml
         # save in class
         self.config_file = file_out
 
@@ -471,7 +475,7 @@ class LayerToEdit(object):
                     get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer())
 
         with open(file_out, 'w') as yaml_file:
-            yaml.dump(data, yaml_file)
+            yaml.dump(data, yaml_file, Dumper=Dumper)
 
 
 class History:

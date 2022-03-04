@@ -24,11 +24,16 @@ import configparser
 import tempfile
 from copy import deepcopy
 from pathlib import Path
+import yaml
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
-from qgis.core import Qgis, QgsMapLayer, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
+from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
     QgsCoordinateTransform, QgsProject
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
 
@@ -106,10 +111,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 file_path = init_dialog.QgsFile_LoadConfigFile.filePath()
                 if file_path != '' and os.path.isfile(file_path) and os.access(file_path, os.R_OK):
                     # load classification from yaml file
-                    import yaml
                     with open(file_path, 'r') as yaml_file:
                         try:
-                            yaml_config = yaml.load(yaml_file)
+                            yaml_config = yaml.load(yaml_file, Loader=Loader)
                         except yaml.YAMLError as err:
                             msg = "Error while read the yaml file classification config:\n\n{}".format(err)
                             QMessageBox.critical(init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
