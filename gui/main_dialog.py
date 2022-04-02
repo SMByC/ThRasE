@@ -553,8 +553,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             disable()
             return
         # show warning for layer to edit different to tif format
-        if layer_selected.source()[-3::].lower() != "tif":
-            quit_msg = "Use raster files different to GTiff format has not been fully tested. " \
+        if layer_selected.source().split(".")[-1].lower() not in ["tif", "tiff"]:
+            quit_msg = "Use raster files different to GTiff (tif or tiff) format has not been fully tested. " \
                        "GTiff files are recommended for editing.\n\n" \
                        "Do you want to continue anyway?"
             reply = QMessageBox.question(None, 'Image to edit in ThRasE',
