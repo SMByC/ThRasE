@@ -87,7 +87,7 @@ def get_xml_style(layer, band):
               "it must be set with unique/exact colors-values. " \
               "<a href='https://smbyc.github.io/ThRasE/#thematic-raster-to-edit'>" \
               "See more</a>.<br/><br/>" \
-              "Allow ThRasE apply an automatic classification symbology to the layer{band}?" \
+              "Allow ThRasE apply an automatic classification symbology to this layer{band}?" \
             .format(layer=layer.name(), band=" in the band {}".format(band) if layer.bandCount() > 1 else "")
         reply = QMessageBox.question(None, 'Reading the symbology layer style...', msg, QMessageBox.Apply, QMessageBox.Cancel)
         if reply == QMessageBox.Apply:
