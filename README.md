@@ -31,13 +31,8 @@ Issues, ideas and enhancements: [https://github.com/SMByC/ThRasE/issues](https:/
 
 ThRasE was developing, designed and implemented by the Group of Forest and Carbon Monitoring System (SMByC), operated by the Institute of Hydrology, Meteorology and Environmental Studies (IDEAM) - Colombia.
 
-Author and developer: *Xavier Corredor Ll.*  
+Author and developer: *Xavier C. Llano* *<xavier.corredor.llano@gmail.com>*  
 Theoretical support, tester and product verification: SMByC-PDI group
-
-### Contact
-
-Xavier Corredor Ll.: *xcorredorl (a) ideam.gov.co*  
-SMByC: *smbyc (a) ideam.gov.co*
 
 ## License
 
