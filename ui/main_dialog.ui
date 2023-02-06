@@ -661,6 +661,23 @@ padding-right: 3px;</string>
           </widget>
          </item>
          <item>
+          <widget class="QLabel" name="QLbl_NumberClassesToEdit">
+           <property name="font">
+            <font>
+             <italic>true</italic>
+             <underline>false</underline>
+             <strikeout>false</strikeout>
+            </font>
+           </property>
+           <property name="text">
+            <string>(0 classes to edit)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QTableWidget" name="recodePixelTable"/>
          </item>
          <item>

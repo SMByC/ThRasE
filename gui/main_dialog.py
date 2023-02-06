@@ -696,6 +696,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # update table
         self.set_recode_pixel_table()
 
+        # update classes to edit label
+        number_classes_to_edit = sum([1 if self.recodePixelTable.item(idx, 3).text() != "" else 0
+                                      for idx in range(len(layer_to_edit.pixels))])
+        self.QLbl_NumberClassesToEdit.setText("({} classes to edit)".format(number_classes_to_edit))
+
     @error_handler
     def set_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current
