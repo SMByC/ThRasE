@@ -674,7 +674,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             try:
                 if new_value == "":
                     pixel["new_value"] = None
-                elif float(new_value) == int(new_value):
+                elif float(new_value) == int(new_value) and int(new_value) != int(self.recodePixelTable.item(row_idx, 2).text()):
                     pixel["new_value"] = int(new_value)
                     layer_to_edit.old_new_value[pixel["value"]] = pixel["new_value"]
             except:
