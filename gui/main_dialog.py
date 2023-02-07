@@ -40,6 +40,7 @@ from qgis.PyQt.QtGui import QColor, QFont, QIcon
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidgetSingle, ViewWidgetMulti
+from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer
@@ -89,6 +90,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_OpenNavigationDialog.clicked.connect(self.open_navigation_dialog)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
+        self.QPBtn_AutoFill.setDisabled(True)
         self.Widget_GlobalEditingTools.setDisabled(True)
         self.currentTile.clicked.connect(self.go_to_current_tile)
         self.previousTile.clicked.connect(self.go_to_previous_tile)
@@ -171,6 +173,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # ######### others ######### #
         self.QPBtn_ReloadRecodeTable.clicked.connect(self.reload_recode_table)
         self.QPBtn_RestoreRecodeTable.clicked.connect(self.restore_recode_table)
+        self.autofill_dialog = AutoFill()
+        self.QPBtn_AutoFill.clicked.connect(self.open_autofill_dialog)
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
         self.apply_from_thematic_classes = ApplyFromThematicClasses()
@@ -536,6 +540,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.NavigationBlockWidget.setDisabled(True)
             self.QPBtn_ReloadRecodeTable.setDisabled(True)
             self.QPBtn_RestoreRecodeTable.setDisabled(True)
+            self.QPBtn_AutoFill.setDisabled(True)
             self.Widget_GlobalEditingTools.setDisabled(True)
             self.QCBox_LayerToEdit.setCurrentIndex(-1)
             self.SaveConfig.setDisabled(True)
@@ -657,6 +662,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
         self.QPBtn_ReloadRecodeTable.setEnabled(True)
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
+        self.QPBtn_AutoFill.setEnabled(True)
         self.Widget_GlobalEditingTools.setEnabled(True)
         self.SaveConfig.setEnabled(True)
 
@@ -865,6 +871,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.NavigationBlockWidget.setEnabled(True)
         [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
         self.Widget_GlobalEditingTools.setEnabled(True)
+
+    @pyqtSlot()
+    def open_autofill_dialog(self):
+        if self.autofill_dialog.isVisible():
+            self.autofill_dialog.setWindowState(self.autofill_dialog.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+            self.autofill_dialog.raise_()
+            self.autofill_dialog.activateWindow()
+        else:
+            self.autofill_dialog.show()
 
     @pyqtSlot()
     def apply_whole_image(self):

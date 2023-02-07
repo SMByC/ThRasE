@@ -163,6 +163,11 @@ class ThRasE:
             LayerToEdit.current.navigation_dialog.close()
             LayerToEdit.current.navigation_dialog = None
 
+        # close the autofill dialog if is open
+        if hasattr(ThRasE.dialog, "autofill_dialog") and ThRasE.dialog.autofill_dialog and ThRasE.dialog.autofill_dialog.isVisible():
+            ThRasE.dialog.autofill_dialog.close()
+            ThRasE.dialog.autofill_dialog = None
+
         self.removes_temporary_files()
 
         # remove this statement if dialog is to remain
