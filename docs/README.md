@@ -46,8 +46,8 @@ The navigation is an optional tool, with the purpose to guarantee the revision o
 
 ## Save configuration and restore it
 
-<img src="img/save.png" width="50%" style="margin: auto;display: block;">
-<img src="img/load.png" width="50%" style="margin: auto;display: block;">
+<img src="img/save.webp" width="50%" style="margin: auto;display: block;">
+<img src="img/load.webp" width="50%" style="margin: auto;display: block;">
 
 With this `Save` button you can save all settings and configuration of ThRasE dialog, views, pixel table with colors and values, navigation, current tile, size dialog, current extent, among others.
 
