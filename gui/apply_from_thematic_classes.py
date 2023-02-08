@@ -25,7 +25,7 @@ from pathlib import Path
 import numpy as np
 from osgeo import gdal
 
-from qgis.core import QgsMapLayerProxyModel, Qgis, QgsMapLayer, QgsPointXY
+from qgis.core import QgsMapLayerProxyModel, Qgis, QgsPointXY
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor

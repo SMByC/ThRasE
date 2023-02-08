@@ -116,7 +116,3 @@ class AutoFill(QDialog, FORM_CLASS):
         ThRasE.dialog.set_recode_pixel_table()
         ThRasE.dialog.update_recode_pixel_table()
 
-
-
-
-
