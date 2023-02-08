@@ -5,7 +5,7 @@
  
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2022 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2023 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
