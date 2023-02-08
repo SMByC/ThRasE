@@ -1,1 +1,13 @@
-theme: jekyll-theme-minimal
+# https://github.com/vaibhavvikas/jekyll-theme-minimalistic
+
+remote_theme: vaibhavvikas/jekyll-theme-minimalistic
+
+plugins:
+  - jekyll-remote-theme
+
+title: ThRasE
+description: ThRasE is a powerful and fast thematic raster editor Qgis plugin.
+logo: ./img/thrase.svg
+email:
+favicon: true
+color-scheme: auto

@@ -14,7 +14,7 @@ ThRasE is a powerful and fast thematic raster editor Qgis plugin, it uses a reco
 
 ## Thematic raster to edit
 
-![](img/thematic.gif)
+![](img/thematic.webp)
 
 Thematic raster file to edit must be a categorical thematic layer **with byte or integer as data type** with a specific pixel-value/color associated. There are two types, respect to pixel-value/color associated, accepted in ThRasE:
 
@@ -34,7 +34,7 @@ If you want test the plugin with a example of a valid thematic raster, download 
 
 ## View config and active layers
 
-![](img/active_layers.gif)
+![](img/active_layers.webp)
 
 The configuration of the view grid is done only when the plugin is opened in the `new` tab, in it, you can set the columns and rows.
 
@@ -43,19 +43,20 @@ Each view has the option of three layers, you can use one, two or three active l
 
 ## Editing
 
-![](img/editing.gif)
+![](img/editing.webp)
 
 Each view has an editing tool, there are four options to edit; pixels, lines, polygons and freehand. Each tool has a maximum of 20 actions to do undo or redo. You can use any view for edit, but always the image to edit is the thematic selected even if it is not showing in the view.
 
 ## Navigation
 
-![](img/navigation.gif)
+![](img/navigation.webp)
 
 The navigation is an optional tool, with the purpose to guarantee the revision of the thematic raster, going tile by tile throughout the thematic file, areas of interest, polygons, points or centroid of polygons.
 
 ## Save configuration and restore it
 
-![](img/save_load.gif)
+![](img/save.webp)
+![](img/load.webp)
 
 With this `Save` button you can save all settings and configuration of ThRasE dialog, views, pixel table with colors and values, navigation, current tile, size dialog, current extent, among others.
 
@@ -65,13 +66,8 @@ With this `Save` button you can save all settings and configuration of ThRasE di
 
 ThRasE was developing, designed and implemented by the Group of Forest and Carbon Monitoring System (SMByC), operated by the Institute of Hydrology, Meteorology and Environmental Studies (IDEAM) - Colombia.
 
-Author and developer: *Xavier Corredor Ll.*  
+Author and developer: *Xavier C. Llano* *<xavier.corredor.llano@gmail.com>*  
 Theoretical support, tester and product verification: SMByC-PDI group
-
-### Contact
-
-Xavier Corredor Ll.: *xcorredorl (a) ideam.gov.co*  
-SMByC: *smbyc (a) ideam.gov.co*
 
 ## License
 
