@@ -1,16 +1,8 @@
 # ThRasE
 
-![](img/thrase.svg)
+![](img/overview.webp)
 
 ThRasE is a powerful and fast thematic raster editor Qgis plugin, it uses a recode pixel table to modify several classes at the same time using pixels, lines, polygons or freehand tools. The plugin has an additional navigation tool to ensure layer inspection.
-
-   > ThRasE is a tool for editing thematic or categorical raster layers, it means raster with integer values ([read more](#thematic-raster-to-edit)). If you want to edit raster with float values you can use [serval](https://plugins.qgis.org/plugins/Serval/) plugin for that.
-
-1. [Thematic raster to edit](#thematic-raster-to-edit)
-2. [View config and active layers](#view-config-and-active-layers)
-3. [Editing](#editing)
-4. [Navigation](#navigation)
-5. [Save configuration and restore it](#save-configuration-and-restore-it)
 
 ## Thematic raster to edit
 
@@ -40,7 +32,6 @@ The configuration of the view grid is done only when the plugin is opened in the
 
 Each view has the option of three layers, you can use one, two or three active layers to view and overlap in the respective order. You can set the opacity of each layer if you need it.
 
-
 ## Editing
 
 ![](img/editing.webp)
@@ -55,8 +46,8 @@ The navigation is an optional tool, with the purpose to guarantee the revision o
 
 ## Save configuration and restore it
 
-![](img/save.webp)
-![](img/load.webp)
+<img src="img/save.png" width="50%" style="margin: auto;display: block;">
+<img src="img/load.png" width="50%" style="margin: auto;display: block;">
 
 With this `Save` button you can save all settings and configuration of ThRasE dialog, views, pixel table with colors and values, navigation, current tile, size dialog, current extent, among others.
 
