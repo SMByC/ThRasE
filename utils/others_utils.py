@@ -121,7 +121,7 @@ def pixel_count_in_chunk(args):
     pixel_count = [0] * len(pixel_values)
     gdal_file = gdal.Open(img_path, gdal.GA_ReadOnly)
 
-    chunk_narray = gdal_file.GetRasterBand(band).ReadAsArray(xoff, yoff, xsize, ysize).astype(np.int)
+    chunk_narray = gdal_file.GetRasterBand(band).ReadAsArray(xoff, yoff, xsize, ysize).astype(int)
 
     for idx, pixel_value in enumerate(pixel_values):
         pixel_count[idx] += (chunk_narray == int(pixel_value)).sum()

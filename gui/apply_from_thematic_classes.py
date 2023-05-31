@@ -264,7 +264,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         # data array for the extent intercepted using the thematic file classes values
         ds_in = gdal.Open(get_file_path_of_layer(self.thematic_file_classes))
         da_intercepted = ds_in.GetRasterBand(thematic_classes_band).ReadAsArray(
-            idx_x, idx_y, int(round((x_max-x_min)/ps_x + 1)), int(round((y_max-y_min)/ps_y + 1))).astype(np.int)
+            idx_x, idx_y, int(round((x_max-x_min)/ps_x + 1)), int(round((y_max-y_min)/ps_y + 1))).astype(int)
         del ds_in
 
         pixels_to_process = \
