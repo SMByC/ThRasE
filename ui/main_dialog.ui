@@ -176,6 +176,9 @@ padding-right: 3px;</string>
               <property name="sizeAdjustPolicy">
                <enum>QComboBox::AdjustToContents</enum>
               </property>
+              <property name="minimumContentsLength">
+               <number>6</number>
+              </property>
               <item>
                <property name="text">
                 <string>free</string>

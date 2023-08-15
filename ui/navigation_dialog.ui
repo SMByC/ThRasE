@@ -200,6 +200,9 @@
               <property name="sizeAdjustPolicy">
                <enum>QComboBox::AdjustToContents</enum>
               </property>
+              <property name="minimumContentsLength">
+               <number>18</number>
+              </property>
               <item>
                <property name="text">
                 <string>thematic file</string>
@@ -747,6 +750,9 @@ QToolButton
           <widget class="QToolButton" name="QPBtn_BuildNavigation">
            <property name="cursor">
             <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Create the review tiles</string>
            </property>
            <property name="text">
             <string>Build Navigation</string>
