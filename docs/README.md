@@ -68,7 +68,7 @@ com/SMByC/ThRasE/master/docs/thematic_example.tif)
 
 - The navigation tool assists in the review of the thematic raster going tile by tile generated, with the purpose to 
   guarantee the revision of the thematic file.
-- You can generate reviewer tiles throughout; areas of interest (drawn over the thematic file), polygons, points or 
+- You can generate review tiles throughout; areas of interest (drawn over the thematic file), polygons, points or 
   centroid of polygons.
 
 ## Save configuration and restore it

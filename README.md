@@ -10,9 +10,6 @@ layer inspection.
 
 Read more in: [https://smbyc.github.io/ThRasE](https://smbyc.github.io/ThRasE)
 
-> `WARNING:` After each editing operation, the layer is saved (overwritten) on disk. If you want to keep the original 
-> layer you must make a copy of it before editing.
-
 > ThRasE is a tool for editing thematic or categorical raster layers, it means raster with integer
 > values ([read more](https://smbyc.github.io/ThRasE/#thematic-raster-to-edit)). If you want to edit raster with float
 > values you can use [serval](https://plugins.qgis.org/plugins/Serval/) plugin for that.
