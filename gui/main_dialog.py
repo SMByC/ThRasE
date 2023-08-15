@@ -771,7 +771,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled | Qt.ItemIsEditable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        item_table.setToolTip("Set the new value for this class")
+                        item_table.setToolTip("Set the new value for this class.\n"
+                                              "WARNING: After each editing operation, the layer is saved on disk!")
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
