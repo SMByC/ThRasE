@@ -19,6 +19,7 @@ changelog=
     - Improve navigation tile UI details and functionality, adding a fill color for tiles that are already reviewed in the navigation dialog
     - Others minor adjustments in navigation and main dialog
     - Improving and fixing documentation and readme files
+    - Other minor fixes and improvements
     - All commits in: https://github.com/SMByC/ThRasE/commits
 
 tags=raster,editing,pixel,thematic

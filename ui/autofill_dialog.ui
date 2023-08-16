@@ -39,9 +39,9 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Autofill the New Value column with the Current Value with conditions. The condition column accepts any valid python condition (e.g. 'C&gt;3 and C&lt;=8'). Especial variables:
-      'C' = current value
-      '*' (alone) = any value condition</string>
+      <string>Autofill the &quot;New Value&quot; column with the &quot;Current Value&quot; with conditions. The condition column accepts any valid python condition (e.g. &quot;C&gt;3 and C&lt;=8&quot;). All rules are applied and overwritten in order. Especial variables:
+      C = current value
+      * (alone) = any value condition</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignJustify|Qt::AlignVCenter</set>
