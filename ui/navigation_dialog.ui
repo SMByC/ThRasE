@@ -738,7 +738,7 @@
             <string notr="true">
 QToolButton
 {
-   background-color:blue;
+   background-color:#ff00ff;
 }</string>
            </property>
            <property name="text">
@@ -752,7 +752,7 @@ QToolButton
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string>Create the review tiles</string>
+            <string>Create the review tiles for navigation</string>
            </property>
            <property name="text">
             <string>Build Navigation</string>

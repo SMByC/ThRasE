@@ -102,7 +102,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         # Set the properties of the QdoubleSpinBox based on the QgsUnitTypes of the thematic layer
         # https://qgis.org/api/classQgsUnitTypes.html
         self.tileSize.setSuffix(" {}".format(abbr_unit))
-        self.tileSize.setToolTip("The height/width of the tile to build the navigation, in {}\n"
+        self.tileSize.setToolTip("The height/width for the review tiles to build the navigation, in {}\n"
                                  "(units based on the current thematic layer to edit)\n"
                                  "(rebuild the navigation to make the changes)".format(str_unit))
         self.tileSize.setRange(0, 360 if layer_unit == QgsUnitTypes.DistanceDegrees else 10e10)
@@ -331,8 +331,14 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
     def highlight(self, idx_tile=None):
         if idx_tile:  # from slider
+
             with block_signals_to(self.currentTile):
                 self.currentTile.setValue(idx_tile)
+
+            # update the review tiles in the navigation dialog
+            self.layer_to_edit.navigation.clean(rbs_in="nav_dialog")
+            [tile.create(self.render_widget.canvas, rbs_in="nav_dialog", current_idx_tile=idx_tile) for tile in
+             self.layer_to_edit.navigation.tiles]
 
         if idx_tile:
             tile = next((tile for tile in self.layer_to_edit.navigation.tiles if tile.idx == idx_tile), None)

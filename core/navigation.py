@@ -37,17 +37,25 @@ class Tile(object):
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
         self.tile_color = tile_color
 
-    def create(self, canvas, line_width=2, rbs_in="main_dialog"):
+    def create(self, canvas, line_width=2, rbs_in="main_dialog", current_idx_tile=None):
         """Create the tile as a rubber band inside the canvas given"""
         rubber_band = QgsRubberBand(canvas)
         points = [QgsPointXY(self.xmin, self.ymax), QgsPointXY(self.xmax, self.ymax),
                   QgsPointXY(self.xmax, self.ymin), QgsPointXY(self.xmin, self.ymin)]
         rubber_band.setToGeometry(QgsGeometry.fromPolygonXY([points]), None)
         if rbs_in == "highlight":
-            rubber_band.setColor(QColor("yellow"))
+            rubber_band.setStrokeColor(QColor("yellow"))
         else:
-            rubber_band.setColor(self.tile_color)
-        rubber_band.setFillColor(QColor(0, 0, 0, 0))
+            rubber_band.setStrokeColor(self.tile_color)
+
+        if current_idx_tile is not None and self.idx < current_idx_tile:
+            # fill color for tiles already reviewed in the navigation dialog
+            fill_color = QColor(self.tile_color)
+            fill_color.setAlpha(80)
+        else:
+            fill_color = QColor(0, 0, 0, 0)
+
+        rubber_band.setFillColor(fill_color)
         rubber_band.setWidth(line_width)
         rubber_band.show()
         if rbs_in == "main_dialog":
@@ -105,7 +113,7 @@ class Navigation(object):
         self.nav_type = None
         self.current_tile = None
         self.tiles = []
-        self.tiles_color = QColor("blue")
+        self.tiles_color = QColor("#ff00ff")
 
     @wait_process
     def build_navigation(self, tile_size, nav_mode, polygons=None, points=None):
@@ -212,12 +220,14 @@ class Navigation(object):
                     self.tiles.append(tile)
                     idx_tile += 1
 
-        # show all tiles in build navigation canvas dialog
-        from ThRasE.core.edition import LayerToEdit
-        [tile.create(LayerToEdit.current.navigation_dialog.render_widget.canvas, line_width=1, rbs_in="nav_dialog")
-         for tile in self.tiles]
         # init
         self.current_tile = next((tile for tile in self.tiles if tile.idx == 1), None)
+
+        # show all tiles in build navigation canvas dialog
+        from ThRasE.core.edition import LayerToEdit
+        [tile.create(LayerToEdit.current.navigation_dialog.render_widget.canvas, rbs_in="nav_dialog",
+                     current_idx_tile=self.current_tile.idx) for tile in self.tiles]
+
         return True if self.current_tile is not None else False
 
     def set_current_tile(self, idx_tile):
@@ -225,6 +235,12 @@ class Navigation(object):
         self.current_tile = next((tile for tile in self.tiles if tile.idx == idx_tile), None)
         self.current_tile.show()
         self.current_tile.focus()
+
+        # update the review tiles in the navigation dialog
+        self.clean(rbs_in="nav_dialog")
+        from ThRasE.core.edition import LayerToEdit
+        [tile.create(LayerToEdit.current.navigation_dialog.render_widget.canvas, rbs_in="nav_dialog",
+                     current_idx_tile=idx_tile) for tile in self.tiles]
 
     def clean(self, rbs_in="main_dialog"):
         """Clean all tiles drawn (rubber bands instances)"""
