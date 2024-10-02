@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1376</width>
-    <height>645</height>
+    <width>981</width>
+    <height>581</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -586,12 +586,6 @@ padding-right: 3px;</string>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="allowEmptyLayer">
                <bool>true</bool>
               </property>
@@ -599,17 +593,14 @@ padding-right: 3px;</string>
             </item>
             <item>
              <widget class="QComboBox" name="QCBox_band_LayerToEdit">
-              <property name="maximumSize">
-               <size>
-                <width>38</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="toolTip">
                <string>Select the band to edit</string>
               </property>
               <property name="sizeAdjustPolicy">
-               <enum>QComboBox::AdjustToContents</enum>
+               <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+              </property>
+              <property name="minimumContentsLength">
+               <number>1</number>
               </property>
              </widget>
             </item>
@@ -617,8 +608,8 @@ padding-right: 3px;</string>
              <widget class="QToolButton" name="QPBtn_browseLayerToEdit">
               <property name="maximumSize">
                <size>
-                <width>32</width>
-                <height>32</height>
+                <width>30</width>
+                <height>16777215</height>
                </size>
               </property>
               <property name="font">
@@ -941,9 +932,6 @@ padding-right: 3px;</string>
             </property>
             <item>
              <widget class="QToolButton" name="QPBtn_PluginInfo">
-              <property name="cursor">
-               <cursorShape>WhatsThisCursor</cursorShape>
-              </property>
               <property name="toolTip">
                <string>About</string>
               </property>
@@ -1068,12 +1056,12 @@ padding-right: 3px;</string>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1327</x>
-     <y>641</y>
+     <x>977</x>
+     <y>577</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1330</x>
-     <y>644</y>
+     <x>980</x>
+     <y>580</y>
     </hint>
    </hints>
   </connection>
@@ -1084,12 +1072,12 @@ padding-right: 3px;</string>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1074</x>
-     <y>447</y>
+     <x>977</x>
+     <y>537</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1052</x>
-     <y>476</y>
+     <x>969</x>
+     <y>529</y>
     </hint>
    </hints>
   </connection>
