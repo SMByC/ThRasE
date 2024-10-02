@@ -28,5 +28,6 @@
         <file>icons/zoom_to_layer.svg</file>
         <file>icons/open_in_ge.svg</file>
         <file>icons/autofill.svg</file>
+        <file>icons/clear.svg</file>
     </qresource>
 </RCC>

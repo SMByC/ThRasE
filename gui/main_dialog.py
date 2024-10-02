@@ -778,16 +778,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if col_idx == 4:  # clean new value
+                if col_idx == 4:  # clear new value
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
-                        path = ':/plugins/thrase/icons/trash.svg'
+                        path = ':/plugins/thrase/icons/clear.svg'
                         icon = QIcon(path)
                         item_table.setIcon(icon)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
-                        item_table.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                         item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                        item_table.setToolTip("Clean this row")
+                        item_table.setToolTip("Clear this row")
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
 
             # adjust size of Table
