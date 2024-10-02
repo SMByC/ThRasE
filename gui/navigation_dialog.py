@@ -372,10 +372,11 @@ class NavigationDialog(QDialog, FORM_CLASS):
             extent_tiles = QgsRectangle()
             [extent_tiles.combineExtentWith(tile.extent) for tile in self.layer_to_edit.navigation.tiles]
             extent_tiles = extent_tiles.buffered((extent_tiles.yMaximum() - extent_tiles.yMinimum()) * 0.02)
-            self.render_widget.update_canvas_to(extent_tiles)
-            self.render_widget.canvas.refreshAllLayers()
+            self.render_widget.canvas.setExtent(extent_tiles)
+            self.render_widget.refresh()
         else:
-            self.render_widget.update_canvas_to(self.layer_to_edit.extent())
+            self.render_widget.canvas.setExtent(self.layer_to_edit.extent())
+            self.render_widget.refresh()
 
 
 class AOIPickerTool(QgsMapTool):
