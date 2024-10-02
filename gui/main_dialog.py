@@ -79,7 +79,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     def setup_gui(self):
         # ######### plugin info ######### #
         self.about_dialog = AboutDialog()
-        self.QPBtn_PluginInfo.setText("About")
+        self.QPBtn_PluginInfo.setToolTip("ThRasE v{}".format(VERSION))
         self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
 
         # ######### navigation ######### #
