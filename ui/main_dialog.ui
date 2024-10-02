@@ -448,7 +448,7 @@ padding-right: 3px;</string>
                   <item>
                    <widget class="QToolButton" name="QPBtn_OpenInGE">
                     <property name="toolTip">
-                     <string>Open the current tile navigation in Google Earth (KML)</string>
+                     <string>Open the current navigation tile in Google Earth (KML)</string>
                     </property>
                     <property name="text">
                      <string/>

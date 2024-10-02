@@ -102,7 +102,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         # Set the properties of the QdoubleSpinBox based on the QgsUnitTypes of the thematic layer
         # https://qgis.org/api/classQgsUnitTypes.html
         self.tileSize.setSuffix(" {}".format(abbr_unit))
-        self.tileSize.setToolTip("The height/width for the review tiles to build the navigation, in {}\n"
+        self.tileSize.setToolTip("The size of the tiles to build the navigation, in {}.\n"
                                  "(units based on the current thematic layer to edit)\n"
                                  "(rebuild the navigation to make the changes)".format(str_unit))
         self.tileSize.setRange(0, 360 if layer_unit == QgsUnitTypes.DistanceDegrees else 10e10)
@@ -206,11 +206,11 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def call_to_build_navigation(self):
-        # first prompt if the user do some progress in tile navigation
+        # first prompt if the user do some progress in navigation tile
         if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
             quit_msg = "If you build another navigation you will lose the progress " \
                        "(the current tile position).\n\nDo you want to continue?"
-            reply = QMessageBox.question(None, 'Building the tile navigation',
+            reply = QMessageBox.question(None, 'Building the navigation tiles',
                                          quit_msg, QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 return
@@ -353,11 +353,11 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def delete_navigation(self):
-        # first prompt if the user do some progress in tile navigation
+        # first prompt if the user do some progress in navigation tiles
         if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
             quit_msg = "Clear the current navigation you will lose the progress " \
                        "(the current tile position).\n\nDo you want to continue?"
-            reply = QMessageBox.question(None, 'Building the tile navigation',
+            reply = QMessageBox.question(None, 'Building the navigation tiles',
                                          quit_msg, QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 return

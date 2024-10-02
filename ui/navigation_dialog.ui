@@ -731,7 +731,7 @@
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string>Select the color for the tiles navigation
+            <string>Select the color for the navigation tiles
 (rebuild the navigation to make the changes)</string>
            </property>
            <property name="styleSheet">
@@ -848,7 +848,7 @@ QToolButton
       <item>
        <widget class="QToolButton" name="ZoomToTiles">
         <property name="toolTip">
-         <string>Zoom to all tiles navigation or layer</string>
+         <string>Zoom to all navigation tiles or to the layer</string>
         </property>
         <property name="text">
          <string/>

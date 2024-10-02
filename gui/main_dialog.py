@@ -472,7 +472,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         xmin, ymin, xmax, ymax = polygon.toRectF().getCoords()
 
         # make file and save
-        description = "Tile navigation Num: <b>{Num}</b>/{total_tiles}<br/>" \
+        description = "Navigation tile number: <b>{Num}</b>/{total_tiles}<br/>" \
                       "Thematic editing: <em>{thematic_file}</em><br/>" \
                       "ThRasE Qgis-plugin".format(
                         Num=LayerToEdit.current.navigation.current_tile.idx,
