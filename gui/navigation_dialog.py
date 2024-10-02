@@ -81,9 +81,9 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.QPBtn_BuildNavigationTools.clicked.connect(self.build_tools)
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
         self.TilesColor.clicked.connect(self.change_tiles_color)
-        self.CleanNavigation.clicked.connect(self.clean_navigation)
+        self.DeleteNavigation.clicked.connect(self.delete_navigation)
         self.AOI_Picker.clicked.connect(self.activate_deactivate_AOI_picker)
-        self.DeleteAllAOI.clicked.connect(self.clean_all_aoi_drawn)
+        self.DeleteAllAOI.clicked.connect(self.clear_all_aoi_drawn)
         self.ZoomToTiles.clicked.connect(self.zoom_to_tiles)
         # slider and spinbox connection
         self.SliderNavigation.valueChanged.connect(self.highlight)
@@ -164,7 +164,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         # first unselect the vector file
         self.QCBox_VectorFile.setCurrentIndex(-1)
         # clear draw
-        self.clean_all_aoi_drawn()
+        self.clear_all_aoi_drawn()
         # by nav type
         if nav_type == "thematic file":
             self.NavTiles_widgetFile.setHidden(True)
@@ -195,7 +195,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.render_widget.canvas.setMapTool(AOIPickerTool(self), clean=True)
 
     @pyqtSlot()
-    def clean_all_aoi_drawn(self):
+    def clear_all_aoi_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.aoi_drawn:
             rubber_band.reset(QgsWkbTypes.PolygonGeometry)
@@ -279,7 +279,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         from ThRasE.thrase import ThRasE
         if nav_status:  # navigation is valid
             self.layer_to_edit.navigation.is_valid = True
-            self.CleanNavigation.setEnabled(True)
+            self.DeleteNavigation.setEnabled(True)
             # set settings in the navigation dialog
             self.SliderNavigationBlock.setEnabled(True)
             self.totalTiles.setText("/{}".format(len(self.layer_to_edit.navigation.tiles)))
@@ -296,7 +296,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         else:  # navigation is not valid
             self.SliderNavigationBlock.setEnabled(False)
             self.layer_to_edit.navigation.is_valid = False
-            self.CleanNavigation.setEnabled(False)
+            self.DeleteNavigation.setEnabled(False)
             ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
             self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical, duration=5)
 
@@ -336,7 +336,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
                 self.currentTile.setValue(idx_tile)
 
             # update the review tiles in the navigation dialog
-            self.layer_to_edit.navigation.clean(rbs_in="nav_dialog")
+            self.layer_to_edit.navigation.clear(rbs_in="nav_dialog")
             [tile.create(self.render_widget.canvas, rbs_in="nav_dialog", current_idx_tile=idx_tile) for tile in
              self.layer_to_edit.navigation.tiles]
 
@@ -352,10 +352,10 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.highlight_tile = tile.create(self.render_widget.canvas, line_width=6, rbs_in="highlight")
 
     @pyqtSlot()
-    def clean_navigation(self):
+    def delete_navigation(self):
         # first prompt if the user do some progress in tile navigation
         if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
-            quit_msg = "Clean the current navigation you will lose the progress " \
+            quit_msg = "Clear the current navigation you will lose the progress " \
                        "(the current tile position).\n\nDo you want to continue?"
             reply = QMessageBox.question(None, 'Building the tile navigation',
                                          quit_msg, QMessageBox.Yes, QMessageBox.No)
@@ -363,7 +363,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
                 return
 
         self.layer_to_edit.navigation.delete()
-        self.CleanNavigation.setEnabled(False)
+        self.DeleteNavigation.setEnabled(False)
 
     @pyqtSlot()
     def zoom_to_tiles(self):

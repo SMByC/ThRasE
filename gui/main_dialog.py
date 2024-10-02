@@ -819,7 +819,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     LayerToEdit.current.symbology[table_item.row()][0:2] + \
                     ((color.red(), color.green(), color.blue(), color.alpha()),)
                 self.update_recode_pixel_table()
-        # clean the current new value for the row clicked
+        # clear the current new value for the row clicked
         elif table_item.column() == 4:
             self.recodePixelTable.item(table_item.row(), 3).setText("")
 

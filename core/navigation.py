@@ -231,19 +231,19 @@ class Navigation(object):
         return True if self.current_tile is not None else False
 
     def set_current_tile(self, idx_tile):
-        self.clean(rbs_in="main_dialog")
+        self.clear(rbs_in="main_dialog")
         self.current_tile = next((tile for tile in self.tiles if tile.idx == idx_tile), None)
         self.current_tile.show()
         self.current_tile.focus()
 
         # update the review tiles in the navigation dialog
-        self.clean(rbs_in="nav_dialog")
+        self.clear(rbs_in="nav_dialog")
         from ThRasE.core.edition import LayerToEdit
         [tile.create(LayerToEdit.current.navigation_dialog.render_widget.canvas, rbs_in="nav_dialog",
                      current_idx_tile=idx_tile) for tile in self.tiles]
 
-    def clean(self, rbs_in="main_dialog"):
-        """Clean all tiles drawn (rubber bands instances)"""
+    def clear(self, rbs_in="main_dialog"):
+        """Clear all tiles drawn (rubber bands instances)"""
         if rbs_in == "main_dialog":
             for tile in self.tiles:
                 for rubber_band in tile.rbs_in_main_dialog:
@@ -259,8 +259,8 @@ class Navigation(object):
         from ThRasE.thrase import ThRasE
         from ThRasE.core.edition import LayerToEdit
 
-        self.clean(rbs_in="main_dialog")
-        self.clean(rbs_in="nav_dialog")
+        self.clear(rbs_in="main_dialog")
+        self.clear(rbs_in="nav_dialog")
         if LayerToEdit.current.navigation_dialog.highlight_tile:
             LayerToEdit.current.navigation_dialog.highlight_tile.reset(QgsWkbTypes.PolygonGeometry)
         self.is_valid = False

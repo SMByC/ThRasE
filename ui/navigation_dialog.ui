@@ -770,7 +770,7 @@ QToolButton
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="CleanNavigation">
+          <widget class="QToolButton" name="DeleteNavigation">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -778,7 +778,7 @@ QToolButton
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string>Delete/clean the current navigation</string>
+            <string>Delete the current navigation</string>
            </property>
            <property name="icon">
             <iconset>

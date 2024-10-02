@@ -72,7 +72,7 @@ class ViewWidget(QWidget):
         self.UndoLine.clicked.connect(lambda: self.go_to_history("undo", "line"))
         self.RedoLine.clicked.connect(lambda: self.go_to_history("redo", "line"))
         # clean actions
-        self.CleanAllLines.clicked.connect(self.clean_all_lines_drawn)
+        self.ClearAllLines.clicked.connect(self.clear_all_lines_drawn)
 
         # picker polygon tool edit
         self.polygons_drawn = []
@@ -83,7 +83,7 @@ class ViewWidget(QWidget):
         self.UndoPolygon.clicked.connect(lambda: self.go_to_history("undo", "polygon"))
         self.RedoPolygon.clicked.connect(lambda: self.go_to_history("redo", "polygon"))
         # clean actions
-        self.CleanAllPolygons.clicked.connect(self.clean_all_polygons_drawn)
+        self.ClearAllPolygons.clicked.connect(self.clear_all_polygons_drawn)
 
         # picker freehand tool edit
         self.freehand_drawn = []
@@ -94,7 +94,7 @@ class ViewWidget(QWidget):
         self.UndoFreehand.clicked.connect(lambda: self.go_to_history("undo", "freehand"))
         self.RedoFreehand.clicked.connect(lambda: self.go_to_history("redo", "freehand"))
         # clean actions
-        self.CleanAllFreehand.clicked.connect(self.clean_all_freehand_drawn)
+        self.ClearAllFreehand.clicked.connect(self.clear_all_freehand_drawn)
 
     @staticmethod
     @pyqtSlot()
@@ -239,7 +239,7 @@ class ViewWidget(QWidget):
             # update status of undo/redo/clean buttons
             self.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
             self.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
-            self.CleanAllLines.setEnabled(len(self.lines_drawn) > 0)
+            self.ClearAllLines.setEnabled(len(self.lines_drawn) > 0)
 
         if from_edit_tool == "polygon":
             if action == "undo":
@@ -266,7 +266,7 @@ class ViewWidget(QWidget):
             # update status of undo/redo buttons
             self.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
             self.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
-            self.CleanAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
+            self.ClearAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
 
         if from_edit_tool == "freehand":
             if action == "undo":
@@ -293,7 +293,7 @@ class ViewWidget(QWidget):
             # update status of undo/redo buttons
             self.UndoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_undone())
             self.RedoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_redone())
-            self.CleanAllFreehand.setEnabled(len(self.freehand_drawn) > 0)
+            self.ClearAllFreehand.setEnabled(len(self.freehand_drawn) > 0)
         # update changes done in the layer and view
         self.render_widget.refresh()
 
@@ -384,28 +384,28 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.setMapTool(PickerFreehandTool(self), clean=True)
 
     @pyqtSlot()
-    def clean_all_lines_drawn(self):
+    def clear_all_lines_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.lines_drawn:
             rubber_band.reset(QgsWkbTypes.LineGeometry)
         self.lines_drawn = []
-        self.CleanAllLines.setEnabled(False)
+        self.ClearAllLines.setEnabled(False)
 
     @pyqtSlot()
-    def clean_all_polygons_drawn(self):
+    def clear_all_polygons_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.polygons_drawn:
             rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.polygons_drawn = []
-        self.CleanAllPolygons.setEnabled(False)
+        self.ClearAllPolygons.setEnabled(False)
 
     @pyqtSlot()
-    def clean_all_freehand_drawn(self):
+    def clear_all_freehand_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.freehand_drawn:
             rubber_band.reset(QgsWkbTypes.PolygonGeometry)
         self.freehand_drawn = []
-        self.CleanAllFreehand.setEnabled(False)
+        self.ClearAllFreehand.setEnabled(False)
 
 
 # load a single view in the widget edition when columns == 1
@@ -544,7 +544,7 @@ class PickerLineTool(QgsMapTool):
             # update status of undo/redo/clean buttons
             self.view_widget.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
             self.view_widget.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
-            self.view_widget.CleanAllLines.setEnabled(len(self.view_widget.lines_drawn) > 0)
+            self.view_widget.ClearAllLines.setEnabled(len(self.view_widget.lines_drawn) > 0)
         else:
             self.line.reset(QgsWkbTypes.LineGeometry)
             rubber_band = self.view_widget.lines_drawn[-1]
@@ -654,7 +654,7 @@ class PickerPolygonTool(QgsMapTool):
             # update status of undo/redo/clean buttons
             self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
             self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
-            self.view_widget.CleanAllPolygons.setEnabled(len(self.view_widget.polygons_drawn) > 0)
+            self.view_widget.ClearAllPolygons.setEnabled(len(self.view_widget.polygons_drawn) > 0)
         else:
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             rubber_band = self.view_widget.polygons_drawn[-1]
@@ -801,7 +801,7 @@ class PickerFreehandTool(QgsMapTool):
             # update status of undo/redo/clean buttons
             self.view_widget.UndoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_undone())
             self.view_widget.RedoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_redone())
-            self.view_widget.CleanAllFreehand.setEnabled(len(self.view_widget.freehand_drawn) > 0)
+            self.view_widget.ClearAllFreehand.setEnabled(len(self.view_widget.freehand_drawn) > 0)
         else:
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             rubber_band = self.view_widget.freehand_drawn[-1]

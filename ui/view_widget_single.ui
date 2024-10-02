@@ -664,7 +664,7 @@ QToolButton
                 </widget>
                </item>
                <item>
-                <widget class="QToolButton" name="CleanAllLines">
+                <widget class="QToolButton" name="ClearAllLines">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
@@ -672,11 +672,11 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all drawn lines, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;clear all drawn lines, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="icon">
                   <iconset>
-                   <normaloff>:/plugins/thrase/icons/trash.svg</normaloff>:/plugins/thrase/icons/trash.svg</iconset>
+                   <normaloff>:/plugins/thrase/icons/clear.svg</normaloff>:/plugins/thrase/icons/clear.svg</iconset>
                  </property>
                  <property name="toolButtonStyle">
                   <enum>Qt::ToolButtonIconOnly</enum>
@@ -895,7 +895,7 @@ QToolButton
                 </widget>
                </item>
                <item>
-                <widget class="QToolButton" name="CleanAllPolygons">
+                <widget class="QToolButton" name="ClearAllPolygons">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
@@ -903,11 +903,11 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all drawn polygons, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;clear all drawn polygons, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="icon">
                   <iconset>
-                   <normaloff>:/plugins/thrase/icons/trash.svg</normaloff>:/plugins/thrase/icons/trash.svg</iconset>
+                   <normaloff>:/plugins/thrase/icons/clear.svg</normaloff>:/plugins/thrase/icons/clear.svg</iconset>
                  </property>
                  <property name="toolButtonStyle">
                   <enum>Qt::ToolButtonIconOnly</enum>
@@ -1113,7 +1113,7 @@ QToolButton
                       </widget>
                      </item>
                      <item>
-                      <widget class="QToolButton" name="CleanAllFreehand">
+                      <widget class="QToolButton" name="ClearAllFreehand">
                        <property name="enabled">
                         <bool>false</bool>
                        </property>
@@ -1121,11 +1121,11 @@ QToolButton
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clean all freehand regions drawn, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;clear all freehand regions drawn, this action does not undo the changes made&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>:/plugins/thrase/icons/trash.svg</normaloff>:/plugins/thrase/icons/trash.svg</iconset>
+                         <normaloff>:/plugins/thrase/icons/clear.svg</normaloff>:/plugins/thrase/icons/clear.svg</iconset>
                        </property>
                        <property name="toolButtonStyle">
                         <enum>Qt::ToolButtonIconOnly</enum>
