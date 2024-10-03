@@ -774,6 +774,13 @@ class PickerFreehandTool(QgsMapTool):
             self.rubber_band.addPoint(point)
 
     def canvasMoveEvent(self, event):
+        # highlight the current pixel value from mouse picker
+        if self.view_widget.mousePixelValue2Table.isChecked():
+            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
+            pixel_value_to_select = \
+                LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
+            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
+        # draw the auxiliary rubber band
         if not self.drawing or not self.rubber_band:
             return
         self.rubber_band.addPoint(self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos()))
