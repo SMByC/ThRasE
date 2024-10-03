@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1281</width>
-    <height>876</height>
+    <width>805</width>
+    <height>133</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -932,6 +932,13 @@ QToolButton
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="Line" name="line_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QWidget" name="EditionWidget_ByFreehand" native="true">

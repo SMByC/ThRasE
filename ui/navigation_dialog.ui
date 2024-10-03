@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
+    <width>300</width>
     <height>350</height>
    </rect>
   </property>
@@ -747,6 +747,45 @@ QToolButton
           </widget>
          </item>
          <item>
+          <spacer name="horizontalSpacer_19">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>6</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="Line" name="line_10">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_20">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>6</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QToolButton" name="QPBtn_BuildNavigation">
            <property name="cursor">
             <cursorShape>PointingHandCursor</cursorShape>
@@ -961,15 +1000,15 @@ QToolButton
    <header>qgsmaplayercombobox.h</header>
   </customwidget>
   <customwidget>
-   <class>QgsMessageBar</class>
-   <extends>QFrame</extends>
-   <header>qgis.gui</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>RenderWidget</class>
    <extends>QWidget</extends>
    <header>ThRasE.gui.render_widget</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QgsMessageBar</class>
+   <extends>QFrame</extends>
+   <header>qgis.gui</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
