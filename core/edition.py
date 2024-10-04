@@ -209,6 +209,10 @@ class LayerToEdit(object):
     @edit_layer
     def edit_from_pixel_picker(self, point):
         history_item = self.edit_pixel(point)
+
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.editing_status.setText("Pixel editing tool: {} pixel edited!".format(1 if history_item else 0))
+
         if history_item:  # the pixel was edited
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
@@ -252,6 +256,9 @@ class LayerToEdit(object):
         history_edition_entry = [self.edit_pixel(pixel_point) for pixel_point in pixels_to_process]
         history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
 
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.editing_status.setText("Line editing tool: {} pixels edited!".format(len(history_edition_entry)))
+
         if history_edition_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
@@ -260,9 +267,6 @@ class LayerToEdit(object):
             # save history item
             self.history_lines.add((line_feature, history_edition_entry))
             return True
-        else:
-            from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn line", level=Qgis.Info, duration=5)
 
     @wait_process
     @edit_layer
@@ -288,6 +292,9 @@ class LayerToEdit(object):
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
         history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
 
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.editing_status.setText("Polygon editing tool: {} pixels edited!".format(len(history_edition_entry)))
+
         if history_edition_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
@@ -296,9 +303,6 @@ class LayerToEdit(object):
             # save history item
             self.history_polygons.add((polygon_feature, history_edition_entry))
             return True
-        else:
-            from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the drawn polygon", level=Qgis.Info, duration=5)
 
     @wait_process
     @edit_layer
@@ -324,6 +328,9 @@ class LayerToEdit(object):
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
         history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
 
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.editing_status.setText("Freehand editing tool: {} pixels edited!".format(len(history_edition_entry)))
+
         if history_edition_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
@@ -332,9 +339,6 @@ class LayerToEdit(object):
             # save history item
             self.history_freehand.add((freehand_feature, history_edition_entry))
             return True
-        else:
-            from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage("None of the pixel was edited for the freehand drawn", level=Qgis.Info, duration=5)
 
     @wait_process
     @edit_layer

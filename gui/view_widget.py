@@ -203,11 +203,15 @@ class ViewWidget(QWidget):
     @wait_process
     @edit_layer
     def go_to_history(self, action, from_edit_tool):
+        from ThRasE.thrase import ThRasE
+
         if from_edit_tool == "pixel":
             if action == "undo":
                 point, value = LayerToEdit.current.history_pixels.undo()
+                ThRasE.dialog.editing_status.setText("Undo: 1 pixel restored!")
             if action == "redo":
                 point, value = LayerToEdit.current.history_pixels.redo()
+                ThRasE.dialog.editing_status.setText("Redo: 1 pixel remade!")
             # make action
             LayerToEdit.current.edit_pixel(point, value)
             # update status of undo/redo buttons
@@ -223,6 +227,7 @@ class ViewWidget(QWidget):
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.LineGeometry)
                     self.lines_drawn.remove(rubber_band)
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(history_edition_entry)))
             if action == "redo":
                 line_feature, history_edition_entry = LayerToEdit.current.history_lines.redo()
                 # create, repaint and save the rubber band to redo
@@ -233,6 +238,7 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(line_feature.geometry())
                 self.lines_drawn.append(rubber_band)
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(history_edition_entry)))
             # make action
             for point, value in history_edition_entry:
                 LayerToEdit.current.edit_pixel(point, value)
@@ -250,6 +256,7 @@ class ViewWidget(QWidget):
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                     self.polygons_drawn.remove(rubber_band)
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(history_edition_entry)))
             if action == "redo":
                 polygon_feature, history_edition_entry = LayerToEdit.current.history_polygons.redo()
                 # create, repaint and save the rubber band to redo
@@ -260,6 +267,7 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(polygon_feature.geometry())
                 self.polygons_drawn.append(rubber_band)
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(history_edition_entry)))
             # make action
             for point, value in history_edition_entry:
                 LayerToEdit.current.edit_pixel(point, value)
@@ -277,6 +285,7 @@ class ViewWidget(QWidget):
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                     self.freehand_drawn.remove(rubber_band)
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(history_edition_entry)))
             if action == "redo":
                 freehand_feature, history_edition_entry = LayerToEdit.current.history_freehand.redo()
                 # create, repaint and save the rubber band to redo
@@ -287,6 +296,7 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(freehand_feature.geometry())
                 self.freehand_drawn.append(rubber_band)
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(history_edition_entry)))
             # make action
             for point, value in history_edition_entry:
                 LayerToEdit.current.edit_pixel(point, value)
@@ -337,51 +347,63 @@ class ViewWidget(QWidget):
 
     @pyqtSlot()
     def use_pixels_picker_for_edit(self):
+        from ThRasE.thrase import ThRasE
         if isinstance(self.render_widget.canvas.mapTool(), PickerPixelTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
+            ThRasE.dialog.editing_status.setText("")
         else:
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerLineTool, PickerPolygonTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
+            ThRasE.dialog.editing_status.setText("Pixel editing tool: activated!")
 
     @pyqtSlot()
     def use_lines_picker_for_edit(self):
+        from ThRasE.thrase import ThRasE
         if isinstance(self.render_widget.canvas.mapTool(), PickerLineTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
+            ThRasE.dialog.editing_status.setText("")
         else:
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerPolygonTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerLineTool(self), clean=True)
+            ThRasE.dialog.editing_status.setText("Line editing tool: activated!")
 
     @pyqtSlot()
     def use_polygons_picker_for_edit(self):
+        from ThRasE.thrase import ThRasE
         if isinstance(self.render_widget.canvas.mapTool(), PickerPolygonTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
+            ThRasE.dialog.editing_status.setText("")
         else:
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
+            ThRasE.dialog.editing_status.setText("Polygon editing tool: activated!")
 
     @pyqtSlot()
     def use_freehand_picker_for_edit(self):
+        from ThRasE.thrase import ThRasE
         if isinstance(self.render_widget.canvas.mapTool(), PickerFreehandTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
+            ThRasE.dialog.editing_status.setText("")
         else:
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool, PickerPolygonTool)):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerFreehandTool(self), clean=True)
+            ThRasE.dialog.editing_status.setText("Freehand editing tool: activated!")
 
     @pyqtSlot()
     def clear_all_lines_drawn(self):
