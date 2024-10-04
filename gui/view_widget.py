@@ -27,6 +27,7 @@ from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster
 from qgis.gui import QgsMapTool, QgsRubberBand
+from qgis.utils import iface
 
 from ThRasE.core.edition import LayerToEdit, edit_layer, check_before_editing
 from ThRasE.utils.system_utils import block_signals_to, wait_process
@@ -486,6 +487,9 @@ class PickerPixelTool(QgsMapTool):
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
+        # clear map coordinate in the footer
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.map_coordinate.setText("")
 
     def edit(self, event):
         x = event.pos().x()
@@ -499,6 +503,11 @@ class PickerPixelTool(QgsMapTool):
             self.view_widget.RedoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_redone())
 
     def canvasMoveEvent(self, event):
+        # set map coordinates in the footer
+        from ThRasE.thrase import ThRasE
+        map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
+        ThRasE.dialog.map_coordinate.setText("{:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
@@ -551,6 +560,9 @@ class PickerLineTool(QgsMapTool):
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
+        # clear map coordinate in the footer
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.map_coordinate.setText("")
 
     def define_line(self):
         # clean the aux line
@@ -587,6 +599,11 @@ class PickerLineTool(QgsMapTool):
                 self.view_widget.lines_drawn.remove(rubber_band)
 
     def canvasMoveEvent(self, event):
+        # set map coordinates in the footer
+        from ThRasE.thrase import ThRasE
+        map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
+        ThRasE.dialog.map_coordinate.setText("{:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
@@ -697,6 +714,11 @@ class PickerPolygonTool(QgsMapTool):
                 self.view_widget.polygons_drawn.remove(rubber_band)
 
     def canvasMoveEvent(self, event):
+        # set map coordinates in the footer
+        from ThRasE.thrase import ThRasE
+        map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
+        ThRasE.dialog.map_coordinate.setText("{:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
@@ -763,6 +785,9 @@ class PickerPolygonTool(QgsMapTool):
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
+        # clear map coordinate in the footer
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.map_coordinate.setText("")
 
 
 class PickerFreehandTool(QgsMapTool):
@@ -808,6 +833,11 @@ class PickerFreehandTool(QgsMapTool):
             self.rubber_band.addPoint(point)
 
     def canvasMoveEvent(self, event):
+        # set map coordinates in the footer
+        from ThRasE.thrase import ThRasE
+        map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
+        ThRasE.dialog.map_coordinate.setText("{:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
@@ -861,3 +891,6 @@ class PickerFreehandTool(QgsMapTool):
         self.clean()
         self.view_widget.render_widget.canvas.unsetMapTool(self)
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
+        # clear map coordinate in the footer
+        from ThRasE.thrase import ThRasE
+        ThRasE.dialog.map_coordinate.setText("")

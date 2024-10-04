@@ -1116,11 +1116,15 @@ padding-right: 3px;</string>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="coordinate">
+          <widget class="QLabel" name="map_coordinate">
            <property name="font">
             <font>
+             <family>Monospace</family>
              <pointsize>8</pointsize>
             </font>
+           </property>
+           <property name="toolTip">
+            <string>Current map coordinate (Lat, Lon)</string>
            </property>
            <property name="text">
             <string/>
