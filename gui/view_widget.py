@@ -28,7 +28,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster
 from qgis.gui import QgsMapTool, QgsRubberBand
 
-from ThRasE.core.edition import LayerToEdit, edit_layer
+from ThRasE.core.edition import LayerToEdit, edit_layer, check_before_editing
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
@@ -353,6 +353,9 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.mapTool().finish()
             ThRasE.dialog.editing_status.setText("")
         else:
+            if not check_before_editing():
+                self.PixelsPicker.setChecked(False)
+                return
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerLineTool, PickerPolygonTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
@@ -368,6 +371,9 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.mapTool().finish()
             ThRasE.dialog.editing_status.setText("")
         else:
+            if not check_before_editing():
+                self.LinesPicker.setChecked(False)
+                return
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerPolygonTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
@@ -383,6 +389,9 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.mapTool().finish()
             ThRasE.dialog.editing_status.setText("")
         else:
+            if not check_before_editing():
+                self.PolygonsPicker.setChecked(False)
+                return
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool, PickerFreehandTool)):
                 self.render_widget.canvas.mapTool().finish()
@@ -398,6 +407,9 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.mapTool().finish()
             ThRasE.dialog.editing_status.setText("")
         else:
+            if not check_before_editing():
+                self.FreehandPicker.setChecked(False)
+                return
             # finish the other picker activation
             if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerLineTool, PickerPolygonTool)):
                 self.render_widget.canvas.mapTool().finish()
