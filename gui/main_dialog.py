@@ -900,7 +900,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # check if the recode pixel table is empty
         if not LayerToEdit.current.old_new_value:
             self.MsgBar.pushMessage(
-                "There are no changes to apply in the recode pixel table, set the new pixels values first",
+                "There are no changes to apply in the recode pixel table. Please set the new pixel values first",
                 level=Qgis.Warning, duration=5)
             return
 
