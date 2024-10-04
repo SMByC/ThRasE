@@ -68,6 +68,9 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.layerStyleEditor.clicked.connect(self.layer_style_editor)
         # on /off layer
         self.OnOffActiveLayer.toggled.connect(self.on_off_layer)
+        # zoom to layer
+        self.ZoomToLayer.setDisabled(True)
+        self.ZoomToLayer.clicked.connect(self.zoom_to_layer)
         # handle connect layer opacity
         self.layerOpacity.setDisabled(True)
         self.layerOpacity.valueChanged[int].connect(self.update_layer_opacity)
@@ -85,6 +88,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         with block_signals_to(self.render_widget):
             # activate some parts of this view
             self.layerStyleEditor.setEnabled(True)
+            self.ZoomToLayer.setEnabled(True)
             self.layerOpacity.setEnabled(True)
             # set status for view widget
             self.is_active = True
@@ -94,6 +98,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         with block_signals_to(self.render_widget):
             # deactivate some parts of this view
             self.layerStyleEditor.setDisabled(True)
+            self.ZoomToLayer.setDisabled(True)
             self.layerOpacity.setDisabled(True)
             # set status for view widget
             self.is_active = False
@@ -128,6 +133,12 @@ class ActiveLayer(QWidget, FORM_CLASS):
             self.disable()
 
         self.render_widget.update_render_layers()
+
+    @pyqtSlot()
+    def zoom_to_layer(self):
+        if self.layer:
+            self.render_widget.canvas.setExtent(self.layer.extent())
+            self.render_widget.canvas.refresh()
 
     @pyqtSlot(int)
     def update_layer_opacity(self, opacity=None):
