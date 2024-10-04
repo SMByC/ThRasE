@@ -67,6 +67,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.layerStyleEditor.setDisabled(True)
         self.layerStyleEditor.clicked.connect(self.layer_style_editor)
         # on /off layer
+        self.OnOffActiveLayer.setDisabled(True)
         self.OnOffActiveLayer.toggled.connect(self.on_off_layer)
         # zoom to layer
         self.ZoomToLayer.setDisabled(True)
@@ -87,6 +88,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
     def enable(self):
         with block_signals_to(self.render_widget):
             # activate some parts of this view
+            self.OnOffActiveLayer.setEnabled(True)
             self.layerStyleEditor.setEnabled(True)
             self.ZoomToLayer.setEnabled(True)
             self.layerOpacity.setEnabled(True)
@@ -115,6 +117,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
             self.disable()
             self.layer = None
             self.render_widget.update_render_layers()
+            self.OnOffActiveLayer.setDisabled(True)
             return
 
         self.layer = layer
