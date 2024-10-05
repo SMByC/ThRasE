@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>34</height>
+    <width>347</width>
+    <height>33</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,12 +36,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>30</width>
-       <height>30</height>
-      </size>
      </property>
      <property name="toolTip">
       <string>On/Off this layer</string>
@@ -74,12 +68,6 @@
       </property>
       <item>
        <widget class="QToolButton" name="layerStyleEditor">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>30</height>
-         </size>
-        </property>
         <property name="toolTip">
          <string>Open the style editor for this layer</string>
         </property>
@@ -106,17 +94,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
         <property name="allowEmptyLayer">
          <bool>true</bool>
         </property>
@@ -130,17 +107,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
         <property name="toolTip">
          <string>Load file</string>
         </property>
@@ -151,12 +117,6 @@
       </item>
       <item>
        <widget class="QToolButton" name="ZoomToLayer">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>30</height>
-         </size>
-        </property>
         <property name="toolTip">
          <string>Zoom to layer</string>
         </property>
@@ -185,14 +145,8 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>100</width>
+          <width>80</width>
           <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>30</height>
          </size>
         </property>
         <property name="toolTip">

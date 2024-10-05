@@ -163,12 +163,6 @@
             </item>
             <item>
              <widget class="QToolButton" name="QPBtn_browseLayerToEdit">
-              <property name="maximumSize">
-               <size>
-                <width>30</width>
-                <height>16777215</height>
-               </size>
-              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -264,12 +258,6 @@
             </item>
             <item>
              <widget class="QToolButton" name="QPBtn_ReloadRecodeTable">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -293,12 +281,6 @@
             </item>
             <item>
              <widget class="QToolButton" name="QPBtn_RestoreRecodeTable">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -322,12 +304,6 @@
             </item>
             <item>
              <widget class="QToolButton" name="QPBtn_AutoFill">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -458,12 +434,6 @@
             </property>
             <item row="0" column="0">
              <widget class="QToolButton" name="QPBtn_ApplyWholeImage">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -487,12 +457,6 @@
             </item>
             <item row="1" column="0">
              <widget class="QToolButton" name="QPBtn_ApplyFromThematicClasses">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -590,7 +554,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all configuration and state of ThRasE, such as: actived layers, views config, pixel table, navigation, current tile, among others.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all ThRasE configurations and states, including pixel table, active layers, editing settings, view settings, navigation, current tile, and more.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Save state</string>
@@ -722,16 +686,10 @@
             <item>
              <widget class="QComboBox" name="QCBox_NavType">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
@@ -765,12 +723,6 @@ padding-right: 3px;</string>
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>32</height>
-               </size>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_3">
                <property name="spacing">
@@ -824,13 +776,6 @@ padding-right: 3px;</string>
                      <property name="bottomMargin">
                       <number>0</number>
                      </property>
-                     <item>
-                      <widget class="Line" name="line_7">
-                       <property name="orientation">
-                        <enum>Qt::Vertical</enum>
-                       </property>
-                      </widget>
-                     </item>
                      <item>
                       <widget class="QToolButton" name="previousTile">
                        <property name="cursor">
@@ -983,13 +928,6 @@ padding-right: 3px;</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="Line" name="line_8">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
                    <widget class="QProgressBar" name="QPBar_TilesNavigation">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -1002,13 +940,6 @@ padding-right: 3px;</string>
                     </property>
                     <property name="format">
                      <string>%v/%m</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="Line" name="line_5">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
                     </property>
                    </widget>
                   </item>
@@ -1026,13 +957,6 @@ padding-right: 3px;</string>
                     </property>
                     <property name="autoRaise">
                      <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="Line" name="line_6">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
                     </property>
                    </widget>
                   </item>

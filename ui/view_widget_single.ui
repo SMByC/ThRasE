@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>805</width>
-    <height>133</height>
+    <width>799</width>
+    <height>137</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -49,17 +49,6 @@
         <property name="enabled">
          <bool>true</bool>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
         <property name="cursor">
          <cursorShape>PointingHandCursor</cursorShape>
         </property>
@@ -86,12 +75,6 @@
       </item>
       <item>
        <widget class="QToolButton" name="QPBtn_EditionTools">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>30</height>
-         </size>
-        </property>
         <property name="font">
          <font>
           <pointsize>9</pointsize>
@@ -279,12 +262,6 @@
             </item>
             <item>
              <widget class="QToolButton" name="PixelsPicker">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>30</height>
-               </size>
-              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -313,12 +290,6 @@
             </item>
             <item>
              <widget class="QWidget" name="Tools_mousePixel" native="true">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>30</height>
-               </size>
-              </property>
               <layout class="QHBoxLayout" name="horizontalLayout_5">
                <property name="spacing">
                 <number>3</number>
@@ -461,12 +432,6 @@
             </item>
             <item>
              <widget class="QToolButton" name="LinesPicker">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>30</height>
-               </size>
-              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -495,12 +460,6 @@
             </item>
             <item>
              <widget class="QComboBox" name="LineBuffer">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>30</height>
-               </size>
-              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -571,8 +530,8 @@
              <widget class="QToolButton" name="LinesColor">
               <property name="maximumSize">
                <size>
-                <width>20</width>
-                <height>20</height>
+                <width>18</width>
+                <height>18</height>
                </size>
               </property>
               <property name="cursor">
@@ -595,12 +554,6 @@ QToolButton
             </item>
             <item>
              <widget class="QWidget" name="Tools_pickerLines" native="true">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>30</height>
-               </size>
-              </property>
               <layout class="QHBoxLayout" name="horizontalLayout_6">
                <property name="spacing">
                 <number>3</number>
@@ -766,12 +719,6 @@ QToolButton
             </item>
             <item>
              <widget class="QToolButton" name="PolygonsPicker">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>30</height>
-               </size>
-              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -802,8 +749,8 @@ QToolButton
              <widget class="QToolButton" name="PolygonsColor">
               <property name="maximumSize">
                <size>
-                <width>20</width>
-                <height>20</height>
+                <width>18</width>
+                <height>18</height>
                </size>
               </property>
               <property name="cursor">
@@ -826,12 +773,6 @@ QToolButton
             </item>
             <item>
              <widget class="QWidget" name="Tools_pickerAOI" native="true">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>30</height>
-               </size>
-              </property>
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <property name="spacing">
                 <number>3</number>
@@ -991,12 +932,6 @@ QToolButton
                   </item>
                   <item>
                    <widget class="QToolButton" name="FreehandPicker">
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>30</height>
-                     </size>
-                    </property>
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -1027,8 +962,8 @@ QToolButton
                    <widget class="QToolButton" name="FreehandColor">
                     <property name="maximumSize">
                      <size>
-                      <width>20</width>
-                      <height>20</height>
+                      <width>18</width>
+                      <height>18</height>
                      </size>
                     </property>
                     <property name="cursor">
@@ -1051,12 +986,6 @@ QToolButton
                   </item>
                   <item>
                    <widget class="QWidget" name="Tools_pickerFreehand" native="true">
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>30</height>
-                     </size>
-                    </property>
                     <layout class="QHBoxLayout" name="horizontalLayout_10">
                      <property name="spacing">
                       <number>3</number>

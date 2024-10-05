@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1070</width>
-    <height>707</height>
+    <width>698</width>
+    <height>397</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -69,12 +69,6 @@
    </item>
    <item>
     <widget class="QWidget" name="widget_6" native="true">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>32</height>
-      </size>
-     </property>
      <layout class="QHBoxLayout" name="horizontalLayout_12">
       <property name="leftMargin">
        <number>0</number>
@@ -129,17 +123,14 @@
       </item>
       <item>
        <widget class="QComboBox" name="QCBox_band_ThematicFile">
-        <property name="maximumSize">
-         <size>
-          <width>35</width>
-          <height>16777215</height>
-         </size>
-        </property>
         <property name="toolTip">
          <string>Select the band</string>
         </property>
         <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToContents</enum>
+         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+        </property>
+        <property name="minimumContentsLength">
+         <number>1</number>
         </property>
        </widget>
       </item>
@@ -273,7 +264,7 @@
   <customwidget>
    <class>QgsMapLayerComboBox</class>
    <extends>QComboBox</extends>
-   <header>qgis.gui</header>
+   <header>qgsmaplayercombobox.h</header>
   </customwidget>
   <customwidget>
    <class>RenderWidget</class>
