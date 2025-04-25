@@ -23,7 +23,7 @@ import os.path
 import shutil
 from pathlib import Path
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QLocale
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.utils import iface
@@ -55,15 +55,16 @@ class ThRasE:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        try:
+            locale = QSettings().value('locale/userLocale', QLocale().name(), type=str)[0:2]
+        except:
+            locale = 'en'
         locale_path = os.path.join(self.plugin_dir, 'i18n', 'ThRasE_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
-
-            if qVersion() > '4.3.3':
-                QCoreApplication.installTranslator(self.translator)
+            QCoreApplication.installTranslator(self.translator)
 
         self.menu_name_plugin = self.tr("ThRasE - Thematic Raster Editor")
         self.pluginIsActive = False
