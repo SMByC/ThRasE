@@ -916,14 +916,20 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             suggested_filename = LayerToEdit.current.config_file
         else:
             path, filename = os.path.split(LayerToEdit.current.file_path)
-            suggested_filename = os.path.splitext(os.path.join(path, filename))[0] + "_thrase.yml"
+            suggested_filename = os.path.splitext(os.path.join(path, filename))[0] + "_thrase.yaml"
 
-        file_out, _ = QFileDialog.getSaveFileName(self, self.tr("Save current configuration of ThRasE plugin"),
+        file_out, _ = QFileDialog.getSaveFileName(self, self.tr("Save the current configuration of the ThRasE plugin"),
                                                   suggested_filename,
-                                                  self.tr("Yaml (*.yaml *.yml);;All files (*.*)"))
-        if file_out != '':
-            LayerToEdit.current.save_config(file_out)
-            self.MsgBar.pushMessage("ThRasE", "File saved successfully", level=Qgis.Success, duration=5)
+                                                  self.tr("YAML files (*.yaml *.yml);;All files (*.*)"))
+
+        if file_out is None or file_out == '':
+            return
+
+        if not file_out.endswith(('.yaml', '.yml')):
+            file_out += ".yaml"
+        
+        LayerToEdit.current.save_config(file_out)
+        self.MsgBar.pushMessage("ThRasE", "File saved successfully", level=Qgis.Success, duration=5)
 
 
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'init_dialog.ui'))

@@ -267,7 +267,7 @@
        <item>
         <widget class="QLabel" name="label_31">
          <property name="text">
-          <string>Select the configuration ThRasE file (.yml) to load all saved settings:</string>
+          <string>Select the ThRasE configuration file (.yaml or .yml) to load all saved settings:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -296,7 +296,7 @@
           <string>Select the configuration ThRasE file</string>
          </property>
          <property name="filter">
-          <string>Yaml (*.yaml *.yml);;All files (*.*)</string>
+          <string>YAML files (*.yaml *.yml);;All files (*.*)</string>
          </property>
         </widget>
        </item>
