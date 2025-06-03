@@ -29,5 +29,6 @@
         <file>icons/open_in_ge.svg</file>
         <file>icons/autofill.svg</file>
         <file>icons/clear.svg</file>
+        <file>icons/ccd_plugin.svg</file>
     </qresource>
 </RCC>

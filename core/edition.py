@@ -482,6 +482,12 @@ class LayerToEdit(object):
                 data["navigation"]["vector_file"] = \
                     get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer())
 
+        # CCD plugin config
+        if ThRasE.dialog.ccd_plugin_available:
+            from CCD_Plugin.utils.config import get_plugin_config
+            data["ccd_plugin_config"] = get_plugin_config(ThRasE.dialog.ccd_plugin.id)
+            data["ccd_plugin_opened"] = ThRasE.dialog.QPBtn_CCDPlugin.isChecked()
+
         with open(file_out, 'w') as yaml_file:
             yaml.dump(data, yaml_file, Dumper=Dumper)
 

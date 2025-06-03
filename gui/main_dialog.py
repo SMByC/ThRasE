@@ -32,10 +32,11 @@ except ImportError:
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer
-from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog
+from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog, QWidget, QLabel
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
     QgsCoordinateTransform, QgsProject
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
+from qgis.utils import iface
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
@@ -180,6 +181,70 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.apply_from_thematic_classes = ApplyFromThematicClasses()
         self.QPBtn_ApplyFromThematicClasses.clicked.connect(self.apply_from_thematic_classes_dialog)
         self.SaveConfig.clicked.connect(self.fileDialog_saveConfig)
+
+        # ######### CCD plugin widget ######### #
+        # set up the Continuous Change Detection widget
+        self.QPBtn_CCDPlugin.clicked.connect(self.ccd_plugin_widget)
+        self.widget_ccd.setVisible(False)
+        ccd_widget_layout = self.widget_ccd.layout()
+        try:
+            from qgis.PyQt.QtWebKit import QWebSettings  # check first if the QtWebKit is available in QT5 client
+            from CCD_Plugin.CCD_Plugin import CCD_Plugin
+            from CCD_Plugin.gui.CCD_Plugin_dockwidget import CCD_PluginDockWidget
+            from CCD_Plugin.utils.config import get_plugin_config, restore_plugin_config
+            self.ccd_plugin_available = True
+        except ImportError:
+            label = QLabel("\nError: Continuous Change Detection (CCD) plugin is not available in your Qgis\n"
+                           "instance. To integrate the CCD inside ThRasE, go to the plugin managing in\n"
+                           "Qgis and search CCD-Plugin, install it and restart ThRasE.\n\n"
+                           "CCD helps to analyze the trends and breakpoints of change of the\n"
+                           "samples over multi-year time series using Landsat and Sentinel.\n", self)
+            label.setAlignment(Qt.AlignCenter)
+            ccd_widget_layout.addWidget(label)
+            ccd_widget_layout.setAlignment(Qt.AlignCenter)
+            self.ccd_plugin_available = False
+
+        if self.ccd_plugin_available:
+            # Remove all widgets from the layout
+            for i in reversed(range(ccd_widget_layout.count())):
+                ccd_widget_layout.itemAt(i).widget().setParent(None)
+
+            # create the ccd widget
+            self.ccd_plugin = CCD_Plugin(iface)
+            view_canvas = [view_widget.render_widget.canvas for view_widget in ThRasEDialog.view_widgets]
+            self.ccd_plugin.widget = CCD_PluginDockWidget(id=self.ccd_plugin.id, canvas=view_canvas, parent=self)
+            # adjust the dockwidget (ccd_widget) as a normal widget
+            self.ccd_plugin.widget.setWindowFlags(Qt.Widget)
+            self.ccd_plugin.widget.setWindowFlag(Qt.WindowCloseButtonHint, False)
+            self.ccd_plugin.widget.setFloating(False)
+            self.ccd_plugin.widget.setTitleBarWidget(QWidget(None))
+            # init tmp dir for all process and intermediate files
+            from ThRasE.thrase import ThRasE
+            if ThRasE.tmp_dir is None:
+                ThRasE.tmp_dir = tempfile.mkdtemp()
+            self.ccd_plugin.tmp_dir = ThRasE.tmp_dir
+            # replace the "widget_ccd" UI widget inside ThRasE window with the ccd widget
+            ccd_widget_layout.insertWidget(0, self.ccd_plugin.widget)
+            ccd_widget_layout.update()
+
+            # uncheck the editing tools enabled in ThRasE when CCD plugin is active
+            def coordinates_from_map(checked):
+                if checked:
+                    for view_widget in ThRasEDialog.view_widgets:
+                        view_widget.PixelsPicker.setChecked(False)
+                        view_widget.LinesPicker.setChecked(False)
+                        view_widget.PolygonsPicker.setChecked(False)
+                        view_widget.FreehandPicker.setChecked(False)
+                        ThRasE.dialog.editing_status.setText("")
+                        ThRasE.dialog.map_coordinate.setText("")
+            self.ccd_plugin.widget.pick_on_map.toggled.connect(coordinates_from_map)
+
+            # uncheck the pick on map button in CCD plugin when editing tools are enabled
+            for view_widget in ThRasEDialog.view_widgets:
+                view_widget.PixelsPicker.clicked.connect(lambda: self.ccd_plugin.widget.pick_on_map.setChecked(False))
+                view_widget.LinesPicker.clicked.connect(lambda: self.ccd_plugin.widget.pick_on_map.setChecked(False))
+                view_widget.PolygonsPicker.clicked.connect(lambda: self.ccd_plugin.widget.pick_on_map.setChecked(False))
+                view_widget.FreehandPicker.clicked.connect(lambda: self.ccd_plugin.widget.pick_on_map.setChecked(False))
 
         # ######### load settings from file ######### #
         if settings_type == "load":
@@ -356,6 +421,16 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 if view_widget.is_active and not view_widget.render_widget.canvas.extent().isEmpty():
                     view_widget.render_widget.canvas.setExtent(QgsRectangle(*yaml_config["extent"]))
                     break
+
+        # restore the CCD plugin widget config
+        if "ccd_plugin_config" in yaml_config:
+            if self.ccd_plugin_available:
+                from CCD_Plugin.utils.config import restore_plugin_config
+                # restore the CCD plugin config
+                restore_plugin_config(self.ccd_plugin.id, yaml_config["ccd_plugin_config"])
+                # set the CCD plugin widget visible
+                self.QPBtn_CCDPlugin.setChecked(yaml_config["ccd_plugin_opened"])
+                self.widget_ccd.setVisible(yaml_config["ccd_plugin_opened"])
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -931,6 +1006,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         LayerToEdit.current.save_config(file_out)
         self.MsgBar.pushMessage("ThRasE", "File saved successfully", level=Qgis.Success, duration=5)
 
+    @pyqtSlot(bool)
+    def ccd_plugin_widget(self, checked):
+        if checked:
+            self.widget_ccd.setVisible(True)
+        else:
+            self.widget_ccd.setVisible(False)
+            if self.ccd_plugin_available:
+                from CCD_Plugin.gui.CCD_Plugin_dockwidget import PickerCoordsOnMap
+                PickerCoordsOnMap.delete_markers()
 
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'init_dialog.ui'))
 
