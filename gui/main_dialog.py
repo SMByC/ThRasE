@@ -101,35 +101,23 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_OpenInGE.clicked.connect(self.open_current_tile_navigation_in_google_engine)
 
         # ######### build the view render widgets windows ######### #
-        init_dialog = InitDialog()
-        if init_dialog.exec_():
+        self.init_dialog = InitDialog()
+        if self.init_dialog.exec_():
             # new
-            if init_dialog.tabWidget.currentIndex() == 0:
+            if self.init_dialog.tabWidget.currentIndex() == 0:
                 settings_type = "new"
-                self.grid_rows = init_dialog.grid_rows.value()
-                self.grid_columns = init_dialog.grid_columns.value()
+                self.grid_rows = self.init_dialog.grid_rows.value()
+                self.grid_columns = self.init_dialog.grid_columns.value()
             # load
-            if init_dialog.tabWidget.currentIndex() == 1:
+            if self.init_dialog.tabWidget.currentIndex() == 1:
                 settings_type = "load"
-                file_path = init_dialog.QgsFile_LoadConfigFile.filePath()
-                if file_path != '' and os.path.isfile(file_path) and os.access(file_path, os.R_OK):
-                    # load classification from yaml file
-                    with open(file_path, 'r') as yaml_file:
-                        try:
-                            yaml_config = yaml.load(yaml_file, Loader=Loader)
-                        except yaml.YAMLError as err:
-                            msg = "Error while read the yaml file classification config:\n\n{}".format(err)
-                            QMessageBox.critical(init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
-                            self.close()
-                            return False
+                yaml_file_path = self.init_dialog.QgsFile_LoadConfigFile.filePath()
+                yaml_config = self.get_yaml_config(yaml_file_path)
+                if yaml_config:
                     # restore rows/columns
                     self.grid_rows = yaml_config["grid_view_widgets"]["rows"]
                     self.grid_columns = yaml_config["grid_view_widgets"]["columns"]
                 else:
-                    msg = "Opening the config ThRasE file:\n{}\n\nFile does not exist, or you do not " \
-                          "have read access to the file".format(init_dialog.QgsFile_LoadConfigFile.filePath())
-                    QMessageBox.critical(init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
-                    self.close()
                     return False
         else:
             self.close()
@@ -248,24 +236,56 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # ######### load settings from file ######### #
         if settings_type == "load":
-            self.load_config(yaml_config)
+            self.restore_config(yaml_file_path, yaml_config)
 
         return True
 
+    def get_yaml_config(self, yaml_file_path):
+        if yaml_file_path != '' and os.path.isfile(yaml_file_path) and os.access(yaml_file_path, os.R_OK):
+            # load classification from yaml file
+            with open(yaml_file_path, 'r') as yaml_file:
+                try:
+                    yaml_config = yaml.load(yaml_file, Loader=Loader)
+                    return yaml_config
+                except Exception as err:
+                    msg = "Error while read the yaml file ThRasE configuration:\n\n{}".format(err)
+                    QMessageBox.critical(self.init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
+                    self.close()
+                    return False
+        else:
+            msg = "Opening the config ThRasE file:\n{}\n\nFile does not exist, or you do not " \
+                  "have read access to the file".format(self.init_dialog.QgsFile_LoadConfigFile.filePath())
+            QMessageBox.critical(self.init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
+            self.close()
+            return False
+
     @wait_process
-    def load_config(self, yaml_config):
+    def restore_config(self, yaml_file_path, yaml_config):
+        def get_restore_path(_path):
+            """check if the file path exists or try using relative path to the yml file"""
+            if _path is None:
+                return None
+            if not os.path.isfile(_path):
+                _rel_path = os.path.join(os.path.dirname(yaml_file_path), _path)
+                if os.path.isfile(_rel_path):
+                    # the path is relative to the yml file
+                    return os.path.abspath(_rel_path)
+            return _path
+
+
         # dialog size
         if "main_dialog_size" in yaml_config:
             self.resize(*yaml_config["main_dialog_size"])
-        # thematic file to edit
-        if not os.path.isfile(yaml_config["thematic_file_to_edit"]["path"]):
+        # setup the thematic file to edit
+        thematic_filepath_to_edit = get_restore_path(yaml_config["thematic_file_to_edit"]["path"])
+        if not os.path.isfile(thematic_filepath_to_edit):
             self.MsgBar.pushMessage(
                 "Could not load the thematic layer '{}' ThRasE need this layer to setup the config, "
-                "check the path in the YML file".format(yaml_config["thematic_file_to_edit"]["path"]),
+                "check the path in the YML file".format(thematic_filepath_to_edit),
                 level=Qgis.Critical)
             return
-        if yaml_config["thematic_file_to_edit"]["path"]:
-            load_and_select_filepath_in(self.QCBox_LayerToEdit, yaml_config["thematic_file_to_edit"]["path"])
+        if thematic_filepath_to_edit:
+            load_and_select_filepath_in(self.QCBox_LayerToEdit, thematic_filepath_to_edit)
             self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer())
             # band number
             if "band" in yaml_config["thematic_file_to_edit"]:
@@ -305,18 +325,19 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     # select layer if exists in Qgis
                     active_layer.QCBox_RenderFile.setCurrentIndex(file_index)
                     active_layer.set_render_layer(active_layer.QCBox_RenderFile.currentLayer())
-                elif yaml_active_layer["layer_path"] and os.path.isfile(yaml_active_layer["layer_path"]):
-                    # load file and select in view if this exists and not load in Qgis
-                    layer = load_and_select_filepath_in(active_layer.QCBox_RenderFile, yaml_active_layer["layer_path"],
-                                                        layer_name=layer_name)
-                    active_layer.set_render_layer(layer)
-                elif yaml_active_layer["layer_path"] and not os.path.isfile(yaml_active_layer["layer_path"]):
-                    self.MsgBar.pushMessage(
-                        "Could not load the layer '{}' in the view {}: no such file {}".format(
-                            layer_name,
-                            "'{}'".format(yaml_view_widget["view_name"]) if yaml_view_widget["view_name"] else view_widget.id,
-                            yaml_active_layer["layer_path"]), level=Qgis.Warning, duration=5)
-                    continue
+                elif yaml_active_layer["layer_path"]:
+                    layer_path = get_restore_path(yaml_active_layer["layer_path"])
+                    if os.path.isfile(layer_path):
+                        layer = load_and_select_filepath_in(active_layer.QCBox_RenderFile, layer_path, layer_name=layer_name)
+                        active_layer.set_render_layer(layer)
+                    else:
+                        view_name = yaml_view_widget["view_name"] or view_widget.id
+                        self.MsgBar.pushMessage(
+                                "Could not load the layer '{layer_name}' in the view '{view_name}': "
+                                "no such file {layer_path}".format(layer_name=layer_name, view_name=view_name,
+                                                                   layer_path=layer_path),
+                                level=Qgis.Warning, duration=5)
+                        continue
 
                 # opacity
                 active_layer.layerOpacity.setValue(yaml_active_layer["opacity"])

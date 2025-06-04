@@ -413,12 +413,31 @@ class LayerToEdit(object):
             represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', list(data.items()))
             yaml.add_representer(OrderedDict, represent_dict_order)
 
+        def setup_path(_path):
+            """
+            Sets up the path by calculating the relative path of input path to the directory of where yaml file is being saving.
+            """
+            if _path is None:
+                return None
+            # Get the directory of the reference file
+            reference_dir = os.path.dirname(os.path.abspath(file_out))
+            try:
+                relative_path = os.path.relpath(_path, start=reference_dir)
+                # If the relative path stays within the reference directory
+                if not relative_path.startswith("..") and not os.path.isabs(relative_path):
+                    return relative_path
+                else:
+                    return _path
+            except:
+                # If the paths cannot be related, return the original input path
+                return _path
+
         setup_yaml()
 
         data = OrderedDict()
         # general settings
         data["thematic_file_to_edit"] = \
-            {"path": self.file_path,
+            {"path": setup_path(self.file_path),
              "band": self.band}
         data["grid_view_widgets"] = {"columns": ThRasE.dialog.grid_columns, "rows": ThRasE.dialog.grid_rows}
         data["main_dialog_size"] = (ThRasE.dialog.size().width(), ThRasE.dialog.size().height())
@@ -444,7 +463,7 @@ class LayerToEdit(object):
             for active_layer in view_widget.active_layers:
                 active_layers.append({"is_active": active_layer.OnOffActiveLayer.isChecked(),
                                       "layer_name": active_layer.layer.name() if active_layer.layer else None,
-                                      "layer_path": get_file_path_of_layer(active_layer.layer),
+                                      "layer_path": setup_path(get_file_path_of_layer(active_layer.layer)),
                                       "opacity": active_layer.opacity})
             data["view_widgets"].append({"active_layers": active_layers,
                                          "mouse_pixel_value": view_widget.mousePixelValue2Table.isChecked(),
@@ -480,7 +499,7 @@ class LayerToEdit(object):
                                               "points",
                                               "centroid of polygons"]:
                 data["navigation"]["vector_file"] = \
-                    get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer())
+                    setup_path(get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer()))
 
         # CCD plugin config
         if ThRasE.dialog.ccd_plugin_available:
