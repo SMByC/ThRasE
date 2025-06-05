@@ -55,7 +55,7 @@ com/SMByC/ThRasE/master/docs/thematic_example.tif)
 ![](img/editing.webp)
 
 - Each view has an editing tool, with four options; pixels, lines, polygons, and freehand.
-- Users get a maximum of 20 actions for undo or redo.
+- Currently, there is no limits on undo or redo actions.
 - You can use any view for edit, but always the image to edit is the thematic selected even if it is not showing in 
   the view.
 

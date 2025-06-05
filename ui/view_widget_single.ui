@@ -315,7 +315,7 @@
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Undo the last pixel changed (limited to 20)</string>
+                  <string>Undo the last pixel changed</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -579,7 +579,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Undo the last line created (limited to 20)</string>
+                  <string>Undo the last line created</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -798,7 +798,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Undo the last polygon created (limited to 20)</string>
+                  <string>Undo the last polygon created</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -1011,7 +1011,7 @@ QToolButton
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Undo the last freehand region created (limited to 20)</string>
+                        <string>Undo the last freehand region created</string>
                        </property>
                        <property name="icon">
                         <iconset>

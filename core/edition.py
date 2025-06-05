@@ -522,7 +522,6 @@ class History:
         [(polygon_feature, ((point, value), ...)), ...]
 
     """
-    max_history_items = 20
 
     def __init__(self, edit_type):
         self.edit_type = edit_type
@@ -562,7 +561,5 @@ class History:
 
     def add(self, item):
         self.undos.append(item)
-        if len(self.undos) > History.max_history_items:
-            del self.undos[0]
         self.redos = []
 
