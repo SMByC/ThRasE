@@ -40,9 +40,6 @@ class ViewWidget(QWidget):
 
     def setup_view_widget(self):
         self.render_widget.parent_view = self
-        # settings the ActiveLayers widget
-        self.QPBtn_ConfActiveLayers.clicked.connect(self.active_layers_widget)
-        self.QPBtn_EditionTools.clicked.connect(self.edition_tools_widget)
 
         # ### init the three active layers ###
         self.widget_ActiveLayer_1.setup_gui(1, self)
@@ -111,7 +108,6 @@ class ViewWidget(QWidget):
             self.enable()
         else:
             self.disable()
-        self.QPBtn_ConfActiveLayers.setText("{} active layers".format(len(valid_layers)))
 
     def enable(self):
         with block_signals_to(self.render_widget):
@@ -308,38 +304,32 @@ class ViewWidget(QWidget):
         # update changes done in the layer and view
         self.render_widget.refresh()
 
+    @staticmethod
     @pyqtSlot()
-    def active_layers_widget(self):
+    def active_layers_widget(enable=None):
         # open/close all active layers widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
-            # open to close
-            if view_widget.widget_ActiveLayers.isVisible():
-                view_widget.widget_ActiveLayers.setHidden(True)
-                view_widget.QPBtn_ConfActiveLayers.setChecked(False)
-            # close to open
+            if enable is None:
+                view_widget.widget_ActiveLayers.setHidden(view_widget.widget_ActiveLayers.isVisible())
             else:
-                view_widget.widget_ActiveLayers.setVisible(True)
-                view_widget.QPBtn_ConfActiveLayers.setChecked(True)
+                view_widget.widget_ActiveLayers.setVisible(enable)
 
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
         if actives_view_widget:
             QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
 
+    @staticmethod
     @pyqtSlot()
-    def edition_tools_widget(self):
-        # open/close all active layers widgets
+    def edition_tools_widget(enable=None):
+        # open/close all edition tool widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
-            # open to close
-            if view_widget.widget_EditionTools.isVisible():
-                view_widget.widget_EditionTools.setHidden(True)
-                view_widget.QPBtn_EditionTools.setChecked(False)
-            # close to open
+            if enable is None:
+                view_widget.widget_EditionTools.setHidden(view_widget.widget_EditionTools.isVisible())
             else:
-                view_widget.widget_EditionTools.setVisible(True)
-                view_widget.QPBtn_EditionTools.setChecked(True)
+                view_widget.widget_EditionTools.setVisible(enable)
 
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
@@ -452,10 +442,6 @@ class ViewWidgetSingle(ViewWidget, FORM_CLASS):
         self.is_active = False
         self.active_layers = []  # for save the active layers instances
         self.setupUi(self)
-        # init as unactivated render widget for new instances
-        self.widget_ActiveLayers.setHidden(True)
-        self.widget_EditionTools.setHidden(True)
-        self.disable()
 
 
 # load a multi view (two rows) in the widget edition when columns > 1
@@ -467,10 +453,6 @@ class ViewWidgetMulti(ViewWidget, FORM_CLASS):
         self.is_active = False
         self.active_layers = []  # for save the active layers instances
         self.setupUi(self)
-        # init as unactivated render widget for new instances
-        self.widget_ActiveLayers.setHidden(True)
-        self.widget_EditionTools.setHidden(True)
-        self.disable()
 
 
 class PickerPixelTool(QgsMapTool):

@@ -40,7 +40,7 @@ from qgis.utils import iface
 
 from ThRasE.core.edition import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
-from ThRasE.gui.view_widget import ViewWidgetSingle, ViewWidgetMulti
+from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
@@ -158,6 +158,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.recodePixelTable.itemChanged.connect(self.update_recode_pixel_table)
         # for change the class color
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
+
+        # ######### setup active layers and edit tools ######### #
+        self.QPBtn_ConfActiveLayers.clicked.connect(ViewWidget.active_layers_widget)
+        self.QPBtn_EditionTools.clicked.connect(ViewWidget.edition_tools_widget)
 
         # ######### others ######### #
         self.QPBtn_ReloadRecodeTable.clicked.connect(self.reload_recode_table)
@@ -300,10 +304,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_recode_pixel_table()
         self.update_recode_pixel_table()
         # view_widgets, active layers and edit tool
-        if "active_layers_widget" in yaml_config and yaml_config["active_layers_widget"]:
-            ThRasEDialog.view_widgets[0].active_layers_widget()
-        if "edition_tools_widget" in yaml_config and yaml_config["edition_tools_widget"]:
-            ThRasEDialog.view_widgets[0].edition_tools_widget()
+        if "active_layers_widget" in yaml_config:
+            self.QPBtn_ConfActiveLayers.setChecked(yaml_config["active_layers_widget"])
+            ViewWidget.active_layers_widget(enable=yaml_config["active_layers_widget"])
+        if "edition_tools_widget" in yaml_config:
+            self.QPBtn_EditionTools.setChecked(yaml_config["edition_tools_widget"])
+            ViewWidget.edition_tools_widget(enable=yaml_config["edition_tools_widget"])
         for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"]):
             # active layers
             for active_layer, yaml_active_layer in zip(view_widget.active_layers, yaml_view_widget["active_layers"]):
