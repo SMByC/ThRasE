@@ -506,7 +506,9 @@ class PickerPixelTool(QgsMapTool):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+        crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
+        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
+            map_coordinate.x(), map_coordinate.y(), crs))
 
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
@@ -602,7 +604,9 @@ class PickerLineTool(QgsMapTool):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+        crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
+        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
+            map_coordinate.x(), map_coordinate.y(), crs))
 
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
@@ -717,7 +721,9 @@ class PickerPolygonTool(QgsMapTool):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+        crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
+        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
+            map_coordinate.x(), map_coordinate.y(), crs))
 
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
@@ -836,7 +842,9 @@ class PickerFreehandTool(QgsMapTool):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f}".format(map_coordinate.x(), map_coordinate.y()))
+        crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
+        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
+            map_coordinate.x(), map_coordinate.y(), crs))
 
         # highlight the current pixel value from mouse picker
         if self.view_widget.mousePixelValue2Table.isChecked():
