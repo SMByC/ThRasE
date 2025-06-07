@@ -160,8 +160,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
 
         # ######### setup active layers and edit tools ######### #
-        self.QPBtn_ConfActiveLayers.clicked.connect(ViewWidget.active_layers_widget)
+        self.QPBtn_ActiveLayers.clicked.connect(ViewWidget.active_layers_widget)
         self.QPBtn_EditionTools.clicked.connect(ViewWidget.edition_tools_widget)
+        self.QCBox_NoActiveLayers.currentIndexChanged[int].connect(self.set_active_layers)
 
         # ######### others ######### #
         self.QPBtn_ReloadRecodeTable.clicked.connect(self.reload_recode_table)
@@ -238,11 +239,25 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 view_widget.PolygonsPicker.clicked.connect(lambda: self.ccd_plugin.widget.pick_on_map.setChecked(False))
                 view_widget.FreehandPicker.clicked.connect(lambda: self.ccd_plugin.widget.pick_on_map.setChecked(False))
 
+        # ######### set the default values ######### #
+        if settings_type == "new":
+            # set the default active layers
+            self.set_active_layers(self.QCBox_NoActiveLayers.currentIndex())
+
         # ######### load settings from file ######### #
         if settings_type == "load":
             self.restore_config(yaml_file_path, yaml_config)
 
         return True
+
+    def set_active_layers(self, index):
+        num_active_layers = index + 1
+        for view_widget in ThRasEDialog.view_widgets:
+            for active_layer in view_widget.active_layers:
+                if active_layer.id <= num_active_layers:
+                    active_layer.activate()
+                else:
+                    active_layer.deactivate()
 
     def get_yaml_config(self, yaml_file_path):
         if yaml_file_path != '' and os.path.isfile(yaml_file_path) and os.access(yaml_file_path, os.R_OK):
@@ -305,7 +320,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.update_recode_pixel_table()
         # view_widgets, active layers and edit tool
         if "active_layers_widget" in yaml_config:
-            self.QPBtn_ConfActiveLayers.setChecked(yaml_config["active_layers_widget"])
+            self.QPBtn_ActiveLayers.setChecked(yaml_config["active_layers_widget"])
             ViewWidget.active_layers_widget(enable=yaml_config["active_layers_widget"])
         if "edition_tools_widget" in yaml_config:
             self.QPBtn_EditionTools.setChecked(yaml_config["edition_tools_widget"])
@@ -377,6 +392,20 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 view_widget.use_freehand_picker_for_edit()
             if "freehand_color" in yaml_view_widget and yaml_view_widget["freehand_color"]:
                 view_widget.change_freehand_color(QColor(yaml_view_widget["freehand_color"]))
+        # set the render layers in the views
+        if "number_active_layers" in yaml_config:
+            # set the number of active layers
+            self.QCBox_NoActiveLayers.setCurrentIndex(int(yaml_config["number_active_layers"]) - 1)
+            self.set_active_layers(int(yaml_config["number_active_layers"]) - 1)
+        else:
+            # for old yaml files:
+            # set the number of active layers based on the active layers in the views configured in the yaml file
+            layer_in_row3 = any(al.id == 3 and al.layer is not None for al in view_widget.active_layers)
+            layer_in_row2 = any(al.id == 2 and al.layer is not None for al in view_widget.active_layers)
+            active_layers_index = 0 if not layer_in_row3 and not layer_in_row2 else 1 if not layer_in_row3 else 2
+            self.QCBox_NoActiveLayers.setCurrentIndex(active_layers_index)
+            self.set_active_layers(active_layers_index)
+
         # navigation
         if yaml_config["navigation"]["type"] != "free":
             # TODO delete after some time, compatibility old yaml file

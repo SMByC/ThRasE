@@ -57,11 +57,11 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.QCBox_RenderFile.setCurrentIndex(-1)
         # handle connect layer selection with render canvas
         self.QCBox_RenderFile.layerChanged.connect(self.set_render_layer)
-        self.QCBox_RenderFile.setToolTip("{} layer".format({1: "upper", 2: "intermediate", 3: "lower"}[self.id]))
+        self.QCBox_RenderFile.setToolTip("{} layer".format({1: "1st", 2: "2nd", 3: "3rd"}[self.id]))
         # call to browse the render file
         self.QCBox_browseRenderFile.clicked.connect(lambda: self.browser_dialog_to_load_file(
             self.QCBox_RenderFile,
-            dialog_title=self.tr("Select the {} layer for this view".format({1: "upper", 2: "intermediate", 3: "lower"}[self.id])),
+            dialog_title=self.tr("Select the {} layer for this view".format({1: "1st", 2: "2nd", 3: "3rd"}[self.id])),
             file_filters=self.tr("Raster or vector files (*.tif *.img *.gpkg *.shp);;All files (*.*)")))
         # edit layer properties
         self.layerStyleEditor.setDisabled(True)
@@ -105,6 +105,20 @@ class ActiveLayer(QWidget, FORM_CLASS):
             # set status for view widget
             self.is_active = False
             self.parent_view.update()
+
+    def activate(self):
+        self.setVisible(True)
+
+    def deactivate(self):
+        self.setVisible(False)
+        # clean everything and set to default
+        self.enable()
+        self.widget_ActiveLayer.setEnabled(True)
+        self.layerOpacity.setValue(100)
+        self.set_render_layer(None)
+        self.QCBox_RenderFile.setCurrentIndex(-1)
+        self.OnOffActiveLayer.setChecked(True)
+        self.is_active = False
 
     @pyqtSlot()
     def layer_style_editor(self):
