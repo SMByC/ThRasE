@@ -274,7 +274,7 @@
          <item>
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Thematic raster file to edit:</string>
+            <string>Thematic layer to edit:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>

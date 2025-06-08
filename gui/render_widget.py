@@ -64,7 +64,7 @@ class RenderWidget(QWidget):
         with block_signals_to(self):
             # set the CRS of the canvas view
             if self.crs:
-                # use the crs of thematic raster to edit
+                # use the crs of thematic layer to edit
                 self.canvas.setDestinationCrs(self.crs)
             else:
                 # use the crs set in Qgis

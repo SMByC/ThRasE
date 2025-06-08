@@ -510,7 +510,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot()
     def browse_dialog_layer_to_edit(self):
         file_path, _ = QFileDialog.getOpenFileName(self,
-            self.tr("Select the thematic raster file to edit"), "",
+            self.tr("Select the thematic layer to edit"), "",
             self.tr("Raster files (*.tif *.img);;All files (*.*)"))
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
@@ -519,7 +519,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def set_navigation_tool(self, nav_type):
         if not LayerToEdit.current:
-            self.MsgBar.pushMessage("First select a valid thematic raster file to edit", level=Qgis.Warning, duration=5)
+            self.MsgBar.pushMessage("First select a valid thematic layer to edit", level=Qgis.Warning, duration=5)
             with block_signals_to(self.QCBox_NavType):
                 self.QCBox_NavType.setCurrentIndex(0)
             return
@@ -685,7 +685,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.unset_thematic_layer_to_edit()
             return
         if not valid_file_selected_in(self.QCBox_LayerToEdit):
-            self.MsgBar.pushMessage("The thematic raster layer to edit is not valid", level=Qgis.Warning, duration=5)
+            self.MsgBar.pushMessage("The thematic layer to edit is not valid", level=Qgis.Warning, duration=5)
             self.unset_thematic_layer_to_edit()
             return
         # show warning for layer to edit different to tif format
@@ -693,7 +693,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             quit_msg = "Use raster files different to GTiff (tif or tiff) format has not been fully tested. " \
                        "GTiff files are recommended for editing.\n\n" \
                        "Do you want to continue anyway?"
-            reply = QMessageBox.question(None, 'Image to edit in ThRasE',
+            reply = QMessageBox.question(None, 'Thematic layer to edit in ThRasE',
                                          quit_msg, QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 self.unset_thematic_layer_to_edit()
@@ -701,7 +701,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
-            self.MsgBar.pushMessage("The thematic raster layer to edit must be byte or integer as data type",
+            self.MsgBar.pushMessage("The thematic layer to edit must be byte or integer as data type",
                                     level=Qgis.Warning, duration=5)
             self.unset_thematic_layer_to_edit()
             return
