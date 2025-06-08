@@ -661,32 +661,32 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             LayerToEdit.current.navigation_dialog.show()
 
+    def unset_thematic_layer_to_edit(self):
+        # disable and clear the thematic file
+        self.NavigationBlockWidget.setDisabled(True)
+        self.QPBtn_ReloadRecodeTable.setDisabled(True)
+        self.QPBtn_RestoreRecodeTable.setDisabled(True)
+        self.QPBtn_AutoFill.setDisabled(True)
+        self.Widget_GlobalEditingTools.setDisabled(True)
+        self.QCBox_LayerToEdit.setCurrentIndex(-1)
+        self.SaveConfig.setDisabled(True)
+        with block_signals_to(self.QCBox_band_LayerToEdit):
+            self.QCBox_band_LayerToEdit.clear()
+        LayerToEdit.current = None
+        [view_widget.widget_EditionTools.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
+
     def select_layer_to_edit(self, layer_selected):
         # first clear table
         self.recodePixelTable.setRowCount(0)
         self.recodePixelTable.setColumnCount(0)
 
-        # disable and clear if layer selected is wrong
-        def disable():
-            self.NavigationBlockWidget.setDisabled(True)
-            self.QPBtn_ReloadRecodeTable.setDisabled(True)
-            self.QPBtn_RestoreRecodeTable.setDisabled(True)
-            self.QPBtn_AutoFill.setDisabled(True)
-            self.Widget_GlobalEditingTools.setDisabled(True)
-            self.QCBox_LayerToEdit.setCurrentIndex(-1)
-            self.SaveConfig.setDisabled(True)
-            with block_signals_to(self.QCBox_band_LayerToEdit):
-                self.QCBox_band_LayerToEdit.clear()
-            LayerToEdit.current = None
-            [view_widget.widget_EditionTools.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
-
         # first check
         if layer_selected is None:
-            disable()
+            self.unset_thematic_layer_to_edit()
             return
         if not valid_file_selected_in(self.QCBox_LayerToEdit):
             self.MsgBar.pushMessage("The thematic raster layer to edit is not valid", level=Qgis.Warning, duration=5)
-            disable()
+            self.unset_thematic_layer_to_edit()
             return
         # show warning for layer to edit different to tif format
         if layer_selected.source().split(".")[-1].lower() not in ["tif", "tiff"]:
@@ -696,14 +696,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             reply = QMessageBox.question(None, 'Image to edit in ThRasE',
                                          quit_msg, QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
-                disable()
+                self.unset_thematic_layer_to_edit()
                 return
 
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
             self.MsgBar.pushMessage("The thematic raster layer to edit must be byte or integer as data type",
                                     level=Qgis.Warning, duration=5)
-            disable()
+            self.unset_thematic_layer_to_edit()
             return
 
         # set band count
@@ -723,13 +723,16 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if nodata is not None:
             msgBox = QMessageBox()
             msgBox.setTextFormat(Qt.RichText)
-            msgBox.setWindowTitle("ThRasE - How to handle the nodata")
-            msgBox.setText("The '{}' has {} as nodata. ThRasE cannot edit the values assigned as nodata, "
-                           "there are two options:".format(layer.name(), int(nodata)))
-            msgBox.setInformativeText("<ul><li>Unset the nodata to the thematic layer</li>"
-                                      "<li>Hide the nodata value in the recode table</li></ul>")
-            unset_button = msgBox.addButton("Unset the nodata", QMessageBox.NoRole)
-            hide_button = msgBox.addButton("Hide the nodata", QMessageBox.NoRole)
+            msgBox.setWindowTitle("ThRasE - How to handle the NoData value")
+            msgBox.setText("The '{}' has {} as NoData. ThRasE cannot edit values assigned as NoData, "
+                           "there are two possible options:".format(layer.name(), int(nodata)))
+            msgBox.setInformativeText("<ol style='list-style-position: inside;'>"
+                                      "<li style='margin-bottom: 8px;'>Unsets the NoData value for the thematic layer. The file will be "
+                                      "modified, but you can edit the NoData value afterward</li>"
+                                      "<li style='margin-bottom: 8px;'>Hides the NoData value in the recode table. The file will not be modified, "
+                                      "but you will not be able to view or edit the NoData value</li></ol>")
+            unset_button = msgBox.addButton("1. Unset NoData", QMessageBox.NoRole)
+            hide_button = msgBox.addButton("2. Hide NoData", QMessageBox.NoRole)
             msgBox.setStandardButtons(QMessageBox.Cancel)
             msgBox.setDefaultButton(QMessageBox.Cancel)
             msgBox.exec()
@@ -755,15 +758,16 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         self.QCBox_band_LayerToEdit.setCurrentIndex(band_idx)
                     nodata = None
                     self.MsgBar.pushMessage(
-                        "The nodata value for the thematic layer '{}' was successfully unset".format(layer.name()),
+                        "The NoData value for the thematic layer '{}' was successfully unset".format(layer.name()),
                         level=Qgis.Success, duration=5)
                 else:
                     self.MsgBar.pushMessage(
-                        "It was not possible to unset the nodata value for the thematic layer '{}'".format(layer.name()),
+                        "It was not possible to unset the NoData value for the thematic layer '{}'".format(layer.name()),
                         level=Qgis.Critical, duration=5)
                     return
             elif msgBox.clickedButton() != hide_button:
-                # cancel
+                # cancel action
+                self.unset_thematic_layer_to_edit()
                 return
 
         if (layer.id(), band) in LayerToEdit.instances:
