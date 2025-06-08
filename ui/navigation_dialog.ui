@@ -186,7 +186,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Select the type navigation to build</string>
+               <string>Select the type of navigation to build</string>
               </property>
               <property name="styleSheet">
                <string notr="true">padding-left: 3px;padding-right: 3px;</string>
@@ -365,6 +365,15 @@
                </item>
                <item>
                 <widget class="QToolButton" name="QPBtn_BrowseVectorFile">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>Load the vector file</string>
+                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -439,7 +448,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Define one or more polygons for build navigation only in these areas.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the polygon&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current polygon&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Define one or more polygons to specify the areas where the navigation will be built.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the polygon&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current polygon&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>AOI picker</string>
@@ -779,7 +788,7 @@ QToolButton
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string>Create the review tiles for navigation</string>
+            <string>Build navigation tiles based on the current configuration</string>
            </property>
            <property name="text">
             <string>Build Navigation</string>

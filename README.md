@@ -2,7 +2,7 @@
 
 ![](docs/img/thrase.svg)
 
-ThRasE is a powerful and fast Thematic Raster Editor QGIS plugin. It utilizes a recode pixel table to modify multiple 
+ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table to modify multiple 
 classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. The plugin also 
 features a navigation tool to facilitate layer inspection.
 

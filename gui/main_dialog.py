@@ -173,7 +173,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
         self.apply_from_thematic_classes = ApplyFromThematicClasses()
         self.QPBtn_ApplyFromThematicClasses.clicked.connect(self.apply_from_thematic_classes_dialog)
-        self.SaveConfig.clicked.connect(self.fileDialog_saveConfig)
+        self.SaveConfig.clicked.connect(self.file_dialog_save_thrase_config)
 
         # ######### CCD plugin widget ######### #
         # set up the Continuous Change Detection widget
@@ -300,7 +300,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if not os.path.isfile(thematic_filepath_to_edit):
             self.MsgBar.pushMessage(
                 "Could not load the thematic layer '{}' ThRasE need this layer to setup the config, "
-                "check the path in the YML file".format(thematic_filepath_to_edit),
+                "check the path in the yaml file".format(thematic_filepath_to_edit),
                 level=Qgis.Critical)
             return
         if thematic_filepath_to_edit:
@@ -724,7 +724,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             msgBox = QMessageBox()
             msgBox.setTextFormat(Qt.RichText)
             msgBox.setWindowTitle("ThRasE - How to handle the nodata")
-            msgBox.setText("The '{}' has {} as nodata. ThRasE cannot edit the values assigned ​​as nodata, "
+            msgBox.setText("The '{}' has {} as nodata. ThRasE cannot edit the values assigned as nodata, "
                            "there are two options:".format(layer.name(), int(nodata)))
             msgBox.setInformativeText("<ul><li>Unset the nodata to the thematic layer</li>"
                                       "<li>Hide the nodata value in the recode table</li></ul>")
@@ -755,11 +755,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         self.QCBox_band_LayerToEdit.setCurrentIndex(band_idx)
                     nodata = None
                     self.MsgBar.pushMessage(
-                        "Unset the nodata value to the thematic layer '{}' was successful".format(layer.name()),
+                        "The nodata value for the thematic layer '{}' was successfully unset".format(layer.name()),
                         level=Qgis.Success, duration=5)
                 else:
                     self.MsgBar.pushMessage(
-                        "It was not possible unset the nodata value to the thematic layer '{}'".format(layer.name()),
+                        "It was not possible to unset the nodata value for the thematic layer '{}'".format(layer.name()),
                         level=Qgis.Critical, duration=5)
                     return
             elif msgBox.clickedButton() != hide_button:
@@ -1016,8 +1016,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot()
     def apply_whole_image(self):
         # first prompt
-        quit_msg = "This action apply the changes set in recode pixels table to the whole image, this cannot undone. \n\n" \
-                   "Target layer: \"{}\"".format(LayerToEdit.current.qgs_layer.name())
+        quit_msg = "This action applies the changes defined in the pixel recoding table to the entire image. " \
+                   "This operation cannot be undone. \n\n" \
+                   "Target file: \"{}\"".format(LayerToEdit.current.file_path)
         reply = QMessageBox.question(None, 'Applying changes to the whole image',
                                      quit_msg, QMessageBox.Apply | QMessageBox.Cancel, QMessageBox.Cancel)
         if reply == QMessageBox.Apply:
@@ -1031,7 +1032,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # check if the recode pixel table is empty
         if not LayerToEdit.current.old_new_value:
             self.MsgBar.pushMessage(
-                "There are no changes to apply in the recode pixel table. Please set the new pixel values first",
+                "There are no changes to apply in the recode pixel table. Please set new pixel values first",
                 level=Qgis.Warning, duration=5)
             return
 
@@ -1042,25 +1043,26 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 level=Qgis.Success, duration=5)
 
     @pyqtSlot()
-    def fileDialog_saveConfig(self):
+    def file_dialog_save_thrase_config(self):
         if LayerToEdit.current.config_file:
             suggested_filename = LayerToEdit.current.config_file
         else:
             path, filename = os.path.split(LayerToEdit.current.file_path)
             suggested_filename = os.path.splitext(os.path.join(path, filename))[0] + "_thrase.yaml"
 
-        file_out, _ = QFileDialog.getSaveFileName(self, self.tr("Save the current configuration of the ThRasE plugin"),
+        output_file, _ = QFileDialog.getSaveFileName(self, self.tr("Save the current configuration of the ThRasE plugin"),
                                                   suggested_filename,
                                                   self.tr("YAML files (*.yaml *.yml);;All files (*.*)"))
 
-        if file_out is None or file_out == '':
+        if output_file is None or output_file == '':
             return
 
-        if not file_out.endswith(('.yaml', '.yml')):
-            file_out += ".yaml"
+        if not output_file.endswith(('.yaml', '.yml')):
+            output_file += ".yaml"
         
-        LayerToEdit.current.save_config(file_out)
-        self.MsgBar.pushMessage("ThRasE", "File saved successfully", level=Qgis.Success, duration=5)
+        LayerToEdit.current.save_config(output_file)
+        self.MsgBar.pushMessage("ThRasE", "Configuration file saved successfully in '{}'".format(output_file),
+                                level=Qgis.Success, duration=5)
 
     @pyqtSlot(bool)
     def ccd_plugin_widget(self, checked):

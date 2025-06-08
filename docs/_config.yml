@@ -6,7 +6,7 @@ plugins:
   - jekyll-remote-theme
 
 title: ThRasE
-description: ThRasE is a powerful and fast thematic raster editor Qgis plugin.
+description: ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing.
 logo: ./img/thrase.svg
 email:
 favicon: true

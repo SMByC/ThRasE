@@ -95,14 +95,14 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if layer_unit == QgsUnitTypes.DistanceUnknownUnit:
             layer_unit = QgsUnitTypes.DistanceMeters
             str_unit = QgsUnitTypes.toString(layer_unit) + \
-                       "\nWARNING: the layer does not have a valid map unit considering meters as the base unit!"
+                       "\nWARNING: The layer does not have a valid map unit, meters will be used as the base unit."
         else:
             str_unit = QgsUnitTypes.toString(layer_unit)
         abbr_unit = QgsUnitTypes.toAbbreviatedString(layer_unit)
         # Set the properties of the QdoubleSpinBox based on the QgsUnitTypes of the thematic layer
         # https://qgis.org/api/classQgsUnitTypes.html
         self.tileSize.setSuffix(" {}".format(abbr_unit))
-        self.tileSize.setToolTip("The size of the tiles to build the navigation, in {}.\n"
+        self.tileSize.setToolTip("Defines the side length of the navigation tiles in {}.\n"
                                  "(units based on the current thematic layer to edit)\n"
                                  "(rebuild the navigation to make the changes)".format(str_unit))
         self.tileSize.setRange(0, 360 if layer_unit == QgsUnitTypes.DistanceDegrees else 10e10)
@@ -176,14 +176,21 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+            self.QCBox_VectorFile.setToolTip("Select a polygon vector file to use as the\n"
+                                             "base for building the navigation tiles")
         if nav_type == "points":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PointLayer)
+            self.QCBox_VectorFile.setToolTip("Select a point vector file to use as the\n"
+                                             "base for building the navigation tiles")
         if nav_type == "centroid of polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+            self.QCBox_VectorFile.setToolTip("Select a polygon vector file to use as the\n"
+                                             "base for building the navigation tiles\n"
+                                             "using the centroid of each polygon")
 
     @pyqtSlot()
     def activate_deactivate_AOI_picker(self):
@@ -225,7 +232,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         if self.QCBox_BuildNavType.currentText() == "AOIs":
             if not self.aoi_drawn:
-                self.MsgBar.pushMessage("Navigation was not built: there aren't polygons drawn", level=Qgis.Warning, duration=5)
+                self.MsgBar.pushMessage("Navigation building failed: no polygons were drawn", level=Qgis.Warning, duration=5)
                 return
             aois = [aoi.asGeometry() for aoi in self.aoi_drawn]
             # build navigation

@@ -426,7 +426,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This reloads the recode table if its symbology (colors/values) style has been changed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reloads the recode table if the symbology (colors/values) of the selected thematic layer has been changed outside the plugin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Reload</string>
@@ -449,7 +449,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This restores to the original symbology (colors/values) style when the layer was loaded in the plugin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restores the symbology (colors/values) of the selected thematic layer to its original values from when it was loaded in the plugin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Restore</string>
@@ -472,7 +472,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tool for autofill the New Value column with the Current Value with conditions&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tool to autofill the &lt;span style=&quot; font-weight:600;&quot;&gt;New Value&lt;/span&gt; column based on multiple conditions&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>AutoFill</string>
@@ -602,7 +602,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply the changes set in recode pixels table to the whole image&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply all recode pixel table changes to the entire image&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Apply to the whole image</string>
@@ -625,7 +625,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Applies the changes set in recode pixels table only in the areas inside the all picked classes from another thematic file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Applies the changes from the recode pixels table only to areas within all selected classes from another thematic file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>From thematic file classes</string>
@@ -1007,6 +1007,9 @@ can be displayed and overlaid per view</string>
            </property>
            <property name="cursor">
             <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Switch between free movement and tile-based navigation for better map inspection</string>
            </property>
            <property name="styleSheet">
             <string notr="true">padding-left: 3px;

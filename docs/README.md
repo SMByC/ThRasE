@@ -2,7 +2,7 @@
 
 ![](img/overview.webp)
 
-ThRasE is a powerful and fast Thematic Raster Editor QGIS plugin. It utilizes a recode pixel table to modify multiple 
+ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table to modify multiple 
 classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. The plugin also 
 features a navigation tool to facilitate layer inspection.
 
@@ -80,8 +80,8 @@ com/SMByC/ThRasE/master/docs/thematic_example.tif)
   views, pixel table with colors and values, navigation settings and status, current tile, size dialog, current 
   extent and position, among others.
 
-> `Optional:` If you are using network layers in the view (such as Google, Bing, Esri satellite) use save/load a Qgis
-> project, `important:` load first the Qgis project before load the .yml saved with ThRasE
+> `Important:` If you are using web or network layers (such as images from Google, Esri, GEE or XYZ), save and load your 
+> QGIS project, and then load the ThRasE configuration file (.yaml).
 
 ## About us
 

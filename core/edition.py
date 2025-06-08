@@ -46,7 +46,7 @@ def check_before_editing():
     # check if the recode pixel table is empty
     if not LayerToEdit.current.old_new_value:
         ThRasE.dialog.MsgBar.pushMessage(
-            "There are no changes to apply in the recode pixel table. Please set the new pixel values first",
+            "There are no changes to apply in the recode pixel table. Please set new pixel values first",
             level=Qgis.Warning, duration=5)
         return False
     return True
@@ -59,7 +59,7 @@ def edit_layer(func):
         if not LayerToEdit.current.data_provider.isEditable():
             if not LayerToEdit.current.data_provider.setEditable(True):
                 from ThRasE.thrase import ThRasE
-                ThRasE.dialog.MsgBar.pushMessage("The current thematic raster is a non-editable layer or has permission issues",
+                ThRasE.dialog.MsgBar.pushMessage("The current thematic raster cannot be edited due to layer restrictions or permission issues",
                                                  level=Qgis.Critical, duration=5)
                 return False
         # do

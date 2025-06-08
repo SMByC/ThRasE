@@ -80,7 +80,7 @@
          <cursorShape>PointingHandCursor</cursorShape>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight the current pixel value from the mouse position in the recode table when one of the edit tool is activated (values of the thematic raster selected)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When an edit tool is activated, highlights in the recode table the value of the pixel under the mouse (values ​​based solely on the thematic raster selected for editing)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="icon">
          <iconset>
@@ -392,6 +392,12 @@
             </item>
             <item>
              <widget class="QComboBox" name="LineBuffer">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
