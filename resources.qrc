@@ -7,6 +7,7 @@
         <file>icons/pixel_picker.svg</file>
         <file>icons/line_picker.svg</file>
         <file>icons/polygon_picker.svg</file>
+        <file>icons/freehand_picker.svg</file>
         <file>icons/undo.svg</file>
         <file>icons/redo.svg</file>
         <file>icons/trash.svg</file>

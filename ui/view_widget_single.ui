@@ -860,7 +860,7 @@ QToolButton
                     </property>
                     <property name="icon">
                      <iconset>
-                      <normaloff>:/plugins/thrase/icons/polygon_picker.svg</normaloff>:/plugins/thrase/icons/polygon_picker.svg</iconset>
+                      <normaloff>:/plugins/thrase/icons/freehand_picker.svg</normaloff>:/plugins/thrase/icons/freehand_picker.svg</iconset>
                     </property>
                     <property name="checkable">
                      <bool>true</bool>
