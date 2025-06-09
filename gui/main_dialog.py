@@ -44,7 +44,8 @@ from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
-    get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer
+    get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer, \
+    add_color_value_to_symbology
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
@@ -738,16 +739,19 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             msgBox.exec()
 
             if msgBox.clickedButton() == unset_button:
+                symbology_render = layer.renderer().clone()  # save the symbology before edit
                 if unset_the_nodata_value(layer) == 0:
-                    symbology_render = layer.renderer().clone()  # save the symbology before reload
                     with block_signals_to(self.QCBox_LayerToEdit):
                         layer_name = layer.name()
                         layer_path = get_file_path_of_layer(layer)
                         self.QCBox_LayerToEdit.setCurrentIndex(-1)
                         unload_layer(layer_path)
                         layer = load_layer(layer_path, name=layer_name)
-                        # restore symbology
-                        layer.setRenderer(symbology_render)
+                        # add nodata value to symbology as black color
+                        new_symbology_render = add_color_value_to_symbology(symbology_render, nodata, "black")
+                        if new_symbology_render:
+                            # restore symbology with the new nodata value
+                            layer.setRenderer(new_symbology_render)
                         layer.triggerRepaint()
                         layer.reload()
                         # select the sampling file in combobox

@@ -29,7 +29,8 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget
-from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, Qgis, QgsStyle, QgsMapLayer, QgsPalettedRasterRenderer
+from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, Qgis, QgsStyle, QgsMapLayer, \
+                      QgsPalettedRasterRenderer, QgsSingleBandPseudoColorRenderer, QgsColorRampShader, QgsRasterShader
 from qgis.utils import iface
 
 
@@ -179,3 +180,76 @@ def apply_symbology(rlayer, rband, symbology):
     if hasattr(rlayer, 'setCacheImage'):
         rlayer.setCacheImage(None)
     rlayer.triggerRepaint()
+
+
+def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None):
+    """
+    Add a new color/value pair to the raster layer's symbology.
+
+    Parameters:
+        renderer: QgsRasterRenderer or QgsSingleBandPseudoColorRenderer
+        new_value: float or int - The value to add to the symbology
+        new_color: QColor or str - The color to associate with the value (QColor object or color name/hex)
+        new_label: str, optional - Label for the new value (defaults to "Value {new_value}")
+
+    Returns:
+        The new symbology modified with the new color/value pair
+    """
+    if not renderer:
+        return None
+
+    # Convert color to QColor if string
+    if isinstance(new_color, str):
+        new_color = QColor(new_color)
+
+    # Set default label if not provided
+    if new_label is None:
+        new_label = f"{new_value}"
+
+    if isinstance(renderer, QgsPalettedRasterRenderer):
+        classes = renderer.classes()
+        # Check if value already exists
+        if any(cls.value == new_value for cls in classes):
+            return renderer
+        # Add new class
+        new_class = QgsPalettedRasterRenderer.Class(new_value, new_color, new_label)
+        classes.append(new_class)
+        # Create and return new renderer
+        return QgsPalettedRasterRenderer(renderer.input(), renderer.band(), classes)
+
+    elif isinstance(renderer, QgsSingleBandPseudoColorRenderer):
+        # Get shader and color ramp
+        shader = renderer.shader()
+        if not isinstance(shader, QgsRasterShader):
+            return None
+        color_ramp = shader.rasterShaderFunction()
+        if not isinstance(color_ramp, QgsColorRampShader):
+            return None
+        color_ramp_items = color_ramp.colorRampItemList()
+        # Check if value already exists
+        if any(item.value == new_value for item in color_ramp_items):
+            return renderer
+        # Add new item
+        new_item = QgsColorRampShader.ColorRampItem(new_value, new_color, new_label)
+        color_ramp_items.append(new_item)
+        # Sort items by value
+        color_ramp_items.sort(key=lambda x: x.value)
+        # Create new color ramp shader with Exact Interpolation
+        new_color_ramp_shader = QgsColorRampShader()
+        new_color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
+        new_color_ramp_shader.setColorRampItemList(color_ramp_items)
+        # Set Equal Interval mode by defining min/max values
+        if color_ramp_items:
+            min_value = min(item.value for item in color_ramp_items)
+            max_value = max(item.value for item in color_ramp_items)
+            new_color_ramp_shader.setMinimumValue(min_value)
+            new_color_ramp_shader.setMaximumValue(max_value)
+        # Create new shader
+        new_shader = QgsRasterShader()
+        new_shader.setRasterShaderFunction(new_color_ramp_shader)
+        # Create and return new renderer
+        new_renderer = QgsSingleBandPseudoColorRenderer(renderer.input(), renderer.band(), new_shader)
+        return new_renderer
+
+    else:
+        return None

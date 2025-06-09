@@ -21,8 +21,9 @@ There are two types of formats accepted in ThRasE, depending on the pixel-value/
 1. **Thematic with paletted or singleband pseudocolor on the fly**:
 
    You can use any raster (of byte or integer as data type) with specific style loaded (from Qgis project or qml file
-   style) or done on the fly in Qgis. Go to `properties` of the raster, then go to `style`,
-   select `Paletted/Unique values` or `Singleband pseudocolor` (using `Exact` `Interpolation`) and generate the desired
+   style) or done on the fly in Qgis. Go to `properties` of the raster, then go to `style`, select 
+   `Paletted/Unique values` (recommended!) or `Singleband pseudocolor` (using `Exact Interpolation`, with 
+   `Equal interval` mode, and the number of classes must match the layer classes) and generate the desired
    pixel-value/color associated (manually or generated automatically using the several options that Qgis have to do
    this) with only one requirement: **the pixel-values associated must be integers**.
 
