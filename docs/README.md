@@ -1,97 +1,106 @@
-# ThRasE
+# ThRasE - Thematic Raster Editor
 
 ![](img/overview.webp)
 
 ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table to modify multiple 
 classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. The plugin also 
-features a navigation tool to facilitate layer inspection.
+features a navigation tool to facilitate systematic layer inspection.
 
-## Thematic raster to edit
+## Thematic Raster Requirements
 
 ![](img/thematic.webp)
 
-The thematic raster file to be edited must satisfy the following criteria. 
+The thematic raster file to be edited must satisfy the following criteria:
 
-- It must be a **categorical thematic layer** with byte or integer as data type.
-- It must have a specific pixel-value/color association. Else, ThRasE will ask you to apply a temporal and random 
+- It must be a **categorical thematic layer** with byte or integer data type.
+- It must have a specific pixel-value/color association. If not, ThRasE will prompt you to apply a temporary and random 
   pixel-value/color association.
 
-There are two types of formats accepted in ThRasE, depending on the pixel-value/color association:
+ThRasE accepts two types of formats, depending on the pixel-value/color association:
 
 1. **Thematic with paletted or singleband pseudocolor on the fly**:
 
-   You can use any raster (of byte or integer as data type) with specific style loaded (from Qgis project or qml file
-   style) or done on the fly in Qgis. Go to `properties` of the raster, then go to `style`, select 
-   `Paletted/Unique values` (recommended!) or `Singleband pseudocolor` (using `Exact Interpolation`, with 
-   `Equal interval` mode, and the number of classes must match the layer classes) and generate the desired
-   pixel-value/color associated (manually or generated automatically using the several options that Qgis have to do
-   this) with only one requirement: **the pixel-values associated must be integers**.
+   You can use any raster (with byte or integer data type) with a specific style loaded (from a QGIS project or QML file)
+   or applied symbology style on the fly in QGIS.
 
-   > *Optional:* After configure the style in Qgis for the raster is recommended save it in `.qml` Qgis style file, else
-   Qgis save it in temporal file (or on the fly) and if you restart the Qgis and load the raster again you lost the
-   pixel-value/color style associated. For save the style go to `Style` menu and click in `Save as default` Qgis save it
-   in the same place and name of the raster with extension `.qml`.
+   Supported symbology (render types):
 
-   > *Optional:* Alternative (or additional) to the above, you can save all layers style saving it in a Qgis project.
+   - **Paletted/Unique values** (recommended!)
+   - **Singleband pseudocolor** (using `Exact Interpolation`, with `Equal interval` mode, and the number of classes must 
+     match the layer classes)
+    
+   > **Important**: The pixel values must be integers.
 
-2. **Thematic with color table**:
+   > **Tip:** After configuring the style in QGIS, it's recommended to save it as a `.qml` style file. Otherwise, QGIS 
+   > saves it as a temporary file, and you'll lose the pixel-value/color association if you restart QGIS and reload the 
+   > raster. To save the style, go to the `Style` menu and click `Save as Default`. QGIS will save it in the same 
+   > location as the raster with a `.qml` extension.
 
-   You can use any raster (of byte or integer as data type) with pixel-values/color associated through a color table
-   inside it as metadata. You can see it using `gdalinfo` or in `style` in layer `properties` this is shown
-   as `paletted`.
+   > **Alternative:** You can also save all layer styles by saving them in a QGIS project.
 
-You can test an example of a valid thematic raster [here](https://raw.githubusercontent.
-com/SMByC/ThRasE/master/docs/thematic_example.tif)
+2. **Thematic with embedded color table**:
 
-## View config and active layers
+   You can use any raster (with byte or integer data type) that has pixel-value/color associations through a color table
+   embedded in its metadata. You can view this using `gdalinfo` or in the `Symbology` tab in layer `Properties`, where 
+   it will be shown as `Paletted`.
+
+You can download an example of a valid thematic raster [here](https://raw.githubusercontent.com/SMByC/ThRasE/master/docs/thematic_example.tif).
+
+## View Configuration and Active Layers
 
 ![](img/active_layers.webp)
 
-- The grid configuration can be done only when the plugin is opened under the `new` tab.
-- Each view provides an option for three layers.
-- Each layer's opacity can be adjusted as per the requirement.
+- The grid configuration can only be set when the plugin is first opened under the `New` tab.
+- Each view provides options for up to three layers.
+- Each layer's opacity can be adjusted according to your requirements.
 
-## Editing
+## Editing Tools
 
 ![](img/editing.webp)
 
-- Each view has an editing tool, with four options; pixels, lines, polygons, and freehand.
-- Currently, there is no limits on undo or redo actions.
-- You can use any view for edit, but always the image to edit is the thematic selected even if it is not showing in 
-  the view.
+- Each view has an editing toolset with four options: pixels, lines, polygons, and freehand drawing.
+- There are no limits on undo or redo actions.
+- You can use any view for editing, but the changes will always apply to the selected thematic raster, even if it's not 
+  visible in the current view.
 
-> `WARNING:` After each editing operation, the layer is saved (overwritten) on disk. If you want to keep the original 
-> layer you must make a copy of it before editing.
+> **Warning:** After each editing operation, the layer is saved (overwritten) on disk. If you want to preserve the original 
+> layer, make a backup copy before starting the editing process.
 
-## Navigation
+## Navigation Tools
 
 ![](img/navigation.webp)
 
-- The navigation tool assists in the review of the thematic raster going tile by tile generated, with the purpose to 
-  guarantee the revision of the thematic file.
-- You can generate review tiles throughout; areas of interest (drawn over the thematic file), polygons, points or 
-  centroid of polygons.
+- The navigation tool helps you systematically review the thematic raster by moving through generated tiles, ensuring 
+  complete coverage during the revision process.
+- You can generate review tiles based on: areas of interest (drawn over the thematic file), polygons, points, or 
+  centroids of polygons.
 
-## Save configuration and restore it
+## Save and Restore Configuration
 
 <img src="img/save.webp" width="50%" style="margin: auto;display: block;">
 <img src="img/load.webp" width="50%" style="margin: auto;display: block;">
 
-- With this `Save state` and `Load` button you can save or restore all settings and configuration of; ThRasE dialog, 
-  views, pixel table with colors and values, navigation settings and status, current tile, size dialog, current 
-  extent and position, among others.
+- The `Save State` and `Load` buttons allow you to save or restore all settings and configurations, including:
+  - ThRasE dialog settings
+  - View configurations
+  - Pixel table with colors and values
+  - Navigation settings and status
+  - Current tile position
+  - Dialog size
+  - Current extent and position
+  - And more
 
-> `Important:` If you are using web or network layers (such as images from Google, Esri, GEE or XYZ), save and load your 
-> QGIS project, and then load the ThRasE configuration file (.yaml).
+> **Important:** If you are using web or network layers (such as images from Google, Esri, Google Earth Engine, or XYZ), 
+> first save and load your QGIS project, and then load the ThRasE configuration file (`.yaml`).
 
-## About us
+## About Us
 
-ThRasE was developing, designed and implemented by the Group of Forest and Carbon Monitoring System (SMByC), operated by
+ThRasE was developed, designed, and implemented by the Group of Forest and Carbon Monitoring System (SMByC), operated by
 the Institute of Hydrology, Meteorology and Environmental Studies (IDEAM) - Colombia.
 
 Author and developer: *Xavier C. Llano* *<xavier.corredor.llano@gmail.com>*  
-Theoretical support, tester and product verification: SMByC-PDI group
+Theoretical support, testing, and product verification: SMByC-PDI group
 
 ## License
 
-ThRasE is a free/libre software and is licensed under the GNU General Public License.
+ThRasE is free/libre software and is licensed under the GNU General Public License.

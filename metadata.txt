@@ -1,7 +1,7 @@
 [general]
 name=ThRasE
-description=A powerful and flexible Thematic Raster Editor QGIS plugin with an additional navigation tool to ensure layer inspection
-about=ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table to modify multiple classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. The plugin also features a navigation tool to facilitate layer inspection.
+description=A powerful and flexible Thematic Raster Editor QGIS plugin with an additional navigation tool to ensure systematic layer inspection
+about=ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table to modify multiple classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. The plugin also features a navigation tool to facilitate systematic layer inspection.
 
 version=24.10
 qgisMinimumVersion=3.0
@@ -41,4 +41,3 @@ category=Plugins
 icon=icons/thrase.svg
 experimental=False
 deprecated=False
-
