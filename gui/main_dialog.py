@@ -88,7 +88,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.NavigationBlockWidget.setHidden(True)
         self.NavigationBlockWidget.setDisabled(True)
         self.NavigationBlockWidgetControls.setDisabled(True)
-        self.QCBox_NavType.currentIndexChanged[str].connect(self.set_navigation_tool)
+        self.QPBtn_EnableNavigation.clicked.connect(self.enable_navigation_tool)
         self.QPBtn_OpenNavigationDialog.clicked.connect(self.open_navigation_dialog)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
@@ -423,7 +423,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             if "build_tools" not in yaml_config["navigation"]:
                 yaml_config["navigation"]["build_tools"] = True
 
-            self.QCBox_NavType.setCurrentIndex(1)
+            self.QPBtn_EnableNavigation.setChecked(True)
             selected_index = LayerToEdit.current.navigation_dialog.QCBox_BuildNavType.findText(
                 yaml_config["navigation"]["type"], Qt.MatchFixedString)
             LayerToEdit.current.navigation_dialog.QCBox_BuildNavType.setCurrentIndex(selected_index)
@@ -468,7 +468,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.navigation_dialog.change_tile_from_spinbox(current_tile_id)
             # navigation block widget
             self.currentTileKeepVisible.setChecked(yaml_config["navigation"]["tile_keep_visible"])
-            self.set_navigation_tool("by tiles")
+            self.enable_navigation_tool(True)
             self.NavigationBlockWidgetControls.setEnabled(True)
             self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
             self.QPBar_TilesNavigation.setValue(current_tile_id)
@@ -518,24 +518,23 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             layer = load_and_select_filepath_in(self.QCBox_LayerToEdit, file_path)
             self.select_layer_to_edit(layer)
 
-    def set_navigation_tool(self, nav_type):
+    def enable_navigation_tool(self, checked):
         if not LayerToEdit.current:
             self.MsgBar.pushMessage("First select a valid thematic layer to edit", level=Qgis.Warning, duration=5)
-            with block_signals_to(self.QCBox_NavType):
-                self.QCBox_NavType.setCurrentIndex(0)
+            with block_signals_to(self.QPBtn_EnableNavigation):
+                self.QPBtn_EnableNavigation.setChecked(False)
             return
 
-        if nav_type == "free":
-            self.NavigationBlockWidget.setHidden(True)
-            if LayerToEdit.current.navigation.is_valid:
-                LayerToEdit.current.navigation.current_tile.hide()
-
-        if nav_type == "by tiles":
+        if checked:
             self.NavigationBlockWidget.setVisible(True)
             if LayerToEdit.current.navigation.is_valid:
                 LayerToEdit.current.navigation.current_tile.show()
                 if not self.currentTileKeepVisible.isChecked():
                     QTimer.singleShot(1200, LayerToEdit.current.navigation.current_tile.hide)
+        else:
+            self.NavigationBlockWidget.setHidden(True)
+            if LayerToEdit.current.navigation.is_valid:
+                LayerToEdit.current.navigation.current_tile.hide()
 
     @pyqtSlot()
     def go_to_current_tile(self):

@@ -769,7 +769,7 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QWidget" name="NavigationBlock" native="true">
+       <widget class="QWidget" name="HeaderMainBlock" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>3</number>
@@ -868,6 +868,12 @@
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>40</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="toolTip">
                   <string>Set the maximum number of layer rows that
 can be displayed and overlaid per view</string>
@@ -882,7 +888,7 @@ can be displayed and overlaid per view</string>
                   <enum>QComboBox::AdjustToMinimumContentsLength</enum>
                  </property>
                  <property name="frame">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <item>
                   <property name="text">
@@ -976,61 +982,29 @@ can be displayed and overlaid per view</string>
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="label_2">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Navigation</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="QCBox_NavType">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
+          <widget class="QToolButton" name="QPBtn_EnableNavigation">
            <property name="cursor">
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string>Switch between free movement and tile-based navigation for better map inspection</string>
+            <string>Enable tile-based navigation tool for better map inspection</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true">padding-left: 3px;
-padding-right: 3px;</string>
+           <property name="text">
+            <string>Navigation</string>
            </property>
-           <property name="sizeAdjustPolicy">
-            <enum>QComboBox::AdjustToContents</enum>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/plugins/thrase/icons/navigation.svg</normaloff>:/plugins/thrase/icons/navigation.svg</iconset>
            </property>
-           <property name="minimumContentsLength">
-            <number>6</number>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
-           <item>
-            <property name="text">
-             <string>free</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>by tiles</string>
-            </property>
-           </item>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextBesideIcon</enum>
+           </property>
+           <property name="autoRaise">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -1260,10 +1234,10 @@ padding-right: 3px;</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Open the navigation dialog</string>
+               <string>Generate and explore tile-based navigation for the current thematic layer</string>
               </property>
               <property name="text">
-               <string>Navigation</string>
+               <string>Build | Explore</string>
               </property>
               <property name="icon">
                <iconset>
@@ -1336,8 +1310,8 @@ padding-right: 3px;</string>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1327</x>
-     <y>621</y>
+     <x>1152</x>
+     <y>557</y>
     </hint>
     <hint type="destinationlabel">
      <x>980</x>
@@ -1352,12 +1326,12 @@ padding-right: 3px;</string>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1224</x>
-     <y>513</y>
+     <x>1049</x>
+     <y>449</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1327</x>
-     <y>583</y>
+     <x>1152</x>
+     <y>519</y>
     </hint>
    </hints>
   </connection>

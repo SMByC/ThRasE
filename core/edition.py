@@ -478,7 +478,8 @@ class LayerToEdit(object):
                                          "freehand_color": view_widget.freehand_color.name()})
         # navigation
         data["navigation"] = {}
-        if ThRasE.dialog.QCBox_NavType.currentText() == "free" or not self.navigation.is_valid:
+
+        if not ThRasE.dialog.QPBtn_EnableNavigation.isChecked() or not self.navigation.is_valid:
             data["navigation"]["type"] = "free"
         else:
             data["navigation"]["type"] = self.navigation_dialog.QCBox_BuildNavType.currentText()
