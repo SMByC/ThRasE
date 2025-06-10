@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
+    <width>956</width>
     <height>350</height>
    </rect>
   </property>
@@ -107,6 +107,12 @@
             </property>
             <item>
              <widget class="QToolButton" name="QPBtn_BuildNavigationTools">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>Show/hide the build navigation tools</string>
               </property>
@@ -177,7 +183,7 @@
             <item>
              <widget class="QComboBox" name="QCBox_BuildNavType">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -273,12 +279,6 @@
       </item>
       <item>
        <widget class="QWidget" name="NavBuildToolsBlock" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <property name="spacing">
           <number>3</number>
@@ -347,7 +347,7 @@
                <item>
                 <widget class="QgsMapLayerComboBox" name="QCBox_VectorFile">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -444,6 +444,12 @@
             </property>
             <item>
              <widget class="QToolButton" name="AOI_Picker">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -784,6 +790,12 @@ QToolButton
          </item>
          <item>
           <widget class="QToolButton" name="QPBtn_BuildNavigation">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="cursor">
             <cursorShape>PointingHandCursor</cursorShape>
            </property>

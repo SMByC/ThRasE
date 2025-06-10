@@ -42,10 +42,10 @@ class AutoFill(QDialog, FORM_CLASS):
 
     def setup_gui(self):
         # adjust the column width of the table
-        self.AutoFillTable.setColumnWidth(0, 260)
+        self.AutoFillTable.setColumnWidth(0, 240)
         self.AutoFillTable.setColumnWidth(1, 140)
         # adjust the width of the dialog
-        self.resize(460, 650)
+        self.resize(440, 480)
 
         self.QPBtn_ApplyAutoFill.clicked.connect(self.apply_autofill)
 

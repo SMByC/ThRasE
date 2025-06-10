@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1156</width>
+    <width>1117</width>
     <height>561</height>
    </rect>
   </property>
@@ -314,6 +314,12 @@
             </item>
             <item>
              <widget class="QComboBox" name="QCBox_band_LayerToEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>Select the band to edit</string>
               </property>
@@ -327,6 +333,12 @@
             </item>
             <item>
              <widget class="QToolButton" name="QPBtn_browseLayerToEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -718,7 +730,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all ThRasE configurations and states, including pixel table, active layers, editing settings, view settings, navigation, current tile, and more.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all ThRasE configurations and states to a file (.yaml) for later restoration. This includes:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Pixel table with colors and values&lt;/li&gt;&lt;li&gt;Active layers and their opacity settings&lt;/li&gt;&lt;li&gt;View configurations and layout&lt;/li&gt;&lt;li&gt;Navigation settings and current tile position&lt;/li&gt;&lt;li&gt;Current map extent and position&lt;/li&gt;&lt;li&gt;Dialog size and appearance&lt;/li&gt;&lt;li&gt;Editing tool settings&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Save state</string>
@@ -784,13 +796,13 @@
           <number>3</number>
          </property>
          <property name="rightMargin">
-          <number>10</number>
+          <number>3</number>
          </property>
          <property name="bottomMargin">
           <number>3</number>
          </property>
          <item>
-          <widget class="QWidget" name="header" native="true">
+          <widget class="QWidget" name="LayersEditionBlockWidget" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_13">
             <property name="spacing">
              <number>3</number>
@@ -802,112 +814,91 @@
              <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>3</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>3</number>
+             <number>0</number>
             </property>
             <item>
-             <widget class="QWidget" name="widget_8" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_5">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QToolButton" name="QPBtn_ActiveLayers">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="cursor">
-                  <cursorShape>PointingHandCursor</cursorShape>
-                 </property>
-                 <property name="toolTip">
-                  <string>Show/hide active layer settings per view</string>
-                 </property>
-                 <property name="text">
-                  <string>Layers</string>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>:/plugins/thrase/icons/active_layers_tool.svg</normaloff>:/plugins/thrase/icons/active_layers_tool.svg</iconset>
-                 </property>
-                 <property name="checkable">
-                  <bool>true</bool>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                 <property name="toolButtonStyle">
-                  <enum>Qt::ToolButtonTextBesideIcon</enum>
-                 </property>
-                 <property name="autoRaise">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="QCBox_NoActiveLayers">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>40</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>Set the maximum number of layer rows that
+             <widget class="QToolButton" name="QPBtn_ActiveLayers">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>Show/hide active layer settings per view</string>
+              </property>
+              <property name="text">
+               <string>Layers</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/active_layers_tool.svg</normaloff>:/plugins/thrase/icons/active_layers_tool.svg</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="QCBox_NoActiveLayers">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Set the maximum number of layer rows that
 can be displayed and overlaid per view</string>
-                 </property>
-                 <property name="currentText">
-                  <string>1</string>
-                 </property>
-                 <property name="maxCount">
-                  <number>3</number>
-                 </property>
-                 <property name="sizeAdjustPolicy">
-                  <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-                 </property>
-                 <property name="frame">
-                  <bool>false</bool>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>3</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
+              </property>
+              <property name="currentText">
+               <string>1</string>
+              </property>
+              <property name="maxCount">
+               <number>3</number>
+              </property>
+              <property name="sizeAdjustPolicy">
+               <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+              </property>
+              <property name="frame">
+               <bool>false</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string>1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>2</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>3</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item>
@@ -939,30 +930,30 @@ can be displayed and overlaid per view</string>
               </property>
              </widget>
             </item>
-            <item>
-             <spacer name="horizontalSpacer_14">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>3</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="Line" name="line_4">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
            </layout>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_14">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>3</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="Line" name="line_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
           </widget>
          </item>
          <item>
@@ -1310,12 +1301,12 @@ can be displayed and overlaid per view</string>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1152</x>
+     <x>1113</x>
      <y>557</y>
     </hint>
     <hint type="destinationlabel">
      <x>980</x>
-     <y>580</y>
+     <y>560</y>
     </hint>
    </hints>
   </connection>
@@ -1326,11 +1317,11 @@ can be displayed and overlaid per view</string>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1049</x>
+     <x>1010</x>
      <y>449</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1152</x>
+     <x>1113</x>
      <y>519</y>
     </hint>
    </hints>
@@ -1342,12 +1333,12 @@ can be displayed and overlaid per view</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>35</x>
-     <y>33</y>
+     <x>45</x>
+     <y>38</y>
     </hint>
     <hint type="destinationlabel">
-     <x>77</x>
-     <y>32</y>
+     <x>86</x>
+     <y>33</y>
     </hint>
    </hints>
   </connection>

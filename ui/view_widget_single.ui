@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>794</width>
+    <width>800</width>
     <height>99</height>
    </rect>
   </property>
@@ -60,7 +60,7 @@
     <widget class="QWidget" name="widget_EditionTools" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
-       <number>2</number>
+       <number>3</number>
       </property>
       <property name="leftMargin">
        <number>3</number>
@@ -205,7 +205,7 @@
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Undo the last pixel changed</string>
+                  <string>Undo last pixel change</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -228,7 +228,7 @@
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Redo the last pixel undo</string>
+                  <string>Redo last pixel change</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -475,7 +475,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Undo the last line created</string>
+                  <string>Undo last line</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -498,7 +498,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Redo the last undone line</string>
+                  <string>Redo last line</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -694,7 +694,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Undo the last polygon created</string>
+                  <string>Undo last polygon</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -717,7 +717,7 @@ QToolButton
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="toolTip">
-                  <string>Redo the last undone polygon</string>
+                  <string>Redo last polygon</string>
                  </property>
                  <property name="icon">
                   <iconset>
@@ -907,7 +907,7 @@ QToolButton
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Undo the last freehand region created</string>
+                        <string>Undo last freehand region</string>
                        </property>
                        <property name="icon">
                         <iconset>
@@ -930,7 +930,7 @@ QToolButton
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Redo the last undone freehand region</string>
+                        <string>Redo last freehand region</string>
                        </property>
                        <property name="icon">
                         <iconset>

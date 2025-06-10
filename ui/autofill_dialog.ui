@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>446</width>
-    <height>431</height>
+    <width>388</width>
+    <height>468</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,9 +39,11 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Autofill the &quot;New Value&quot; column with the &quot;Current Value&quot; with conditions. The condition column accepts any valid python condition (e.g. &quot;C&gt;3 and C&lt;=8&quot;). All rules are applied and overwritten in order. Especial variables:
+      <string>Autofill the &quot;New Value&quot; column based on conditions, optionally using the &quot;Current Value&quot;. The &quot;Condition&quot; column accepts any valid Python expression (e.g., C &gt; 3 and C &lt;= 8). Rules are applied sequentially, with later rules overwriting earlier ones.
+
+Special variables:
       C = current value
-      * (alone) = any value condition</string>
+      * (alone) = to match any value in conditions</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -56,11 +58,8 @@
    </item>
    <item>
     <widget class="QTableWidget" name="AutoFillTable">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>300</height>
-      </size>
+     <property name="rowCount">
+      <number>8</number>
      </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
       <number>250</number>
@@ -93,6 +92,9 @@
        <string>5</string>
       </property>
      </row>
+     <row/>
+     <row/>
+     <row/>
      <column>
       <property name="text">
        <string>Condition</string>
@@ -100,19 +102,13 @@
      </column>
      <column>
       <property name="text">
-       <string>Value</string>
+       <string>New Value</string>
       </property>
      </column>
     </widget>
    </item>
    <item>
     <widget class="QWidget" name="widget" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
        <number>3</number>
@@ -204,12 +200,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1298</x>
-     <y>576</y>
+     <x>442</x>
+     <y>515</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1081</x>
-     <y>658</y>
+     <x>448</x>
+     <y>521</y>
     </hint>
    </hints>
   </connection>
