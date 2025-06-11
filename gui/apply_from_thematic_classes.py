@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -52,6 +52,10 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         self.map_tool_pan = QgsMapToolPan(self.render_widget.canvas)
         self.render_widget.canvas.setMapTool(self.map_tool_pan, clean=True)
 
+    def reject(self):
+        self.restore_symbology()
+        super().reject()
+
     def setup_gui(self):
         # clear
         self.PixelTable.clear()
@@ -86,6 +90,16 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             load_and_select_filepath_in(combo_box, file_path, add_to_legend=False)
 
             self.select_thematic_file_classes(combo_box.currentLayer())
+
+    def restore_symbology(self):
+        """Restore the symbology of the thematic file classes to the original"""
+        if self.thematic_file_classes and self.QCBox_band_ThematicFile.currentText():
+            band = int(self.QCBox_band_ThematicFile.currentText())
+            symbology = \
+                [(str(pixel["value"]), pixel["value"],
+                  (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"]))
+                 for pixel in self.pixel_classes_backup]
+            apply_symbology(self.thematic_file_classes, band, symbology)
 
     def select_thematic_file_classes(self, layer):
         def clear():
@@ -282,16 +296,12 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             LayerToEdit.current.qgs_layer.reload()
             LayerToEdit.current.qgs_layer.triggerRepaint()
         else:
-            self.MsgBar.pushMessage("None of the pixels were edited with the selected classes", level=Qgis.Info, duration=5)
+            self.MsgBar.pushMessage("No pixels were edited because the selected classes do not overlap the areas of the"
+                                    "classes to modify", level=Qgis.Info, duration=5)
             return
 
-        # return to origin symbology
-        symbology = \
-            [(str(pixel["value"]), pixel["value"],
-              (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"]))
-             for pixel in self.pixel_classes_backup]
-        apply_symbology(self.thematic_file_classes, thematic_classes_band, symbology)
-
+        # finish the edition
+        self.restore_symbology()
         # clear
         self.PixelTable.clear()
         self.PixelTable.setRowCount(0)
