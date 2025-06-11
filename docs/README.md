@@ -7,6 +7,9 @@ to modify multiple classes simultaneously using various tools, including pixels,
 The plugin also features comprehensive navigation tools that enable systematic and thorough layer inspection, a 
 critical aspect of maintaining data quality and accuracy in thematic mapping projects.
 
+The main purpose of the plugin, but not limited to this, is to ensure the quality of thematic maps throughout editing 
+and reclassification processes by enabling systematic visual inspection and comparison with reference data.
+
 ## Thematic Raster Requirements
 
 <img src="img/thematic.webp" width="70%" style="margin: auto;display: block;">
