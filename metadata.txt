@@ -3,7 +3,7 @@ name=ThRasE
 description=A powerful and flexible Thematic Raster Editor QGIS plugin with an additional navigation tool to ensure systematic layer inspection
 about=ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table to modify multiple classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. The plugin also features a navigation tool to facilitate systematic layer inspection.
 
-version=24.10
+version=25.6
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 
@@ -15,25 +15,23 @@ tracker=https://github.com/SMByC/ThRasE/issues
 repository=https://github.com/SMByC/ThRasE
 
 changelog=
-    24.10:
-    - Added a new footer to show to the user information and status about the edition, such as the number of the pixels edited, undo and redo pixels restored/remade
-    - Added the current map coordinate in the footer
-    - Added action buttons to zoom the layer
-    - Several UI adjustments and fixes
-    - Improving all the icons and increasing the svg default size
-    - Improving the initial dialog
-    - Enable/disable the On/off active layers button
-    - Fixed some checks before editing
-    - Fix singular/plural label in the number of classes to edit
-    - Fixbug highlight the current pixel value from mouse picker was not working for freehand edit tool
-    - Added some missing vertical separators
-    - Fix an issue that navigation tiles were not drawing correctly when zooming to all navigation tiles
-    - Fix saving the path for not local files, fix #6
-    - Adjusted the text in the autofill dialog
+    25.6:
+    - Integrating the Continuous Change Detection (CCD) plugin inside the ThRasE plugin. CCD helps to analyze the trends and breakpoints of change of the samples over multi-year, using Landsat and Sentinel throught Google Earth Engine.
+    - Refactoring the UI setting up the active layers and edition tools configuration buttons in the main dialog
+    - Refactor navigation tool handling in the main dialog
+    - New feature to set the maximum number of layer rows that can be displayed and overlaid per view
+    - Add the nodata value in black within the new symbology when nodata is unsetted and is not present in the symbology
+    - Several icons improvements and fixes
+    - Improve many tooltips, messages, text, descriptions and docs
+    - Enhance map coordinate text to include projection/CRS information
+    - Remove limits on undo/redo actions. After some testing these historical undo/redo actions, they don't consume much memory, so there's no reason to set limits on this ThRasE feature.
+    - ThRasE now will save and restore relative paths from the YAML file if the layers are in the same directory or subdirectory tree as the YAML file, making it a portable and shareable project.
+    - Update the save dialog for the ThRasE configuration YAML file, set the default extension as .yaml
+    - Handle locale initialization to fix some issues for some edge cases loading the plugin
     - Other minor fixes and improvements
     - All commits in: https://github.com/SMByC/ThRasE/commits
 
-tags=raster,editing,pixel,thematic
+tags=raster,thematic,categorical,edit,editing,reclassification,navigation,inspection
 
 external_deps=
 
