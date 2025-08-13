@@ -27,7 +27,7 @@
     <number>3</number>
    </property>
    <item>
-    <widget class="QWidget" name="widget_ActiveLayers" native="true">
+    <widget class="QWidget" name="layer_toolbar_widgets" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
        <number>2</number>
@@ -45,19 +45,19 @@
        <number>3</number>
       </property>
       <item>
-       <widget class="ActiveLayer" name="widget_ActiveLayer_1" native="true"/>
+       <widget class="LayerToolbarWidget" name="layer_toolbar_widget_1" native="true"/>
       </item>
       <item>
-       <widget class="ActiveLayer" name="widget_ActiveLayer_2" native="true"/>
+       <widget class="LayerToolbarWidget" name="layer_toolbar_widget_2" native="true"/>
       </item>
       <item>
-       <widget class="ActiveLayer" name="widget_ActiveLayer_3" native="true"/>
+       <widget class="LayerToolbarWidget" name="layer_toolbar_widget_3" native="true"/>
       </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget_EditionTools" native="true">
+    <widget class="QWidget" name="widget_EditingToolbar" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
        <number>3</number>
@@ -80,7 +80,7 @@
          <cursorShape>PointingHandCursor</cursorShape>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When an edit tool is activated, highlights in the recode table the value of the pixel under the mouse (values ​​based solely on the thematic raster selected for editing)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When an editing tool is activated, highlights in the recode table the value of the pixel under the mouse (values ​​based solely on the thematic raster selected for editing)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="icon">
          <iconset>
@@ -1018,9 +1018,9 @@ QToolButton
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ActiveLayer</class>
+   <class>LayerToolbarWidget</class>
    <extends>QWidget</extends>
-   <header>ThRasE.gui.active_layer</header>
+   <header>ThRasE.gui.layer_toolbar_widget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

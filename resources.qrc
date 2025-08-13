@@ -17,8 +17,8 @@
         <file>icons/current_tile.svg</file>
         <file>icons/layer_properties.svg</file>
         <file>icons/render_view_config.svg</file>
-        <file>icons/edit_tool.svg</file>
-        <file>icons/active_layers_tool.svg</file>
+        <file>icons/editing_toolbar.svg</file>
+        <file>icons/layer_toolbar.svg</file>
         <file>icons/restore.svg</file>
         <file>icons/run_whole_image.svg</file>
         <file>icons/run_external_class.svg</file>

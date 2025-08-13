@@ -50,9 +50,9 @@ ThRasE accepts two types of formats, depending on the pixel-value/color associat
 
 You can download an example of a valid thematic raster [here](https://raw.githubusercontent.com/SMByC/ThRasE/master/docs/thematic_example.tif).
 
-## View Configuration and Active Layers
+## View Configuration and Layer Toolbar
 
-<img src="img/active_layers.webp" width="85%" style="margin: auto;display: block;">
+<img src="img/layer_toolbar.webp" width="85%" style="margin: auto;display: block;">
 
 - The grid configuration can only be set when the plugin is first opened under the `New` tab.
 - Each view provides options for up to three layers, allowing you to compare the thematic layer with reference data.
@@ -60,7 +60,7 @@ You can download an example of a valid thematic raster [here](https://raw.github
 - Multiple views with different layer combinations facilitate comprehensive inspection and comparison, enhancing your 
 ability to identify areas that need editing.
 
-## Editing Tools
+## Editing Toolbar
 
 <img src="img/editing.webp" width="85%" style="margin: auto;display: block;">
 

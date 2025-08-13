@@ -32,7 +32,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QDialogButtonBox
 from qgis.PyQt.QtCore import pyqtSlot, Qt
 
-from ThRasE.core.edition import LayerToEdit, edit_layer
+from ThRasE.core.editing import LayerToEdit, edit_layer
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, apply_symbology, get_file_path_of_layer
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process

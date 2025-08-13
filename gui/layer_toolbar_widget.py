@@ -32,10 +32,10 @@ from ThRasE.utils.qgis_utils import load_and_select_filepath_in, StyleEditorDial
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'active_layer.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'layer_toolbar_widget.ui'))
 
 
-class ActiveLayer(QWidget, FORM_CLASS):
+class LayerToolbarWidget(QWidget, FORM_CLASS):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
@@ -52,7 +52,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.id = id
         self.parent_view = parent_view
         self.render_widget = parent_view.render_widget
-        parent_view.active_layers.append(self)
+        parent_view.layer_toolbars.append(self)
         # set properties to QgsMapLayerComboBox
         self.QCBox_RenderFile.setCurrentIndex(-1)
         # handle connect layer selection with render canvas
@@ -67,8 +67,8 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.layerStyleEditor.setDisabled(True)
         self.layerStyleEditor.clicked.connect(self.layer_style_editor)
         # on /off layer
-        self.OnOffActiveLayer.setDisabled(True)
-        self.OnOffActiveLayer.toggled.connect(self.on_off_layer)
+        self.OnOff_LayerToolbar.setDisabled(True)
+        self.OnOff_LayerToolbar.toggled.connect(self.on_off_layer)
         # zoom to layer
         self.ZoomToLayer.setDisabled(True)
         self.ZoomToLayer.clicked.connect(self.zoom_to_layer)
@@ -88,7 +88,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
     def enable(self):
         with block_signals_to(self.render_widget):
             # activate some parts of this view
-            self.OnOffActiveLayer.setEnabled(True)
+            self.OnOff_LayerToolbar.setEnabled(True)
             self.layerStyleEditor.setEnabled(True)
             self.ZoomToLayer.setEnabled(True)
             self.layerOpacity.setEnabled(True)
@@ -113,11 +113,11 @@ class ActiveLayer(QWidget, FORM_CLASS):
         self.setVisible(False)
         # clean everything and set to default
         self.enable()
-        self.widget_ActiveLayer.setEnabled(True)
+        self.layer_toolbar_widget.setEnabled(True)
         self.layerOpacity.setValue(100)
         self.set_render_layer(None)
         self.QCBox_RenderFile.setCurrentIndex(-1)
-        self.OnOffActiveLayer.setChecked(True)
+        self.OnOff_LayerToolbar.setChecked(True)
         self.is_active = False
 
     @pyqtSlot()
@@ -131,7 +131,7 @@ class ActiveLayer(QWidget, FORM_CLASS):
             self.disable()
             self.layer = None
             self.render_widget.update_render_layers()
-            self.OnOffActiveLayer.setDisabled(True)
+            self.OnOff_LayerToolbar.setDisabled(True)
             return
 
         self.layer = layer
@@ -172,12 +172,12 @@ class ActiveLayer(QWidget, FORM_CLASS):
             self.layer.triggerRepaint()
 
             from ThRasE.gui.main_dialog import ThRasEDialog
-            same_layer_in_others_active_layer = \
-                [active_layer for active_layer in [al for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets] for al in als]
-                 if active_layer != self and active_layer.layer == self.layer]
+            same_layer_in_others_layer_toolbars = \
+                [layer_toolbar for layer_toolbar in [lt for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets] for lt in lts]
+                 if layer_toolbar != self and layer_toolbar.layer == self.layer]
 
-            for active_layer in same_layer_in_others_active_layer:
-                with block_signals_to(active_layer.layerOpacity):
-                    active_layer.layerOpacity.setValue(opacity)
+            for layer_toolbar in same_layer_in_others_layer_toolbars:
+                with block_signals_to(layer_toolbar.layerOpacity):
+                    layer_toolbar.layerOpacity.setValue(opacity)
 
             self.opacity = opacity

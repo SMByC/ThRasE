@@ -32,7 +32,7 @@ class RenderWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.setupUi()
-        self.active_layers = None  # instances of active layers
+        self.layer_toolbars = None  # instances of layer toolbars
         self.crs = None
 
     def setupUi(self):
@@ -51,9 +51,9 @@ class RenderWidget(QWidget):
         gridLayout.addWidget(self.canvas)
 
     def refresh(self):
-        if self.active_layers is not None:
-            [active_layer.layer.reload() for active_layer in self.active_layers if active_layer.is_active]
-            [active_layer.layer.triggerRepaint() for active_layer in self.active_layers if active_layer.is_active]
+        if self.layer_toolbars is not None:
+            [layer_toolbar.layer.reload() for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
+            [layer_toolbar.layer.triggerRepaint() for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
         self.canvas.refreshAllLayers()
 
     def set_crs(self, crs):
@@ -70,7 +70,7 @@ class RenderWidget(QWidget):
                 # use the crs set in Qgis
                 self.canvas.setDestinationCrs(iface.mapCanvas().mapSettings().destinationCrs())
             # get all valid activated layers
-            valid_layers = [active_layer.layer for active_layer in self.active_layers if active_layer.is_active]
+            valid_layers = [layer_toolbar.layer for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
             if len(valid_layers) == 0:
                 self.canvas.setLayers([])
                 self.refresh()

@@ -114,7 +114,7 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>Show/hide the build navigation tools</string>
+               <string>Show/Hide the build navigation tools</string>
               </property>
               <property name="text">
                <string>build tools</string>

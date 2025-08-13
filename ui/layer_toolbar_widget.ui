@@ -30,7 +30,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QRadioButton" name="OnOffActiveLayer">
+    <widget class="QRadioButton" name="OnOff_LayerToolbar">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -49,7 +49,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget_ActiveLayer" native="true">
+    <widget class="QWidget" name="layer_toolbar_widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_26">
       <property name="spacing">
        <number>2</number>
@@ -184,9 +184,9 @@
  <resources/>
  <connections>
   <connection>
-   <sender>OnOffActiveLayer</sender>
+   <sender>OnOff_LayerToolbar</sender>
    <signal>clicked(bool)</signal>
-   <receiver>widget_ActiveLayer</receiver>
+   <receiver>layer_toolbar_widget</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">

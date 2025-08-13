@@ -149,15 +149,15 @@ class ThRasE:
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin is closed"""
-        from ThRasE.core.edition import LayerToEdit
+        from ThRasE.core.editing import LayerToEdit
 
         # restore the recode pixel table to original (if was changed) of the thematic raster to edit
         if LayerToEdit.current:
             ThRasE.dialog.restore_recode_table()
 
-        # restore the opacity of all active layers to 100%
-        [al.update_layer_opacity(100) for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets]
-         for al in als if al.opacity < 100]
+        # restore the opacity of all layer toolbars to 100%
+        [lt.update_layer_opacity(100) for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
+         for lt in lts if lt.opacity < 100]
 
         # close the navigation dialog if is open
         if LayerToEdit.current and LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.isVisible():

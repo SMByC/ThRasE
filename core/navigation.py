@@ -224,7 +224,7 @@ class Navigation(object):
         self.current_tile = next((tile for tile in self.tiles if tile.idx == 1), None)
 
         # show all tiles in build navigation canvas dialog
-        from ThRasE.core.edition import LayerToEdit
+        from ThRasE.core.editing import LayerToEdit
         [tile.create(LayerToEdit.current.navigation_dialog.render_widget.canvas, rbs_in="nav_dialog",
                      current_idx_tile=self.current_tile.idx) for tile in self.tiles]
 
@@ -238,7 +238,7 @@ class Navigation(object):
 
         # update the review tiles in the navigation dialog
         self.clear(rbs_in="nav_dialog")
-        from ThRasE.core.edition import LayerToEdit
+        from ThRasE.core.editing import LayerToEdit
         [tile.create(LayerToEdit.current.navigation_dialog.render_widget.canvas, rbs_in="nav_dialog",
                      current_idx_tile=idx_tile) for tile in self.tiles]
 
@@ -257,7 +257,7 @@ class Navigation(object):
 
     def delete(self):
         from ThRasE.thrase import ThRasE
-        from ThRasE.core.edition import LayerToEdit
+        from ThRasE.core.editing import LayerToEdit
 
         self.clear(rbs_in="main_dialog")
         self.clear(rbs_in="nav_dialog")

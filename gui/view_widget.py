@@ -29,7 +29,7 @@ from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster
 from qgis.gui import QgsMapTool, QgsRubberBand
 from qgis.utils import iface
 
-from ThRasE.core.edition import LayerToEdit, edit_layer, check_before_editing
+from ThRasE.core.editing import LayerToEdit, edit_layer, check_before_editing
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
@@ -41,12 +41,12 @@ class ViewWidget(QWidget):
     def setup_view_widget(self):
         self.render_widget.parent_view = self
 
-        # ### init the three active layers ###
-        self.widget_ActiveLayer_1.setup_gui(1, self)
-        self.widget_ActiveLayer_2.setup_gui(2, self)
-        self.widget_ActiveLayer_3.setup_gui(3, self)
-        # save active layers in render widget
-        self.render_widget.active_layers = self.active_layers
+        # ### init the three layer toolbars ###
+        self.layer_toolbar_widget_1.setup_gui(1, self)
+        self.layer_toolbar_widget_2.setup_gui(2, self)
+        self.layer_toolbar_widget_3.setup_gui(3, self)
+        # save layer toolbars in render widget
+        self.render_widget.layer_toolbars = self.layer_toolbars
         # action for synchronize all view extent
         self.render_widget.canvas.extentsChanged.connect(self.canvas_changed)
 
@@ -55,7 +55,7 @@ class ViewWidget(QWidget):
         self.mousePixelValue2Table.clicked.connect(self.unhighlight_cells_in_recode_pixel_table)
 
         # picker pixel tool edit
-        self.widget_EditionTools.setEnabled(False)
+        self.widget_EditingToolbar.setEnabled(False)
         self.PixelsPicker.clicked.connect(self.use_pixels_picker_for_edit)
         # undo/redo
         self.UndoPixel.clicked.connect(lambda: self.go_to_history("undo", "pixel"))
@@ -103,7 +103,7 @@ class ViewWidget(QWidget):
              for idx in range(len(LayerToEdit.current.pixels))]
 
     def update(self):
-        valid_layers = [active_layer.layer for active_layer in self.active_layers if active_layer.is_active]
+        valid_layers = [layer_toolbar.layer for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
         if len(valid_layers) > 0:
             self.enable()
         else:
@@ -217,16 +217,16 @@ class ViewWidget(QWidget):
 
         if from_edit_tool == "line":
             if action == "undo":
-                line_feature, history_edition_entry = LayerToEdit.current.history_lines.undo()
+                line_feature, edit_history_entry = LayerToEdit.current.history_lines.undo()
                 # delete the line
                 rubber_band = next((rb for rb in self.lines_drawn if
                                     rb.asGeometry().equals(line_feature.geometry())), None)
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.LineGeometry)
                     self.lines_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(history_edition_entry)))
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(edit_history_entry)))
             if action == "redo":
-                line_feature, history_edition_entry = LayerToEdit.current.history_lines.redo()
+                line_feature, edit_history_entry = LayerToEdit.current.history_lines.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
                 color = self.lines_color
@@ -235,9 +235,9 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(line_feature.geometry())
                 self.lines_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(history_edition_entry)))
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(edit_history_entry)))
             # make action
-            for point, value in history_edition_entry:
+            for point, value in edit_history_entry:
                 LayerToEdit.current.edit_pixel(point, value)
             # update status of undo/redo/clean buttons
             self.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
@@ -246,16 +246,16 @@ class ViewWidget(QWidget):
 
         if from_edit_tool == "polygon":
             if action == "undo":
-                polygon_feature, history_edition_entry = LayerToEdit.current.history_polygons.undo()
+                polygon_feature, edit_history_entry = LayerToEdit.current.history_polygons.undo()
                 # delete the rubber band
                 rubber_band = next((rb for rb in self.polygons_drawn if
                                     rb.asGeometry().equals(polygon_feature.geometry())), None)
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                     self.polygons_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(history_edition_entry)))
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(edit_history_entry)))
             if action == "redo":
-                polygon_feature, history_edition_entry = LayerToEdit.current.history_polygons.redo()
+                polygon_feature, edit_history_entry = LayerToEdit.current.history_polygons.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
                 color = self.polygons_color
@@ -264,9 +264,9 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(polygon_feature.geometry())
                 self.polygons_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(history_edition_entry)))
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(edit_history_entry)))
             # make action
-            for point, value in history_edition_entry:
+            for point, value in edit_history_entry:
                 LayerToEdit.current.edit_pixel(point, value)
             # update status of undo/redo buttons
             self.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
@@ -275,16 +275,16 @@ class ViewWidget(QWidget):
 
         if from_edit_tool == "freehand":
             if action == "undo":
-                freehand_feature, history_edition_entry = LayerToEdit.current.history_freehand.undo()
+                freehand_feature, edit_history_entry = LayerToEdit.current.history_freehand.undo()
                 # delete the rubber band
                 rubber_band = next((rb for rb in self.freehand_drawn if
                                     rb.asGeometry().equals(freehand_feature.geometry())), None)
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                     self.freehand_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(history_edition_entry)))
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(edit_history_entry)))
             if action == "redo":
-                freehand_feature, history_edition_entry = LayerToEdit.current.history_freehand.redo()
+                freehand_feature, edit_history_entry = LayerToEdit.current.history_freehand.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
                 color = self.freehand_color
@@ -293,9 +293,9 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(freehand_feature.geometry())
                 self.freehand_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(history_edition_entry)))
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(edit_history_entry)))
             # make action
-            for point, value in history_edition_entry:
+            for point, value in edit_history_entry:
                 LayerToEdit.current.edit_pixel(point, value)
             # update status of undo/redo buttons
             self.UndoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_undone())
@@ -306,14 +306,14 @@ class ViewWidget(QWidget):
 
     @staticmethod
     @pyqtSlot()
-    def active_layers_widget(enable=None):
-        # open/close all active layers widgets
+    def layers_toolbar_widget(enable=None):
+        # open/close all layer toolbars widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
             if enable is None:
-                view_widget.widget_ActiveLayers.setHidden(view_widget.widget_ActiveLayers.isVisible())
+                view_widget.layer_toolbar_widgets.setHidden(view_widget.layer_toolbar_widgets.isVisible())
             else:
-                view_widget.widget_ActiveLayers.setVisible(enable)
+                view_widget.layer_toolbar_widgets.setVisible(enable)
 
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
@@ -322,14 +322,14 @@ class ViewWidget(QWidget):
 
     @staticmethod
     @pyqtSlot()
-    def edition_tools_widget(enable=None):
+    def editing_toolbar_widget(enable=None):
         # open/close all edition tool widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
             if enable is None:
-                view_widget.widget_EditionTools.setHidden(view_widget.widget_EditionTools.isVisible())
+                view_widget.widget_EditingToolbar.setHidden(view_widget.widget_EditingToolbar.isVisible())
             else:
-                view_widget.widget_EditionTools.setVisible(enable)
+                view_widget.widget_EditingToolbar.setVisible(enable)
 
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
@@ -440,7 +440,7 @@ class ViewWidgetSingle(ViewWidget, FORM_CLASS):
         QWidget.__init__(self, parent)
         self.id = None
         self.is_active = False
-        self.active_layers = []  # for save the active layers instances
+        self.layer_toolbars = []  # for save the layer toolbars instances
         self.setupUi(self)
 
 
@@ -451,7 +451,7 @@ class ViewWidgetMulti(ViewWidget, FORM_CLASS):
         QWidget.__init__(self, parent)
         self.id = None
         self.is_active = False
-        self.active_layers = []  # for save the active layers instances
+        self.layer_toolbars = []  # for save the layer toolbars instances
         self.setupUi(self)
 
 

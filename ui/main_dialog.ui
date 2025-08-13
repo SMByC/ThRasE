@@ -264,7 +264,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Edition</string>
+            <string>Edit Settings</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -730,7 +730,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all ThRasE configurations and states to a file (.yaml) for later restoration. This includes:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Pixel table with colors and values&lt;/li&gt;&lt;li&gt;Active layers and their opacity settings&lt;/li&gt;&lt;li&gt;View configurations and layout&lt;/li&gt;&lt;li&gt;Navigation settings and current tile position&lt;/li&gt;&lt;li&gt;Current map extent and position&lt;/li&gt;&lt;li&gt;Dialog size and appearance&lt;/li&gt;&lt;li&gt;Editing tool settings&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all ThRasE configurations and states to a file (.yaml) for later restoration. This includes:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Pixel table with colors and values&lt;/li&gt;&lt;li&gt;layer toolbars and their opacity settings&lt;/li&gt;&lt;li&gt;View configurations and layout&lt;/li&gt;&lt;li&gt;Navigation settings and current tile position&lt;/li&gt;&lt;li&gt;Current map extent and position&lt;/li&gt;&lt;li&gt;Dialog size and appearance&lt;/li&gt;&lt;li&gt;Editing tool settings&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Save state</string>
@@ -820,7 +820,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QToolButton" name="QPBtn_ActiveLayers">
+             <widget class="QToolButton" name="QPBtn_LayerToolbars">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -828,14 +828,14 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Show/hide active layer settings per view</string>
+               <string>Show/Hide layer toolbars per view</string>
               </property>
               <property name="text">
                <string>Layers</string>
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>:/plugins/thrase/icons/active_layers_tool.svg</normaloff>:/plugins/thrase/icons/active_layers_tool.svg</iconset>
+                <normaloff>:/plugins/thrase/icons/layer_toolbar.svg</normaloff>:/plugins/thrase/icons/layer_toolbar.svg</iconset>
               </property>
               <property name="checkable">
                <bool>true</bool>
@@ -852,7 +852,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="QCBox_NoActiveLayers">
+             <widget class="QComboBox" name="QCBox_NumLayerToolbars">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -902,19 +902,19 @@ can be displayed and overlaid per view</string>
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="QPBtn_EditionTools">
+             <widget class="QToolButton" name="QPBtn_EditingToolbar">
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Show/hide the edition tools</string>
+               <string>Show/Hide the editing toolbar</string>
               </property>
               <property name="text">
-               <string>Edition</string>
+               <string>Edit</string>
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>:/plugins/thrase/icons/edit_tool.svg</normaloff>:/plugins/thrase/icons/edit_tool.svg</iconset>
+                <normaloff>:/plugins/thrase/icons/editing_toolbar.svg</normaloff>:/plugins/thrase/icons/editing_toolbar.svg</iconset>
               </property>
               <property name="checkable">
                <bool>true</bool>
@@ -1327,9 +1327,9 @@ can be displayed and overlaid per view</string>
    </hints>
   </connection>
   <connection>
-   <sender>QPBtn_ActiveLayers</sender>
+   <sender>QPBtn_LayerToolbars</sender>
    <signal>toggled(bool)</signal>
-   <receiver>QCBox_NoActiveLayers</receiver>
+   <receiver>QCBox_NumLayerToolbars</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">

@@ -38,7 +38,7 @@ from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, Qgs
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
 from qgis.utils import iface
 
-from ThRasE.core.edition import LayerToEdit
+from ThRasE.core.editing import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.autofill_dialog import AutoFill
@@ -160,10 +160,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # for change the class color
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
 
-        # ######### setup active layers and edit tools ######### #
-        self.QPBtn_ActiveLayers.clicked.connect(ViewWidget.active_layers_widget)
-        self.QPBtn_EditionTools.clicked.connect(ViewWidget.edition_tools_widget)
-        self.QCBox_NoActiveLayers.currentIndexChanged[int].connect(self.set_active_layers)
+        # ######### setup layer and editing toolbars ######### #
+        self.QPBtn_LayerToolbars.clicked.connect(ViewWidget.layers_toolbar_widget)
+        self.QPBtn_EditingToolbar.clicked.connect(ViewWidget.editing_toolbar_widget)
+        self.QCBox_NumLayerToolbars.currentIndexChanged[int].connect(self.set_layer_toolbars)
 
         # ######### others ######### #
         self.QPBtn_ReloadRecodeTable.clicked.connect(self.reload_recode_table)
@@ -242,8 +242,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # ######### set the default values ######### #
         if settings_type == "new":
-            # set the default active layers
-            self.set_active_layers(self.QCBox_NoActiveLayers.currentIndex())
+            # set the default layer toolbars
+            self.set_layer_toolbars(self.QCBox_NumLayerToolbars.currentIndex())
 
         # ######### load settings from file ######### #
         if settings_type == "load":
@@ -251,14 +251,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         return True
 
-    def set_active_layers(self, index):
-        num_active_layers = index + 1
+    def set_layer_toolbars(self, index):
+        num_layer_toolbars = index + 1
         for view_widget in ThRasEDialog.view_widgets:
-            for active_layer in view_widget.active_layers:
-                if active_layer.id <= num_active_layers:
-                    active_layer.activate()
+            for layer_toolbar in view_widget.layer_toolbars:
+                if layer_toolbar.id <= num_layer_toolbars:
+                    layer_toolbar.activate()
                 else:
-                    active_layer.deactivate()
+                    layer_toolbar.deactivate()
 
     def get_yaml_config(self, yaml_file_path):
         if yaml_file_path != '' and os.path.isfile(yaml_file_path) and os.access(yaml_file_path, os.R_OK):
@@ -292,6 +292,19 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     return os.path.abspath(_rel_path)
             return _path
 
+        # support loading the old format (<=25.6) TODO: legacy config input
+        # Map old keys to new keys for backward compatibility in a more maintainable way
+        key_renames = {
+            "edition_tools_widget": "editing_toolbar_widget",
+            "active_layers_widget": "layers_toolbar_widget",
+            "number_active_layers": "number_layer_toolbars"
+        }
+        for old_key, new_key in key_renames.items():
+            if old_key in yaml_config:
+                yaml_config[new_key] = yaml_config.pop(old_key)
+        for yaml_view_widget in yaml_config.get("view_widgets", []):
+            if "active_layers" in yaml_view_widget:
+                yaml_view_widget["layer_toolbars"] = yaml_view_widget.pop("active_layers")
 
         # dialog size
         if "main_dialog_size" in yaml_config:
@@ -319,39 +332,39 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         LayerToEdit.current.pixels_backup = yaml_config["recode_pixel_table_backup"]
         self.set_recode_pixel_table()
         self.update_recode_pixel_table()
-        # view_widgets, active layers and edit tool
-        if "active_layers_widget" in yaml_config:
-            self.QPBtn_ActiveLayers.setChecked(yaml_config["active_layers_widget"])
-            ViewWidget.active_layers_widget(enable=yaml_config["active_layers_widget"])
-        if "edition_tools_widget" in yaml_config:
-            self.QPBtn_EditionTools.setChecked(yaml_config["edition_tools_widget"])
-            ViewWidget.edition_tools_widget(enable=yaml_config["edition_tools_widget"])
+        # view_widgets, layer and editing toolbars
+        if "layers_toolbar_widget" in yaml_config:
+            self.QPBtn_LayerToolbars.setChecked(yaml_config["layers_toolbar_widget"])
+            ViewWidget.layers_toolbar_widget(enable=yaml_config["layers_toolbar_widget"])
+        if "editing_toolbar_widget" in yaml_config:
+            self.QPBtn_EditingToolbar.setChecked(yaml_config["editing_toolbar_widget"])
+            ViewWidget.editing_toolbar_widget(enable=yaml_config["editing_toolbar_widget"])
         for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"]):
-            # active layers
-            for active_layer, yaml_active_layer in zip(view_widget.active_layers, yaml_view_widget["active_layers"]):
+            # layer toolbars
+            for layer_toolbar, yaml_layer_toolbar in zip(view_widget.layer_toolbars, yaml_view_widget["layer_toolbars"]):
                 # TODO delete after some time, compatibility old yaml file
-                if "layer" in yaml_active_layer:
-                    yaml_active_layer["layer_path"] = yaml_active_layer["layer"]
-                if "layer_name" not in yaml_active_layer:
-                    if yaml_active_layer["layer_path"]:
-                        yaml_active_layer["layer_name"] = os.path.splitext(os.path.basename(yaml_active_layer["layer_path"]))[0]
+                if "layer" in yaml_layer_toolbar:
+                    yaml_layer_toolbar["layer_path"] = yaml_layer_toolbar["layer"]
+                if "layer_name" not in yaml_layer_toolbar:
+                    if yaml_layer_toolbar["layer_path"]:
+                        yaml_layer_toolbar["layer_name"] = os.path.splitext(os.path.basename(yaml_layer_toolbar["layer_path"]))[0]
                     else:
-                        yaml_active_layer["layer_name"] = ""
+                        yaml_layer_toolbar["layer_name"] = ""
 
-                # check if the file for this active layer if exists and is loaded in Qgis
-                layer_name = yaml_active_layer["layer_name"]
-                file_index = active_layer.QCBox_RenderFile.findText(layer_name, Qt.MatchFixedString)
+                # check if the file for this layer toolbar if exists and is loaded in Qgis
+                layer_name = yaml_layer_toolbar["layer_name"]
+                file_index = layer_toolbar.QCBox_RenderFile.findText(layer_name, Qt.MatchFixedString)
 
                 # select the layer or load it
                 if file_index > 0:
                     # select layer if exists in Qgis
-                    active_layer.QCBox_RenderFile.setCurrentIndex(file_index)
-                    active_layer.set_render_layer(active_layer.QCBox_RenderFile.currentLayer())
-                elif yaml_active_layer["layer_path"]:
-                    layer_path = get_restore_path(yaml_active_layer["layer_path"])
+                    layer_toolbar.QCBox_RenderFile.setCurrentIndex(file_index)
+                    layer_toolbar.set_render_layer(layer_toolbar.QCBox_RenderFile.currentLayer())
+                elif yaml_layer_toolbar["layer_path"]:
+                    layer_path = get_restore_path(yaml_layer_toolbar["layer_path"])
                     if os.path.isfile(layer_path):
-                        layer = load_and_select_filepath_in(active_layer.QCBox_RenderFile, layer_path, layer_name=layer_name)
-                        active_layer.set_render_layer(layer)
+                        layer = load_and_select_filepath_in(layer_toolbar.QCBox_RenderFile, layer_path, layer_name=layer_name)
+                        layer_toolbar.set_render_layer(layer)
                     else:
                         view_name = yaml_view_widget["view_name"] or view_widget.id
                         self.MsgBar.pushMessage(
@@ -362,14 +375,14 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         continue
 
                 # opacity
-                active_layer.layerOpacity.setValue(yaml_active_layer["opacity"])
+                layer_toolbar.layerOpacity.setValue(yaml_layer_toolbar["opacity"])
                 # on/off
-                if not yaml_active_layer["is_active"]:
-                    with block_signals_to(active_layer.OnOffActiveLayer):
-                        active_layer.OnOffActiveLayer.setChecked(False)
-                    active_layer.widget_ActiveLayer.setDisabled(True)
-                    active_layer.disable()
-            # edit tool
+                if not yaml_layer_toolbar["is_active"]:
+                    with block_signals_to(layer_toolbar.OnOff_LayerToolbar):
+                        layer_toolbar.OnOff_LayerToolbar.setChecked(False)
+                    layer_toolbar.layer_toolbar_widget.setDisabled(True)
+                    layer_toolbar.disable()
+            # editing toolbar
             if yaml_view_widget["mouse_pixel_value"]:
                 view_widget.mousePixelValue2Table.setChecked(True)
             if yaml_view_widget["pixels_picker_enabled"]:
@@ -394,18 +407,18 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             if "freehand_color" in yaml_view_widget and yaml_view_widget["freehand_color"]:
                 view_widget.change_freehand_color(QColor(yaml_view_widget["freehand_color"]))
         # set the render layers in the views
-        if "number_active_layers" in yaml_config:
-            # set the number of active layers
-            self.QCBox_NoActiveLayers.setCurrentIndex(int(yaml_config["number_active_layers"]) - 1)
-            self.set_active_layers(int(yaml_config["number_active_layers"]) - 1)
+        if "number_layer_toolbars" in yaml_config:
+            # set the number of layer toolbars
+            self.QCBox_NumLayerToolbars.setCurrentIndex(int(yaml_config["number_layer_toolbars"]) - 1)
+            self.set_layer_toolbars(int(yaml_config["number_layer_toolbars"]) - 1)
         else:
             # for old yaml files:
-            # set the number of active layers based on the active layers in the views configured in the yaml file
-            layer_in_row3 = any(al.id == 3 and al.layer is not None for al in view_widget.active_layers)
-            layer_in_row2 = any(al.id == 2 and al.layer is not None for al in view_widget.active_layers)
-            active_layers_index = 0 if not layer_in_row3 and not layer_in_row2 else 1 if not layer_in_row3 else 2
-            self.QCBox_NoActiveLayers.setCurrentIndex(active_layers_index)
-            self.set_active_layers(active_layers_index)
+            # set the number of layer toolbars based on the views configured in the yaml file
+            layer_in_row3 = any(lt.id == 3 and lt.layer is not None for lt in view_widget.layer_toolbars)
+            layer_in_row2 = any(lt.id == 2 and lt.layer is not None for lt in view_widget.layer_toolbars)
+            layer_toolbars_index = 0 if not layer_in_row3 and not layer_in_row2 else 1 if not layer_in_row3 else 2
+            self.QCBox_NumLayerToolbars.setCurrentIndex(layer_toolbars_index)
+            self.set_layer_toolbars(layer_toolbars_index)
 
         # navigation
         if yaml_config["navigation"]["type"] != "free":
@@ -673,7 +686,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         with block_signals_to(self.QCBox_band_LayerToEdit):
             self.QCBox_band_LayerToEdit.clear()
         LayerToEdit.current = None
-        [view_widget.widget_EditionTools.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
+        [view_widget.widget_EditingToolbar.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
 
     def select_layer_to_edit(self, layer_selected):
         # first clear table
@@ -797,7 +810,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QCBox_LayerToEdit.setToolTip(layer_to_edit.qgs_layer.name())
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
-        [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
+        [view_widget.widget_EditingToolbar.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
         self.QPBtn_ReloadRecodeTable.setEnabled(True)
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
         self.QPBtn_AutoFill.setEnabled(True)
@@ -976,7 +989,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.recodePixelTable.setColumnCount(0)
             # disable some components
             self.NavigationBlockWidget.setEnabled(False)
-            [view_widget.widget_EditionTools.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
+            [view_widget.widget_EditingToolbar.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
             self.Widget_GlobalEditingTools.setEnabled(False)
             return
         # restore backup
@@ -989,9 +1002,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 new_item["s/h"] = old_item["s/h"]
         self.setup_layer_to_edit()
         self.update_recode_pixel_table()
-        # restore the opacity of all active layers
-        [al.update_layer_opacity() for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets]
-         for al in als]
+        # restore the opacity of all layer toolbars
+        [lt.update_layer_opacity() for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
+         for lt in lts]
 
     @pyqtSlot()
     @error_handler
@@ -1003,12 +1016,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_recode_pixel_table()
         # update pixel class visibility
         apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
-        # restore the opacity of all active layers
-        [al.update_layer_opacity() for als in [view_widget.active_layers for view_widget in ThRasEDialog.view_widgets]
-         for al in als]
+        # restore the opacity of all layer toolbars
+        [lt.update_layer_opacity() for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
+         for lt in lts]
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
-        [view_widget.widget_EditionTools.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
+        [view_widget.widget_EditingToolbar.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
         self.Widget_GlobalEditingTools.setEnabled(True)
 
     @pyqtSlot()

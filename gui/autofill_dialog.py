@@ -75,7 +75,7 @@ class AutoFill(QDialog, FORM_CLASS):
 
     def apply_autofill(self):
         from ThRasE.thrase import ThRasE
-        from ThRasE.core.edition import LayerToEdit
+        from ThRasE.core.editing import LayerToEdit
 
         # first close active items opened in the table
         self.AutoFillTable.setCurrentItem(None)

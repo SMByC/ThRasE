@@ -257,19 +257,19 @@ class LayerToEdit(object):
         pixels_to_process = set([item for sublist in pixels_to_process for item in sublist if item])
 
         # edit and return all the pixel and value before edit it, for save in history class
-        history_edition_entry = [self.edit_pixel(pixel_point) for pixel_point in pixels_to_process]
-        history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
+        edit_history_entry = [self.edit_pixel(pixel_point) for pixel_point in pixels_to_process]
+        edit_history_entry = [item for item in edit_history_entry if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Line editing tool: {} pixels edited!".format(len(history_edition_entry)))
+        ThRasE.dialog.editing_status.setText("Line editing tool: {} pixels edited!".format(len(edit_history_entry)))
 
-        if history_edition_entry:
+        if edit_history_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_lines.add((line_feature, history_edition_entry))
+            self.history_lines.add((line_feature, edit_history_entry))
             return True
 
     @wait_process
@@ -290,22 +290,22 @@ class LayerToEdit(object):
 
         # edit and return all the pixel and value before edit it, for save in history class
         polygon_geom = polygon_feature.geometry()
-        history_edition_entry = \
+        edit_history_entry = \
             [self.edit_pixel(QgsPointXY(x, y), inside_geom=polygon_geom)
              for y in np.arange(y_min, y_max + ps_y, ps_y)
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
-        history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
+        edit_history_entry = [item for item in edit_history_entry if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Polygon editing tool: {} pixels edited!".format(len(history_edition_entry)))
+        ThRasE.dialog.editing_status.setText("Polygon editing tool: {} pixels edited!".format(len(edit_history_entry)))
 
-        if history_edition_entry:
+        if edit_history_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_polygons.add((polygon_feature, history_edition_entry))
+            self.history_polygons.add((polygon_feature, edit_history_entry))
             return True
 
     @wait_process
@@ -326,22 +326,22 @@ class LayerToEdit(object):
 
         # edit and return all the pixel and value before edit it, for save in history class
         freehand_geom = freehand_feature.geometry()
-        history_edition_entry = \
+        edit_history_entry = \
             [self.edit_pixel(QgsPointXY(x, y), inside_geom=freehand_geom)
              for y in np.arange(y_min, y_max + ps_y, ps_y)
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
-        history_edition_entry = [item for item in history_edition_entry if item]  # clean None, unedited pixels
+        edit_history_entry = [item for item in edit_history_entry if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Freehand editing tool: {} pixels edited!".format(len(history_edition_entry)))
+        ThRasE.dialog.editing_status.setText("Freehand editing tool: {} pixels edited!".format(len(edit_history_entry)))
 
-        if history_edition_entry:
+        if edit_history_entry:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_freehand.add((freehand_feature, history_edition_entry))
+            self.history_freehand.add((freehand_feature, edit_history_entry))
             return True
 
     @wait_process
@@ -447,26 +447,26 @@ class LayerToEdit(object):
         data["recode_pixel_table_backup"] = self.pixels_backup
         # the colors of thematic raster
         data["symbology"] = self.symbology
-        # view_widgets, active layers and edit tool
-        data["active_layers_widget"] = ThRasE.dialog.QPBtn_ActiveLayers.isChecked()
-        data["number_active_layers"] = ThRasE.dialog.QCBox_NoActiveLayers.currentText()
-        data["edition_tools_widget"] = ThRasE.dialog.QPBtn_EditionTools.isChecked()
+        # view_widgets, layer toolbars and edit tool
+        data["layers_toolbar_widget"] = ThRasE.dialog.QPBtn_LayerToolbars.isChecked()
+        data["number_layer_toolbars"] = ThRasE.dialog.QCBox_NumLayerToolbars.currentText()
+        data["editing_toolbar_widget"] = ThRasE.dialog.QPBtn_EditingToolbar.isChecked()
         # save the extent in the views using a view with a valid layer (not empty)
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
             if view_widget.is_active and not view_widget.render_widget.canvas.extent().isEmpty():
                 data["extent"] = view_widget.render_widget.canvas.extent().toRectF().getCoords()
                 break
-        # view_widgets, active layers and edit tool
+        # view_widgets, layer and editing toolbars
         data["view_widgets"] = []
         for view_widget in ThRasEDialog.view_widgets:
-            active_layers = []
-            for active_layer in view_widget.active_layers:
-                active_layers.append({"is_active": active_layer.OnOffActiveLayer.isChecked(),
-                                      "layer_name": active_layer.layer.name() if active_layer.layer else None,
-                                      "layer_path": setup_path(get_file_path_of_layer(active_layer.layer)),
-                                      "opacity": active_layer.opacity})
-            data["view_widgets"].append({"active_layers": active_layers,
+            layer_toolbars = []
+            for layer_toolbar in view_widget.layer_toolbars:
+                layer_toolbars.append({"is_active": layer_toolbar.OnOff_LayerToolbar.isChecked(),
+                                      "layer_name": layer_toolbar.layer.name() if layer_toolbar.layer else None,
+                                      "layer_path": setup_path(get_file_path_of_layer(layer_toolbar.layer)),
+                                      "opacity": layer_toolbar.opacity})
+            data["view_widgets"].append({"layer_toolbars": layer_toolbars,
                                          "mouse_pixel_value": view_widget.mousePixelValue2Table.isChecked(),
                                          "pixels_picker_enabled": view_widget.PixelsPicker.isChecked(),
                                          "lines_picker_enabled": view_widget.LinesPicker.isChecked(),
@@ -543,11 +543,11 @@ class History:
             return point, curr_value
         if self.edit_type in ["lines", "polygons"]:
             feature = item[0]
-            history_edition_entry = item[1]
-            curr_history_edition_entry = []
-            for point, value in history_edition_entry:
-                curr_history_edition_entry.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
-            return feature, curr_history_edition_entry
+            edit_history_entry = item[1]
+            curr_edit_history_entry = []
+            for point, value in edit_history_entry:
+                curr_edit_history_entry.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
+            return feature, curr_edit_history_entry
 
     def undo(self):
         if self.can_be_undone():
