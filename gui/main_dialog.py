@@ -161,8 +161,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.recodePixelTable.itemClicked.connect(self.table_item_clicked)
 
         # ######### setup layer and editing toolbars ######### #
-        self.QPBtn_LayerToolbars.clicked.connect(ViewWidget.layers_toolbar_widget)
-        self.QPBtn_EditingToolbar.clicked.connect(ViewWidget.editing_toolbar_widget)
+        self.QPBtn_LayerToolbars.clicked.connect(ViewWidget.toggle_layer_toolbars)
+        self.QPBtn_EditingToolbars.clicked.connect(ViewWidget.toggle_editing_toolbars)
         self.QCBox_NumLayerToolbars.currentIndexChanged[int].connect(self.set_layer_toolbars)
 
         # ######### others ######### #
@@ -295,9 +295,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # support loading the old format (<=25.6) TODO: legacy config input
         # Map old keys to new keys for backward compatibility in a more maintainable way
         key_renames = {
-            "edition_tools_widget": "editing_toolbar_widget",
-            "active_layers_widget": "layers_toolbar_widget",
-            "number_active_layers": "number_layer_toolbars"
+            "edition_tools_widget": "editing_toolbars_enabled",
+            "active_layers_widget": "layer_toolbars_enabled",
+            "number_active_layers": "num_layer_toolbars_per_view"
         }
         for old_key, new_key in key_renames.items():
             if old_key in yaml_config:
@@ -333,12 +333,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_recode_pixel_table()
         self.update_recode_pixel_table()
         # view_widgets, layer and editing toolbars
-        if "layers_toolbar_widget" in yaml_config:
-            self.QPBtn_LayerToolbars.setChecked(yaml_config["layers_toolbar_widget"])
-            ViewWidget.layers_toolbar_widget(enable=yaml_config["layers_toolbar_widget"])
-        if "editing_toolbar_widget" in yaml_config:
-            self.QPBtn_EditingToolbar.setChecked(yaml_config["editing_toolbar_widget"])
-            ViewWidget.editing_toolbar_widget(enable=yaml_config["editing_toolbar_widget"])
+        if "layer_toolbars_enabled" in yaml_config:
+            self.QPBtn_LayerToolbars.setChecked(yaml_config["layer_toolbars_enabled"])
+            ViewWidget.toggle_layer_toolbars(enable=yaml_config["layer_toolbars_enabled"])
+        if "editing_toolbars_enabled" in yaml_config:
+            self.QPBtn_EditingToolbars.setChecked(yaml_config["editing_toolbars_enabled"])
+            ViewWidget.toggle_editing_toolbars(enable=yaml_config["editing_toolbars_enabled"])
         for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"]):
             # layer toolbars
             for layer_toolbar, yaml_layer_toolbar in zip(view_widget.layer_toolbars, yaml_view_widget["layer_toolbars"]):
@@ -407,10 +407,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             if "freehand_color" in yaml_view_widget and yaml_view_widget["freehand_color"]:
                 view_widget.change_freehand_color(QColor(yaml_view_widget["freehand_color"]))
         # set the render layers in the views
-        if "number_layer_toolbars" in yaml_config:
+        if "num_layer_toolbars_per_view" in yaml_config:
             # set the number of layer toolbars
-            self.QCBox_NumLayerToolbars.setCurrentIndex(int(yaml_config["number_layer_toolbars"]) - 1)
-            self.set_layer_toolbars(int(yaml_config["number_layer_toolbars"]) - 1)
+            self.QCBox_NumLayerToolbars.setCurrentIndex(int(yaml_config["num_layer_toolbars_per_view"]) - 1)
+            self.set_layer_toolbars(int(yaml_config["num_layer_toolbars_per_view"]) - 1)
         else:
             # for old yaml files:
             # set the number of layer toolbars based on the views configured in the yaml file

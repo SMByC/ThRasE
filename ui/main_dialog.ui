@@ -902,7 +902,7 @@ can be displayed and overlaid per view</string>
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="QPBtn_EditingToolbar">
+             <widget class="QToolButton" name="QPBtn_EditingToolbars">
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>

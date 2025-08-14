@@ -448,9 +448,9 @@ class LayerToEdit(object):
         # the colors of thematic raster
         data["symbology"] = self.symbology
         # view_widgets, layer toolbars and edit tool
-        data["layers_toolbar_widget"] = ThRasE.dialog.QPBtn_LayerToolbars.isChecked()
-        data["number_layer_toolbars"] = ThRasE.dialog.QCBox_NumLayerToolbars.currentText()
-        data["editing_toolbar_widget"] = ThRasE.dialog.QPBtn_EditingToolbar.isChecked()
+        data["layer_toolbars_enabled"] = ThRasE.dialog.QPBtn_LayerToolbars.isChecked()
+        data["num_layer_toolbars_per_view"] = ThRasE.dialog.QCBox_NumLayerToolbars.currentText()
+        data["editing_toolbars_enabled"] = ThRasE.dialog.QPBtn_EditingToolbars.isChecked()
         # save the extent in the views using a view with a valid layer (not empty)
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:

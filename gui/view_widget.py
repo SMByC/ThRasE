@@ -306,7 +306,7 @@ class ViewWidget(QWidget):
 
     @staticmethod
     @pyqtSlot()
-    def layers_toolbar_widget(enable=None):
+    def toggle_layer_toolbars(enable=None):
         # open/close all layer toolbars widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
@@ -322,7 +322,7 @@ class ViewWidget(QWidget):
 
     @staticmethod
     @pyqtSlot()
-    def editing_toolbar_widget(enable=None):
+    def toggle_editing_toolbars(enable=None):
         # open/close all edition tool widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
