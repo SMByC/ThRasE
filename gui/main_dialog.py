@@ -818,11 +818,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         [view_widget.render_widget.set_crs(layer_to_edit.qgs_layer.crs()) for view_widget in ThRasEDialog.view_widgets]
         # create the recode table
         self.set_recode_pixel_table()
+        
+        # Check if recode pixel table is empty and disable/enable editing toolbars
+        [view_widget.widget_EditingToolbar.setEnabled(bool(layer_to_edit.old_new_value)) for view_widget in
+         ThRasEDialog.view_widgets]
+        
         # tooltip
         self.QCBox_LayerToEdit.setToolTip(layer_to_edit.qgs_layer.name())
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
-        [view_widget.widget_EditingToolbar.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
         self.QPBtn_ReloadRecodeTable.setEnabled(True)
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
         self.QPBtn_AutoFill.setEnabled(True)
@@ -870,6 +874,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                                       for idx in range(len(layer_to_edit.pixels))])
         self.QLbl_NumberClassesToEdit.setText("({} {} to edit)".format(number_classes_to_edit,
                                                                        "class" if number_classes_to_edit == 1 else "classes"))
+
+        # Check if recode pixel table is empty and disable/enable editing toolbars
+        [view_widget.widget_EditingToolbar.setEnabled(bool(layer_to_edit.old_new_value)) for view_widget in
+         ThRasEDialog.view_widgets]
 
     @error_handler
     def set_recode_pixel_table(self):
