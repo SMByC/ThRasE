@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -18,9 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
-import functools
-import numpy as np
+import math
 from datetime import datetime
 from copy import deepcopy
 from shutil import move
@@ -94,6 +92,9 @@ class LayerToEdit(object):
         self.symbology = None
         # dictionary for quick search the new value based on the old value in the recode table
         self.old_new_value = {}
+        # setup the pixel tolerance for Pixel comparison
+        pixel_size = min(self.qgs_layer.rasterUnitsPerPixelX(), self.qgs_layer.rasterUnitsPerPixelY())
+        Pixel.tolerance = 1 - math.floor(math.log10(abs(pixel_size))) + (1 if abs(pixel_size) >= 1 else 0)
         # save event editions of the layer using the picker editing tools
         self.pixel_edit_logs = EditLog("pixel")
         self.line_edit_logs = EditLog("line")
@@ -517,7 +518,7 @@ class LayerToEdit(object):
 
 
 class Pixel:
-    tolerance = 0
+    tolerance = None  # tolerance for pixel comparison, based on the pixel size
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
@@ -570,7 +571,7 @@ class PixelLog:
 
 
 class EditLog:
-    """Class for store the items (pixels, lines, polygons, freehand) with the
+    """Class for store the edit events (pixels, lines, polygons, freehand) with the
     purpose to go undo or redo the edit actions by user
 
     For pixels:
