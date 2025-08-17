@@ -21,6 +21,7 @@
 import os
 import functools
 import numpy as np
+from datetime import datetime
 from copy import deepcopy
 from shutil import move
 from osgeo import gdal
@@ -93,11 +94,11 @@ class LayerToEdit(object):
         self.symbology = None
         # dictionary for quick search the new value based on the old value in the recode table
         self.old_new_value = {}
-        # save editions of the layer using the picker edition tools
-        self.history_pixels = History("pixels")
-        self.history_lines = History("lines")
-        self.history_polygons = History("polygons")
-        self.history_freehand = History("polygons")
+        # save event editions of the layer using the picker editing tools
+        self.pixel_edit_logs = EditLog("pixel")
+        self.line_edit_logs = EditLog("line")
+        self.polygon_edit_logs = EditLog("polygon")
+        self.freehand_edit_logs = EditLog("polygon")
         # save config file
         self.config_file = None
 
@@ -155,8 +156,8 @@ class LayerToEdit(object):
 
         apply_symbology(self.qgs_layer, self.band, self.symbology)
 
-    def get_the_old_new_pixel_value(self, point):
-        old_value = self.get_pixel_value_from_pnt(point)
+    def get_old_and_new_pixel_values(self, pixel):
+        old_value = self.get_pixel_value_from_pnt(pixel.qgs_point)
         return old_value, self.old_new_value[old_value] \
             if old_value in self.old_new_value and self.old_new_value[old_value] != old_value else None
 
@@ -182,48 +183,42 @@ class LayerToEdit(object):
             with block_signals_to(ThRasE.dialog.recodePixelTable):
                 [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white) for idx in range(len(self.pixels))]
 
-    def check_point_inside_layer(self, point):
-        # check if the point is within active raster bounds
-        return True if self.bounds[0] <= point.x() <= self.bounds[2] \
-                       and self.bounds[1] <= point.y() <= self.bounds[3] else False
+    def check_point_inside_layer(self, pixel):
+        # check if the pixel is within active raster bounds
+        return True if self.bounds[0] <= pixel.x() <= self.bounds[2] \
+                       and self.bounds[1] <= pixel.y() <= self.bounds[3] else False
 
-    def edit_pixel(self, point, new_value=None, check_bounds=True, inside_geom=None):
-        if check_bounds and not self.check_point_inside_layer(point):
-            return
-
+    def edit_pixel(self, pixel, new_value=None):
         if new_value is None:
-            old_value, new_value = self.get_the_old_new_pixel_value(point)
+            old_value, new_value = self.get_old_and_new_pixel_values(pixel)
             if new_value is None:
                 return
         else:
-            old_value = self.get_pixel_value_from_pnt(point)
+            old_value = self.get_pixel_value_from_pnt(pixel.qgs_point)
 
-        if inside_geom and not inside_geom.contains(QgsGeometry.fromPointXY(point)):
-            return
-
-        px = int((point.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())  # num column position in x
-        py = int((self.bounds[3] - point.y()) / self.qgs_layer.rasterUnitsPerPixelY())  # num row position in y
+        px = int((pixel.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())  # num column position in x
+        py = int((self.bounds[3] - pixel.y()) / self.qgs_layer.rasterUnitsPerPixelY())  # num row position in y
 
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
         if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
-            return point, old_value
+            return PixelLog(pixel, old_value, new_value)
 
     @wait_process
     @edit_layer
-    def edit_from_pixel_picker(self, point):
-        history_item = self.edit_pixel(point)
+    def edit_from_pixel_picker(self, pixel):
+        pixel_log = self.edit_pixel(pixel)
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Pixel editing tool: {} pixel edited!".format(1 if history_item else 0))
+        ThRasE.dialog.editing_status.setText("Pixel editing tool: {} pixel edited!".format(1 if pixel_log else 0))
 
-        if history_item:  # the pixel was edited
+        if pixel_log:  # the pixel was edited
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_pixels.add(history_item)
+            self.pixel_edit_logs.add((pixel_log.pixel, pixel_log.old_value))
             return True
 
     @wait_process
@@ -247,29 +242,29 @@ class LayerToEdit(object):
                 return point
 
         # analysis all pixel if is inside in the segments of box of pair pixel consecutive
-        points = line_feature.geometry().asPolyline()
-        pixels_to_process = \
+        polyline = line_feature.geometry().asPolyline()
+        points_to_process = \
             [[check_pixel_to_edit_in(x, y)
               for y in np.arange(min(p1.y(), p2.y())-ps_y*line_buffer, max(p1.y(), p2.y())+ps_y*line_buffer, ps_y)
               for x in np.arange(min(p1.x(), p2.x())-ps_x*line_buffer, max(p1.x(), p2.x())+ps_x*line_buffer, ps_x)]
-             for p1, p2 in zip(points[:-1], points[1:])]
+             for p1, p2 in zip(polyline[:-1], polyline[1:])]
         # flat the list, clean None and duplicates
-        pixels_to_process = set([item for sublist in pixels_to_process for item in sublist if item])
+        pixels_to_process = [Pixel(point=point) for point in set([item for sublist in points_to_process for item in sublist if item])]
 
         # edit and return all the pixel and value before edit it, for save in history class
-        edit_history_entry = [self.edit_pixel(pixel_point) for pixel_point in pixels_to_process]
-        edit_history_entry = [item for item in edit_history_entry if item]  # clean None, unedited pixels
+        pixel_logs = [self.edit_pixel(pixel) for pixel in pixels_to_process]
+        pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Line editing tool: {} pixels edited!".format(len(edit_history_entry)))
+        ThRasE.dialog.editing_status.setText("Line editing tool: {} pixels edited!".format(len(pixel_logs)))
 
-        if edit_history_entry:
+        if pixel_logs:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_lines.add((line_feature, edit_history_entry))
+            self.line_edit_logs.add((line_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
             return True
 
     @wait_process
@@ -288,24 +283,28 @@ class LayerToEdit(object):
         x_min = self.bounds[0] + int((box.xMinimum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
         x_max = self.bounds[0] + int((box.xMaximum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
 
-        # edit and return all the pixel and value before edit it, for save in history class
-        polygon_geom = polygon_feature.geometry()
-        edit_history_entry = \
-            [self.edit_pixel(QgsPointXY(x, y), inside_geom=polygon_geom)
+        # create geometry engine for optimized contains operations
+        geom_engine = QgsGeometry.createGeometryEngine(polygon_feature.geometry().constGet())
+        geom_engine.prepareGeometry()
+        points = \
+            [QgsGeometry.fromPointXY(QgsPointXY(x, y))
              for y in np.arange(y_min, y_max + ps_y, ps_y)
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
-        edit_history_entry = [item for item in edit_history_entry if item]  # clean None, unedited pixels
+        points_inside_polygon = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
+
+        pixel_logs = [self.edit_pixel(Pixel(point=point)) for point in points_inside_polygon]
+        pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Polygon editing tool: {} pixels edited!".format(len(edit_history_entry)))
+        ThRasE.dialog.editing_status.setText("Polygon editing tool: {} pixels edited!".format(len(pixel_logs)))
 
-        if edit_history_entry:
+        if pixel_logs:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_polygons.add((polygon_feature, edit_history_entry))
+            self.polygon_edit_logs.add((polygon_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
             return True
 
     @wait_process
@@ -324,24 +323,28 @@ class LayerToEdit(object):
         x_min = self.bounds[0] + int((box.xMinimum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
         x_max = self.bounds[0] + int((box.xMaximum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
 
-        # edit and return all the pixel and value before edit it, for save in history class
-        freehand_geom = freehand_feature.geometry()
-        edit_history_entry = \
-            [self.edit_pixel(QgsPointXY(x, y), inside_geom=freehand_geom)
+        # create geometry engine for optimized contains operations
+        geom_engine = QgsGeometry.createGeometryEngine(freehand_feature.geometry().constGet())
+        geom_engine.prepareGeometry()
+        points = \
+            [QgsGeometry.fromPointXY(QgsPointXY(x, y))
              for y in np.arange(y_min, y_max + ps_y, ps_y)
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
-        edit_history_entry = [item for item in edit_history_entry if item]  # clean None, unedited pixels
+        points_inside_freehand = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
+
+        pixel_logs = [self.edit_pixel(Pixel(point=point)) for point in points_inside_freehand]
+        pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Freehand editing tool: {} pixels edited!".format(len(edit_history_entry)))
+        ThRasE.dialog.editing_status.setText("Freehand editing tool: {} pixels edited!".format(len(pixel_logs)))
 
-        if edit_history_entry:
+        if pixel_logs:
             if hasattr(self.qgs_layer, 'setCacheImage'):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
             # save history item
-            self.history_freehand.add((freehand_feature, edit_history_entry))
+            self.freehand_edit_logs.add((freehand_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
             return True
 
     @wait_process
@@ -359,7 +362,7 @@ class LayerToEdit(object):
             x_max = self.bounds[2] - ps_x / 2
 
             # edit all the pixel using recode table
-            [self.edit_pixel(QgsPointXY(x, y), check_bounds=False)
+            [self.edit_pixel(Pixel(x, y))
              for y in np.arange(y_min, y_max + ps_y, ps_y)
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
         else:
@@ -513,15 +516,68 @@ class LayerToEdit(object):
             yaml.dump(data, yaml_file, Dumper=Dumper)
 
 
-class History:
+class Pixel:
+    tolerance = 0
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash((round(self.qgs_point.x(), Pixel.tolerance), round(self.qgs_point.y(), Pixel.tolerance)))
+
+    def __init__(self, x=None, y=None, point=None):
+        if point is None:
+            self.qgs_point = QgsPointXY(x, y)
+        else:
+            self.qgs_point = point
+
+    def x(self):
+        return self.qgs_point.x()
+
+    def y(self):
+        return self.qgs_point.y()
+
+    def geometry(self):
+        return QgsGeometry.fromPointXY(self.qgs_point)
+
+
+class PixelLog:
+    """Class for store the pixel changes"""
+    registry = {}
+
+    def __eq__(self, other):
+        return self.pixel == other.pixel
+
+    def __hash__(self):
+        return self.pixel.__hash__()
+
+    def __init__(self, pixel, old_value, new_value):
+        self.pixel = pixel
+        self.old_value = int(old_value)
+        self.new_value = int(new_value)
+        self.edit_date = datetime.now()
+
+        if self.pixel in PixelLog.registry:
+            # if the pixel is already registered, update it
+            pixel_logged = PixelLog.registry[self.pixel]
+            if pixel_logged.old_value == self.new_value:
+                del PixelLog.registry[self.pixel]
+            else:
+                pixel_logged.new_value = self.new_value
+                pixel_logged.edit_date = self.edit_date
+        else:
+            PixelLog.registry[self.pixel] = self
+
+
+class EditLog:
     """Class for store the items (pixels, lines, polygons, freehand) with the
     purpose to go undo or redo the edit actions by user
 
     For pixels:
-        [(point, value), ...]
+        [(Pixel, value), ...]
 
     for polygons:
-        [(polygon_feature, ((point, value), ...)), ...]
+        [(polygon_feature, ((Pixel, value), ...)), ...]
 
     """
 
@@ -536,32 +592,26 @@ class History:
     def can_be_redone(self):
         return len(self.redos) > 0
 
-    def get_current_status(self, item):
-        if self.edit_type == "pixels":
-            point = item[0]
-            curr_value = LayerToEdit.current.get_pixel_value_from_pnt(point)
-            return point, curr_value
-        if self.edit_type in ["lines", "polygons"]:
-            feature = item[0]
-            edit_history_entry = item[1]
-            curr_edit_history_entry = []
-            for point, value in edit_history_entry:
-                curr_edit_history_entry.append((point, LayerToEdit.current.get_pixel_value_from_pnt(point)))
-            return feature, curr_edit_history_entry
+    def get_current_status(self, edit_log_entry):
+        if self.edit_type == "pixel":
+            pixel, _ = edit_log_entry
+            return pixel, LayerToEdit.current.get_pixel_value_from_pnt(pixel.qgs_point)
+        if self.edit_type in ["line", "polygon"]:
+            feature, pixel_values = edit_log_entry
+            return feature, [(pixel, LayerToEdit.current.get_pixel_value_from_pnt(pixel.qgs_point)) for pixel, _ in pixel_values]
 
     def undo(self):
         if self.can_be_undone():
-            item = self.undos.pop()
-            self.redos.append(self.get_current_status(item))
-            return item
+            edit_log_entry = self.undos.pop()
+            self.redos.append(self.get_current_status(edit_log_entry))
+            return edit_log_entry
 
     def redo(self):
         if self.can_be_redone():
-            item = self.redos.pop()
-            self.undos.append(self.get_current_status(item))
-            return item
+            edit_log_entry = self.redos.pop()
+            self.undos.append(self.get_current_status(edit_log_entry))
+            return edit_log_entry
 
-    def add(self, item):
-        self.undos.append(item)
+    def add(self, edit_log_entry):
+        self.undos.append(edit_log_entry)
         self.redos = []
-

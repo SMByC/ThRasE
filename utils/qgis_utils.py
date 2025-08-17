@@ -29,7 +29,7 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget
-from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, Qgis, QgsStyle, QgsMapLayer, \
+from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, Qgis, QgsStyle, QgsMapLayer, QgsPointXY, \
                       QgsPalettedRasterRenderer, QgsSingleBandPseudoColorRenderer, QgsColorRampShader, QgsRasterShader
 from qgis.utils import iface
 
@@ -253,3 +253,19 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
 
     else:
         return None
+
+
+def get_pixel_centroid(x, y):
+    """Get the centroid of the pixel where the point is located"""
+    from ThRasE.core.editing import LayerToEdit
+    bounds = LayerToEdit.current.bounds
+    pixel_width = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelX()
+    pixel_height = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY()
+
+    col = int((x - bounds[0]) / pixel_width)
+    row = int((bounds[3] - y) / pixel_height)
+
+    centroid_x = bounds[0] + (col + 0.5) * pixel_width
+    centroid_y = bounds[3] - (row + 0.5) * pixel_height
+
+    return QgsPointXY(centroid_x, centroid_y)

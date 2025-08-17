@@ -29,7 +29,8 @@ from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster
 from qgis.gui import QgsMapTool, QgsRubberBand
 from qgis.utils import iface
 
-from ThRasE.core.editing import LayerToEdit, edit_layer, check_before_editing
+from ThRasE.core.editing import Pixel, LayerToEdit, edit_layer, check_before_editing
+from ThRasE.utils.qgis_utils import get_pixel_centroid
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
@@ -50,7 +51,7 @@ class ViewWidget(QWidget):
         # action for synchronize all view extent
         self.render_widget.canvas.extentsChanged.connect(self.canvas_changed)
 
-        # ### init the edition tools ###
+        # ### init the editing tools ###
         # unselect items in recode pixel table
         self.mousePixelValue2Table.clicked.connect(self.unhighlight_cells_in_recode_pixel_table)
 
@@ -204,29 +205,29 @@ class ViewWidget(QWidget):
 
         if from_edit_tool == "pixel":
             if action == "undo":
-                point, value = LayerToEdit.current.history_pixels.undo()
+                pixel, value = LayerToEdit.current.pixel_edit_logs.undo()
                 ThRasE.dialog.editing_status.setText("Undo: 1 pixel restored!")
             if action == "redo":
-                point, value = LayerToEdit.current.history_pixels.redo()
+                pixel, value = LayerToEdit.current.pixel_edit_logs.redo()
                 ThRasE.dialog.editing_status.setText("Redo: 1 pixel remade!")
             # make action
-            LayerToEdit.current.edit_pixel(point, value)
+            LayerToEdit.current.edit_pixel(pixel, value)
             # update status of undo/redo buttons
-            self.UndoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_undone())
-            self.RedoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_redone())
+            self.UndoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_undone())
+            self.RedoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_redone())
 
         if from_edit_tool == "line":
             if action == "undo":
-                line_feature, edit_history_entry = LayerToEdit.current.history_lines.undo()
+                line_feature, pixel_values = LayerToEdit.current.line_edit_logs.undo()
                 # delete the line
                 rubber_band = next((rb for rb in self.lines_drawn if
                                     rb.asGeometry().equals(line_feature.geometry())), None)
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.LineGeometry)
                     self.lines_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(edit_history_entry)))
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixel_values)))
             if action == "redo":
-                line_feature, edit_history_entry = LayerToEdit.current.history_lines.redo()
+                line_feature, pixel_values = LayerToEdit.current.line_edit_logs.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
                 color = self.lines_color
@@ -235,27 +236,27 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(line_feature.geometry())
                 self.lines_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(edit_history_entry)))
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixel_values)))
             # make action
-            for point, value in edit_history_entry:
-                LayerToEdit.current.edit_pixel(point, value)
+            for pixel, value in pixel_values:
+                LayerToEdit.current.edit_pixel(pixel, value)
             # update status of undo/redo/clean buttons
-            self.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
-            self.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
+            self.UndoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_undone())
+            self.RedoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_redone())
             self.ClearAllLines.setEnabled(len(self.lines_drawn) > 0)
 
         if from_edit_tool == "polygon":
             if action == "undo":
-                polygon_feature, edit_history_entry = LayerToEdit.current.history_polygons.undo()
+                polygon_feature, pixel_values = LayerToEdit.current.polygon_edit_logs.undo()
                 # delete the rubber band
                 rubber_band = next((rb for rb in self.polygons_drawn if
                                     rb.asGeometry().equals(polygon_feature.geometry())), None)
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                     self.polygons_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(edit_history_entry)))
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixel_values)))
             if action == "redo":
-                polygon_feature, edit_history_entry = LayerToEdit.current.history_polygons.redo()
+                polygon_feature, pixel_values = LayerToEdit.current.polygon_edit_logs.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
                 color = self.polygons_color
@@ -264,27 +265,27 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(polygon_feature.geometry())
                 self.polygons_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(edit_history_entry)))
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixel_values)))
             # make action
-            for point, value in edit_history_entry:
-                LayerToEdit.current.edit_pixel(point, value)
+            for pixel, value in pixel_values:
+                LayerToEdit.current.edit_pixel(pixel, value)
             # update status of undo/redo buttons
-            self.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
-            self.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
+            self.UndoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_undone())
+            self.RedoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_redone())
             self.ClearAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
 
         if from_edit_tool == "freehand":
             if action == "undo":
-                freehand_feature, edit_history_entry = LayerToEdit.current.history_freehand.undo()
+                freehand_feature, pixel_values = LayerToEdit.current.freehand_edit_logs.undo()
                 # delete the rubber band
                 rubber_band = next((rb for rb in self.freehand_drawn if
                                     rb.asGeometry().equals(freehand_feature.geometry())), None)
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.PolygonGeometry)
                     self.freehand_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(edit_history_entry)))
+                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixel_values)))
             if action == "redo":
-                freehand_feature, edit_history_entry = LayerToEdit.current.history_freehand.redo()
+                freehand_feature, pixel_values = LayerToEdit.current.freehand_edit_logs.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
                 color = self.freehand_color
@@ -293,13 +294,13 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(freehand_feature.geometry())
                 self.freehand_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(edit_history_entry)))
+                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixel_values)))
             # make action
-            for point, value in edit_history_entry:
-                LayerToEdit.current.edit_pixel(point, value)
+            for pixel, value in pixel_values:
+                LayerToEdit.current.edit_pixel(pixel, value)
             # update status of undo/redo buttons
-            self.UndoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_undone())
-            self.RedoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_redone())
+            self.UndoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_undone())
+            self.RedoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_redone())
             self.ClearAllFreehand.setEnabled(len(self.freehand_drawn) > 0)
         # update changes done in the layer and view
         self.render_widget.refresh()
@@ -477,12 +478,13 @@ class PickerPixelTool(QgsMapTool):
         x = event.pos().x()
         y = event.pos().y()
         point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
-        status = LayerToEdit.current.edit_from_pixel_picker(point)
+        pixel = Pixel(point=get_pixel_centroid(x=point.x(), y=point.y()))
+        status = LayerToEdit.current.edit_from_pixel_picker(pixel)
         if status:
             self.view_widget.render_widget.refresh()
             # update status of undo/redo buttons
-            self.view_widget.UndoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_undone())
-            self.view_widget.RedoPixel.setEnabled(LayerToEdit.current.history_pixels.can_be_redone())
+            self.view_widget.UndoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_undone())
+            self.view_widget.RedoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_redone())
 
     def canvasMoveEvent(self, event):
         # set map coordinates in the footer
@@ -572,8 +574,8 @@ class PickerLineTool(QgsMapTool):
         if status:  # at least one pixel was edited
             self.view_widget.render_widget.refresh()
             # update status of undo/redo/clean buttons
-            self.view_widget.UndoLine.setEnabled(LayerToEdit.current.history_lines.can_be_undone())
-            self.view_widget.RedoLine.setEnabled(LayerToEdit.current.history_lines.can_be_redone())
+            self.view_widget.UndoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_undone())
+            self.view_widget.RedoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_redone())
             self.view_widget.ClearAllLines.setEnabled(len(self.view_widget.lines_drawn) > 0)
         else:
             self.line.reset(QgsWkbTypes.LineGeometry)
@@ -689,8 +691,8 @@ class PickerPolygonTool(QgsMapTool):
         if status:  # at least one pixel was edited
             self.view_widget.render_widget.refresh()
             # update status of undo/redo/clean buttons
-            self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_undone())
-            self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.history_polygons.can_be_redone())
+            self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_undone())
+            self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_redone())
             self.view_widget.ClearAllPolygons.setEnabled(len(self.view_widget.polygons_drawn) > 0)
         else:
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
@@ -860,8 +862,8 @@ class PickerFreehandTool(QgsMapTool):
         if status:  # at least one pixel was edited
             self.view_widget.render_widget.refresh()
             # update status of undo/redo/clean buttons
-            self.view_widget.UndoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_undone())
-            self.view_widget.RedoFreehand.setEnabled(LayerToEdit.current.history_freehand.can_be_redone())
+            self.view_widget.UndoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_undone())
+            self.view_widget.RedoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_redone())
             self.view_widget.ClearAllFreehand.setEnabled(len(self.view_widget.freehand_drawn) > 0)
         else:
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
