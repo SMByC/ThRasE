@@ -675,6 +675,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.navigation_dialog.show()
 
     def unset_thematic_layer_to_edit(self):
+        # Save the current layer's registry before unsetting
+        if LayerToEdit.current:
+            LayerToEdit.current.save_registry()
+        
         # disable and clear the thematic file
         self.NavigationBlockWidget.setDisabled(True)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
@@ -800,7 +804,15 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                     self.QCBox_band_LayerToEdit.clear()
                 return
 
+        # Save the current layer's PixelLog registry before switching
+        if LayerToEdit.current and LayerToEdit.current != layer_to_edit:
+            LayerToEdit.current.save_registry()
+        
+        # Set the new current layer
         LayerToEdit.current = layer_to_edit
+        
+        # Restore the new layer's PixelLog registry
+        layer_to_edit.restore_registry()
 
         # set the CRS of all canvas view based on current thematic layer to edit
         [view_widget.render_widget.set_crs(layer_to_edit.qgs_layer.crs()) for view_widget in ThRasEDialog.view_widgets]

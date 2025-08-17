@@ -94,7 +94,10 @@ class LayerToEdit(object):
         self.old_new_value = {}
         # setup the pixel tolerance for Pixel comparison
         pixel_size = min(self.qgs_layer.rasterUnitsPerPixelX(), self.qgs_layer.rasterUnitsPerPixelY())
-        Pixel.tolerance = 1 - math.floor(math.log10(abs(pixel_size))) + (1 if abs(pixel_size) >= 1 else 0)
+        self.pixel_tolerance = 1 - math.floor(math.log10(abs(pixel_size))) + (1 if abs(pixel_size) >= 1 else 0)
+        Pixel.tolerance = self.pixel_tolerance
+        # store the PixelLog registry specific to this layer instance
+        self.pixel_log_registry = {}
         # save event editions of the layer using the picker editing tools
         self.pixel_edit_logs = EditLog("pixel")
         self.line_edit_logs = EditLog("line")
@@ -104,6 +107,13 @@ class LayerToEdit(object):
         self.config_file = None
 
         LayerToEdit.instances[(layer.id(), band)] = self
+        
+    def save_registry(self):
+        self.pixel_log_registry = PixelLog.registry.copy()
+        
+    def restore_registry(self):
+        PixelLog.registry = self.pixel_log_registry.copy()
+        Pixel.tolerance = self.pixel_tolerance
 
     def extent(self):
         return self.qgs_layer.extent()
@@ -518,7 +528,7 @@ class LayerToEdit(object):
 
 
 class Pixel:
-    tolerance = None  # tolerance for pixel comparison, based on the pixel size
+    tolerance = None  # decimal-place tolerance for comparing pixels, derived from pixel size
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
