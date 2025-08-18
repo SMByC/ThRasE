@@ -543,13 +543,11 @@ class Pixel:
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash((round(self.qgs_point.x(), Pixel.tolerance), round(self.qgs_point.y(), Pixel.tolerance)))
+        return self._hash or hash((round(self.qgs_point.x(), Pixel.tolerance), round(self.qgs_point.y(), Pixel.tolerance)))
 
     def __init__(self, x=None, y=None, point=None):
-        if point is None:
-            self.qgs_point = QgsPointXY(x, y)
-        else:
-            self.qgs_point = point
+        self._hash = None
+        self.qgs_point = point if point is not None else QgsPointXY(x, y)
 
     def x(self):
         return self.qgs_point.x()
