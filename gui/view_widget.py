@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -353,7 +353,6 @@ class ViewWidget(QWidget):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPixelTool(self), clean=True)
-            ThRasE.dialog.editing_status.setText("Pixel editing tool: activated!")
 
     @pyqtSlot()
     def use_lines_picker_for_edit(self):
@@ -371,7 +370,6 @@ class ViewWidget(QWidget):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerLineTool(self), clean=True)
-            ThRasE.dialog.editing_status.setText("Line editing tool: activated!")
 
     @pyqtSlot()
     def use_polygons_picker_for_edit(self):
@@ -389,7 +387,6 @@ class ViewWidget(QWidget):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerPolygonTool(self), clean=True)
-            ThRasE.dialog.editing_status.setText("Polygon editing tool: activated!")
 
     @pyqtSlot()
     def use_freehand_picker_for_edit(self):
@@ -407,7 +404,6 @@ class ViewWidget(QWidget):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerFreehandTool(self), clean=True)
-            ThRasE.dialog.editing_status.setText("Freehand editing tool: activated!")
 
     @pyqtSlot()
     def clear_all_lines_drawn(self):

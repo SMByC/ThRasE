@@ -18,7 +18,10 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 import math
+import functools
+import numpy as np
 from datetime import datetime
 from copy import deepcopy
 from shutil import move
@@ -107,10 +110,10 @@ class LayerToEdit(object):
         self.config_file = None
 
         LayerToEdit.instances[(layer.id(), band)] = self
-        
+
     def save_registry(self):
         self.pixel_log_registry = PixelLog.registry.copy()
-        
+
     def restore_registry(self):
         PixelLog.registry = self.pixel_log_registry.copy()
         Pixel.tolerance = self.pixel_tolerance
@@ -221,7 +224,7 @@ class LayerToEdit(object):
         pixel_log = self.edit_pixel(pixel)
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Pixel editing tool: {} pixel edited!".format(1 if pixel_log else 0))
+        ThRasE.dialog.editing_status.setText("{} pixel edited!".format(1 if pixel_log else 0))
 
         if pixel_log:  # the pixel was edited
             if hasattr(self.qgs_layer, 'setCacheImage'):
@@ -267,7 +270,7 @@ class LayerToEdit(object):
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Line editing tool: {} pixels edited!".format(len(pixel_logs)))
+        ThRasE.dialog.editing_status.setText("{} pixels edited!".format(len(pixel_logs)))
 
         if pixel_logs:
             if hasattr(self.qgs_layer, 'setCacheImage'):
@@ -307,7 +310,7 @@ class LayerToEdit(object):
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Polygon editing tool: {} pixels edited!".format(len(pixel_logs)))
+        ThRasE.dialog.editing_status.setText("{} pixels edited!".format(len(pixel_logs)))
 
         if pixel_logs:
             if hasattr(self.qgs_layer, 'setCacheImage'):
@@ -347,7 +350,7 @@ class LayerToEdit(object):
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("Freehand editing tool: {} pixels edited!".format(len(pixel_logs)))
+        ThRasE.dialog.editing_status.setText("{} pixels edited!".format(len(pixel_logs)))
 
         if pixel_logs:
             if hasattr(self.qgs_layer, 'setCacheImage'):
