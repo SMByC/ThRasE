@@ -19,6 +19,7 @@
  ***************************************************************************/
 """
 import os
+import uuid
 from pathlib import Path
 
 from qgis.PyQt import uic
@@ -211,7 +212,8 @@ class ViewWidget(QWidget):
                 pixel, value = LayerToEdit.current.pixel_edit_logs.redo()
                 ThRasE.dialog.editing_status.setText("Redo: 1 pixel remade!")
             # make action
-            LayerToEdit.current.edit_pixel(pixel, value)
+            group_id = uuid.uuid4()
+            LayerToEdit.current.edit_pixel(pixel, value, group_id)
             # update status of undo/redo buttons
             self.UndoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_undone())
             self.RedoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_redone())
@@ -238,8 +240,8 @@ class ViewWidget(QWidget):
                 self.lines_drawn.append(rubber_band)
                 ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixel_values)))
             # make action
-            for pixel, value in pixel_values:
-                LayerToEdit.current.edit_pixel(pixel, value)
+            group_id = uuid.uuid4()
+            [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
             # update status of undo/redo/clean buttons
             self.UndoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_undone())
             self.RedoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_redone())
@@ -267,8 +269,8 @@ class ViewWidget(QWidget):
                 self.polygons_drawn.append(rubber_band)
                 ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixel_values)))
             # make action
-            for pixel, value in pixel_values:
-                LayerToEdit.current.edit_pixel(pixel, value)
+            group_id = uuid.uuid4()
+            [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
             # update status of undo/redo buttons
             self.UndoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_undone())
             self.RedoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_redone())
@@ -296,8 +298,8 @@ class ViewWidget(QWidget):
                 self.freehand_drawn.append(rubber_band)
                 ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixel_values)))
             # make action
-            for pixel, value in pixel_values:
-                LayerToEdit.current.edit_pixel(pixel, value)
+            group_id = uuid.uuid4()
+            [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
             # update status of undo/redo buttons
             self.UndoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_undone())
             self.RedoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_redone())

@@ -20,6 +20,7 @@
 """
 
 import os
+import uuid
 from copy import deepcopy
 from pathlib import Path
 import numpy as np
@@ -289,7 +290,8 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         del da_intercepted
 
         # edit all pixels inside the classes selected based on the recode pixel table
-        edit_status = [LayerToEdit.current.edit_pixel(pixel) for pixel in pixels_to_process]
+        group_id = uuid.uuid4()
+        edit_status = [LayerToEdit.current.edit_pixel(pixel, group_id=group_id) for pixel in pixels_to_process]
         if edit_status:
             if hasattr(LayerToEdit.current.qgs_layer, 'setCacheImage'):
                 LayerToEdit.current.qgs_layer.setCacheImage(None)

@@ -21,6 +21,7 @@
 import os
 import math
 import functools
+import uuid
 import numpy as np
 from datetime import datetime
 from copy import deepcopy
@@ -202,7 +203,7 @@ class LayerToEdit(object):
         return True if self.bounds[0] <= pixel.x() <= self.bounds[2] \
                        and self.bounds[1] <= pixel.y() <= self.bounds[3] else False
 
-    def edit_pixel(self, pixel, new_value=None):
+    def edit_pixel(self, pixel, new_value=None, group_id=None):
         if new_value is None:
             old_value, new_value = self.get_old_and_new_pixel_values(pixel)
             if new_value is None:
@@ -216,12 +217,13 @@ class LayerToEdit(object):
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
         if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
-            return PixelLog(pixel, old_value, new_value)
+            return PixelLog(pixel, old_value, new_value, group_id)
 
     @wait_process
     @edit_layer
     def edit_from_pixel_picker(self, pixel):
-        pixel_log = self.edit_pixel(pixel)
+        group_id = uuid.uuid4()
+        pixel_log = self.edit_pixel(pixel, group_id=group_id)
 
         from ThRasE.thrase import ThRasE
         ThRasE.dialog.editing_status.setText("{} pixel edited!".format(1 if pixel_log else 0))
@@ -266,7 +268,8 @@ class LayerToEdit(object):
         pixels_to_process = [Pixel(point=point) for point in set([item for sublist in points_to_process for item in sublist if item])]
 
         # edit and return all the pixel and value before edit it, for save in history class
-        pixel_logs = [self.edit_pixel(pixel) for pixel in pixels_to_process]
+        group_id = uuid.uuid4()
+        pixel_logs = [self.edit_pixel(pixel, group_id=group_id) for pixel in pixels_to_process]
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
@@ -306,7 +309,8 @@ class LayerToEdit(object):
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
         points_inside_polygon = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
 
-        pixel_logs = [self.edit_pixel(Pixel(point=point)) for point in points_inside_polygon]
+        group_id = uuid.uuid4()
+        pixel_logs = [self.edit_pixel(Pixel(point=point), group_id=group_id) for point in points_inside_polygon]
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
@@ -346,7 +350,8 @@ class LayerToEdit(object):
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
         points_inside_freehand = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
 
-        pixel_logs = [self.edit_pixel(Pixel(point=point)) for point in points_inside_freehand]
+        group_id = uuid.uuid4()
+        pixel_logs = [self.edit_pixel(Pixel(point=point), group_id=group_id) for point in points_inside_freehand]
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
@@ -376,7 +381,8 @@ class LayerToEdit(object):
             x_max = self.bounds[2] - ps_x / 2
 
             # edit all the pixel using recode table
-            [self.edit_pixel(Pixel(x, y))
+            group_id = uuid.uuid4()
+            [self.edit_pixel(Pixel(x, y), group_id=group_id)
              for y in np.arange(y_min, y_max + ps_y, ps_y)
              for x in np.arange(x_min, x_max + ps_x, ps_x)]
         else:
@@ -565,11 +571,12 @@ class PixelLog:
     def __hash__(self):
         return self.pixel.__hash__()
 
-    def __init__(self, pixel, old_value, new_value):
+    def __init__(self, pixel, old_value, new_value, group_id):
         self.pixel = pixel
         self.old_value = int(old_value)
         self.new_value = int(new_value)
         self.edit_date = datetime.now()
+        self.group_id = group_id
 
         if self.pixel in PixelLog.registry:
             # if the pixel is already registered, update it
@@ -579,6 +586,7 @@ class PixelLog:
             else:
                 pixel_logged.new_value = self.new_value
                 pixel_logged.edit_date = self.edit_date
+                pixel_logged.group_id = self.group_id
         else:
             PixelLog.registry[self.pixel] = self
 
