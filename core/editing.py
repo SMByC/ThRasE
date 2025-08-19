@@ -96,12 +96,14 @@ class LayerToEdit(object):
         self.symbology = None
         # dictionary for quick search the new value based on the old value in the recode table
         self.old_new_value = {}
-        # setup the pixel tolerance for Pixel comparison
+        # setup decimal-place tolerance for comparing pixels, derived from pixel size
         pixel_size = min(self.qgs_layer.rasterUnitsPerPixelX(), self.qgs_layer.rasterUnitsPerPixelY())
         self.pixel_tolerance = 1 - math.floor(math.log10(abs(pixel_size))) + (1 if abs(pixel_size) >= 1 else 0)
         Pixel.tolerance = self.pixel_tolerance
         # store the PixelLog registry specific to this layer instance
         self.pixel_log_registry = {}
+        # store the PixelLog store specific to this layer instance
+        self.pixel_log_store = {}
         # save event editions of the layer using the picker editing tools
         self.pixel_edit_logs = EditLog("pixel")
         self.line_edit_logs = EditLog("line")
@@ -111,13 +113,6 @@ class LayerToEdit(object):
         self.config_file = None
 
         LayerToEdit.instances[(layer.id(), band)] = self
-
-    def save_registry(self):
-        self.pixel_log_registry = PixelLog.registry.copy()
-
-    def restore_registry(self):
-        PixelLog.registry = self.pixel_log_registry.copy()
-        Pixel.tolerance = self.pixel_tolerance
 
     def extent(self):
         return self.qgs_layer.extent()
@@ -537,13 +532,12 @@ class LayerToEdit(object):
 
 
 class Pixel:
-    tolerance = None  # decimal-place tolerance for comparing pixels, derived from pixel size
-
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return self._hash or hash((round(self.qgs_point.x(), Pixel.tolerance), round(self.qgs_point.y(), Pixel.tolerance)))
+        return self._hash or hash((round(self.qgs_point.x(), LayerToEdit.current.pixel_tolerance),
+                                   round(self.qgs_point.y(), LayerToEdit.current.pixel_tolerance)))
 
     def __init__(self, x=None, y=None, point=None):
         self._hash = None
@@ -561,7 +555,6 @@ class Pixel:
 
 class PixelLog:
     """Class for store the pixel changes"""
-    registry = {}
 
     def __eq__(self, other):
         return self.pixel == other.pixel
@@ -576,17 +569,17 @@ class PixelLog:
         self.edit_date = datetime.now()
         self.group_id = group_id
 
-        if self.pixel in PixelLog.registry:
+        if self.pixel in LayerToEdit.current.pixel_log_store:
             # if the pixel is already registered, update it
-            pixel_logged = PixelLog.registry[self.pixel]
+            pixel_logged = LayerToEdit.current.pixel_log_store[self.pixel]
             if pixel_logged.old_value == self.new_value:
-                del PixelLog.registry[self.pixel]
+                del LayerToEdit.current.pixel_log_store[self.pixel]
             else:
                 pixel_logged.new_value = self.new_value
                 pixel_logged.edit_date = self.edit_date
                 pixel_logged.group_id = self.group_id
         else:
-            PixelLog.registry[self.pixel] = self
+            LayerToEdit.current.pixel_log_store[self.pixel] = self
 
 
 class EditLog:
