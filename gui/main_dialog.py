@@ -212,6 +212,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.ccd_plugin.widget.setWindowFlag(Qt.WindowCloseButtonHint, False)
             self.ccd_plugin.widget.setFloating(False)
             self.ccd_plugin.widget.setTitleBarWidget(QWidget(None))
+            self.ccd_plugin.widget.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
+            self.ccd_plugin.widget.setContentsMargins(0, 0, 0, 0)
+            self.ccd_plugin.widget.setStyleSheet("QDockWidget { border: 0px; }")
+            self.ccd_plugin.widget.MainWidget.layout().setContentsMargins(0, 0, 0, 3)
+            self.ccd_plugin.widget.MainWidget.layout().setSpacing(3)
+
             # init tmp dir for all process and intermediate files
             from ThRasE.thrase import ThRasE
             if ThRasE.tmp_dir is None:
