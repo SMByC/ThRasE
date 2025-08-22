@@ -206,20 +206,23 @@ class ViewWidget(QWidget):
 
         if from_edit_tool == "pixel":
             if action == "undo":
+                self.UndoPixel.setEnabled(False)
                 pixel, value = LayerToEdit.current.pixel_edit_logs.undo()
                 ThRasE.dialog.editing_status.setText("Undo: 1 pixel restored!")
             if action == "redo":
+                self.RedoPixel.setEnabled(False)
                 pixel, value = LayerToEdit.current.pixel_edit_logs.redo()
                 ThRasE.dialog.editing_status.setText("Redo: 1 pixel remade!")
             # make action
             group_id = uuid.uuid4()
             LayerToEdit.current.edit_pixel(pixel, value, group_id)
             # update status of undo/redo buttons
-            self.UndoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_undone())
-            self.RedoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_redone())
+            QTimer.singleShot(30, lambda: self.UndoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_undone()))
+            QTimer.singleShot(30, lambda: self.RedoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_redone()))
 
         if from_edit_tool == "line":
             if action == "undo":
+                self.UndoLine.setEnabled(False)
                 line_feature, pixel_values = LayerToEdit.current.line_edit_logs.undo()
                 # delete the line
                 rubber_band = next((rb for rb in self.lines_drawn if
@@ -229,6 +232,7 @@ class ViewWidget(QWidget):
                     self.lines_drawn.remove(rubber_band)
                 ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixel_values)))
             if action == "redo":
+                self.RedoLine.setEnabled(False)
                 line_feature, pixel_values = LayerToEdit.current.line_edit_logs.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
@@ -243,12 +247,13 @@ class ViewWidget(QWidget):
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
             # update status of undo/redo/clean buttons
-            self.UndoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_undone())
-            self.RedoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_redone())
+            QTimer.singleShot(50, lambda: self.UndoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_undone()))
+            QTimer.singleShot(50, lambda: self.RedoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_redone()))
             self.ClearAllLines.setEnabled(len(self.lines_drawn) > 0)
 
         if from_edit_tool == "polygon":
             if action == "undo":
+                self.UndoPolygon.setEnabled(False)
                 polygon_feature, pixel_values = LayerToEdit.current.polygon_edit_logs.undo()
                 # delete the rubber band
                 rubber_band = next((rb for rb in self.polygons_drawn if
@@ -258,6 +263,7 @@ class ViewWidget(QWidget):
                     self.polygons_drawn.remove(rubber_band)
                 ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixel_values)))
             if action == "redo":
+                self.RedoPolygon.setEnabled(False)
                 polygon_feature, pixel_values = LayerToEdit.current.polygon_edit_logs.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
@@ -272,12 +278,13 @@ class ViewWidget(QWidget):
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
             # update status of undo/redo buttons
-            self.UndoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_undone())
-            self.RedoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_redone())
+            QTimer.singleShot(50, lambda: self.UndoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_undone()))
+            QTimer.singleShot(50, lambda: self.RedoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_redone()))
             self.ClearAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
 
         if from_edit_tool == "freehand":
             if action == "undo":
+                self.UndoFreehand.setEnabled(False)
                 freehand_feature, pixel_values = LayerToEdit.current.freehand_edit_logs.undo()
                 # delete the rubber band
                 rubber_band = next((rb for rb in self.freehand_drawn if
@@ -287,6 +294,7 @@ class ViewWidget(QWidget):
                     self.freehand_drawn.remove(rubber_band)
                 ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixel_values)))
             if action == "redo":
+                self.RedoFreehand.setEnabled(False)
                 freehand_feature, pixel_values = LayerToEdit.current.freehand_edit_logs.redo()
                 # create, repaint and save the rubber band to redo
                 rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
@@ -301,8 +309,8 @@ class ViewWidget(QWidget):
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
             # update status of undo/redo buttons
-            self.UndoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_undone())
-            self.RedoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_redone())
+            QTimer.singleShot(50, lambda: self.UndoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_undone()))
+            QTimer.singleShot(50, lambda: self.RedoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_redone()))
             self.ClearAllFreehand.setEnabled(len(self.freehand_drawn) > 0)
         # update changes done in the layer and view
         self.render_widget.refresh()
