@@ -28,7 +28,7 @@ from qgis.core import QgsRectangle, QgsPointXY, QgsGeometry, QgsWkbTypes
 from ThRasE.utils.system_utils import wait_process
 
 
-class Tile(object):
+class NavigationTile(object):
     def __init__(self, idx, xmin, xmax, ymin, ymax, tile_color):
         self.idx = idx  # index order number of the tile, start in 1
         self.rbs_in_main_dialog = []  # rubber bands instances in the main dialog
@@ -113,7 +113,7 @@ class Navigation(object):
         self.nav_type = None
         self.current_tile = None
         self.tiles = []
-        self.tiles_color = QColor("#ff00ff")
+        self.tiles_color = QColor("#00aaff")
 
     @wait_process
     def build_navigation(self, tile_size, nav_mode, polygons=None, points=None):
@@ -168,7 +168,7 @@ class Navigation(object):
                         if ymin < rectangle_nav.yMinimum():
                             ymin = rectangle_nav.yMinimum()
 
-                        tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
+                        tile = NavigationTile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
                         if tile.is_valid(self):
                             self.tiles.append(tile)
                             idx_tile += 1
@@ -192,7 +192,7 @@ class Navigation(object):
                         if ymin < rectangle_nav.yMinimum():
                             ymin = rectangle_nav.yMinimum()
 
-                        tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
+                        tile = NavigationTile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
                         if tile.is_valid(self):
                             self.tiles.append(tile)
                             idx_tile += 1
@@ -215,7 +215,7 @@ class Navigation(object):
                 xmax = point.x() + tile_size/2
                 ymin = point.y() - tile_size/2
                 ymax = point.y() + tile_size/2
-                tile = Tile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
+                tile = NavigationTile(idx_tile, xmin, xmax, ymin, ymax, self.tiles_color)
                 if tile.is_valid(self):
                     self.tiles.append(tile)
                     idx_tile += 1

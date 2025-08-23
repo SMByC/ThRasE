@@ -741,7 +741,7 @@
             <string notr="true">
 QToolButton
 {
-   background-color:#ff00ff;
+   background-color:#00aaff;
 }</string>
            </property>
            <property name="text">
