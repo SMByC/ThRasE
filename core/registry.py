@@ -19,8 +19,20 @@
  ***************************************************************************/
 """
 
+import os
+
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsRectangle, QgsGeometry, QgsWkbTypes
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import (
+    QgsRectangle,
+    QgsGeometry,
+    QgsWkbTypes,
+    QgsFields,
+    QgsField,
+    QgsFeature,
+    QgsVectorFileWriter,
+    QgsCoordinateTransformContext,
+)
 from qgis.gui import QgsRubberBand
 
 from ThRasE.utils.system_utils import wait_process
@@ -284,3 +296,79 @@ class Registry:
         if ThRasE.dialog.registry_widget.autoCenter.isChecked():
             self.current_group.center()
         self.current_group.show()
+
+    def export_pixel_logs(self, output_file_path):
+        """Export all registered pixel edits to a vector file.
+
+        Each feature is a square polygon representing the pixel modified and
+        includes attributes: old_value, new_value, edit_date (ISO string).
+
+        Returns (success: bool, message: str, written_count: int).
+        """
+        pixel_logs = list(self.layer_to_edit.pixel_log_store.values())
+
+        # ensure output extension and driver
+        path, ext = os.path.splitext(output_file_path)
+        ext = ext.lower()
+        if ext not in [".gpkg", ".shp", ".geojson"]:
+            # default to GeoPackage if no/unknown extension
+            output_file_path = path + ".gpkg"
+            ext = ".gpkg"
+        driver_by_ext = {
+            ".gpkg": "GPKG",
+            ".shp": "ESRI Shapefile",
+            ".geojson": "GeoJSON",
+        }
+        driver_name = driver_by_ext.get(ext, "GPKG")
+
+        # fields
+        fields = QgsFields()
+        fields.append(QgsField("old_value", QVariant.Int))
+        fields.append(QgsField("new_value", QVariant.Int))
+        fields.append(QgsField("edit_date", QVariant.String))
+
+        # pixel footprint size
+        psx = self.layer_to_edit.qgs_layer.rasterUnitsPerPixelX()
+        psy = self.layer_to_edit.qgs_layer.rasterUnitsPerPixelY()
+
+        # build features
+        features = []
+        for pl in pixel_logs:
+            cx = pl.pixel.x()
+            cy = pl.pixel.y()
+            xmin = cx - psx / 2
+            xmax = cx + psx / 2
+            ymin = cy - psy / 2
+            ymax = cy + psy / 2
+            rect = QgsRectangle(xmin, ymin, xmax, ymax)
+            geom = QgsGeometry.fromRect(rect)
+
+            feat = QgsFeature(fields)
+            feat.setGeometry(geom)
+            feat.setAttributes([int(pl.old_value), int(pl.new_value), pl.edit_date.isoformat()])
+            features.append(feat)
+
+        if not features:
+            return False, "No features to export", 0
+
+        # write to disk
+        crs = self.layer_to_edit.qgs_layer.crs()
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.driverName = driver_name
+        options.fileEncoding = "UTF-8"
+        options.layerName = os.path.splitext(os.path.basename(output_file_path))[0]
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
+        transform_context = QgsCoordinateTransformContext()
+
+        writer = QgsVectorFileWriter.create(output_file_path, fields, QgsWkbTypes.Polygon, crs, transform_context, options)
+        if writer.hasError() != QgsVectorFileWriter.NoError:
+            return False, f"Error creating file: {writer.errorMessage()}", 0
+
+        try:
+            [writer.addFeature(feat) for feat in features]
+        except Exception as e:
+            return False, f"Error writing features: {str(e)}", 0
+        finally:
+            del writer
+
+        return True, "Pixel registry exported", len(features)

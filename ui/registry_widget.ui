@@ -184,6 +184,9 @@ QToolButton
      <property name="cursor">
       <cursorShape>PointingHandCursor</cursorShape>
      </property>
+     <property name="toolTip">
+      <string>Export all registered modified pixels to a vector file</string>
+     </property>
      <property name="text">
       <string/>
      </property>

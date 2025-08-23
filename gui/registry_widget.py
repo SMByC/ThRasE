@@ -22,8 +22,9 @@
 import os
 from pathlib import Path
 
+from qgis.core import Qgis
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget, QColorDialog
+from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog
 from qgis.PyQt.QtCore import pyqtSlot
 
 from ThRasE.core.editing import LayerToEdit
@@ -61,6 +62,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
         # show all button
         self.showAll.setChecked(False)
         self.showAll.toggled.connect(self.toggle_show_all)
+        # export registry
+        self.QPBtn_ExportRegistry.clicked.connect(self.export_registry)
+        self.QPBtn_ExportRegistry.setEnabled(False)
 
     def update_and_go_to_last(self):
         # only process when the widget is visible
@@ -73,6 +77,8 @@ class RegistryWidget(QWidget, FORM_CLASS):
         total_groups = len(LayerToEdit.current.registry.groups)
         # compute total modified pixels once to avoid repeated sums during slider moves
         self.total_pixels_modified = sum(len(g.tiles) for g in LayerToEdit.current.registry.groups)
+        # toggle registry export button
+        self.QPBtn_ExportRegistry.setEnabled(self.total_pixels_modified > 0)
         if not status or total_groups == 0:
             self.set_empty_state()
             return
@@ -114,6 +120,8 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.showAll.setChecked(False)
         if LayerToEdit.current:
             LayerToEdit.current.registry.clear_show_all()
+        # disable export when empty
+        self.QPBtn_ExportRegistry.setEnabled(False)
 
     @pyqtSlot()
     def change_tiles_color(self, color=None):
@@ -193,3 +201,30 @@ class RegistryWidget(QWidget, FORM_CLASS):
             LayerToEdit.current.registry.show_all()
         else:
             LayerToEdit.current.registry.clear_show_all()
+
+    @pyqtSlot()
+    def export_registry(self):
+        from ThRasE.thrase import ThRasE
+        if not LayerToEdit.current:
+            return
+        # suggest filename near the raster
+        layer_path = LayerToEdit.current.file_path or ""
+        base_dir = os.path.dirname(layer_path) if os.path.isdir(os.path.dirname(layer_path)) else os.path.expanduser("~")
+        base_name = os.path.splitext(os.path.basename(layer_path))[0] or "thrase"
+        suggested = os.path.join(base_dir, f"{base_name}_pixel_registry.gpkg")
+
+        output_file, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export pixel registry to vector file"),
+            suggested,
+            self.tr("GeoPackage (*.gpkg);;Shapefile (*.shp);;GeoJSON (*.geojson);;All files (*.*)"),
+        )
+        if not output_file:
+            return
+
+        ok, msg, count = LayerToEdit.current.registry.export_pixel_logs(output_file)
+
+        if ok:
+            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Exported {count} edited pixels to {output_file}"), level=Qgis.Success, duration=5)
+        else:
+            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Export failed: {msg}"), level=Qgis.Critical, duration=10)
