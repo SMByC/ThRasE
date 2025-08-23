@@ -216,6 +216,8 @@ class ViewWidget(QWidget):
             # make action
             group_id = uuid.uuid4()
             LayerToEdit.current.edit_pixel(pixel, value, group_id)
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             # update status of undo/redo buttons
             QTimer.singleShot(30, lambda: self.UndoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_undone()))
             QTimer.singleShot(30, lambda: self.RedoPixel.setEnabled(LayerToEdit.current.pixel_edit_logs.can_be_redone()))
@@ -246,6 +248,8 @@ class ViewWidget(QWidget):
             # make action
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             # update status of undo/redo/clean buttons
             QTimer.singleShot(50, lambda: self.UndoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_undone()))
             QTimer.singleShot(50, lambda: self.RedoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_redone()))
@@ -277,6 +281,8 @@ class ViewWidget(QWidget):
             # make action
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             # update status of undo/redo buttons
             QTimer.singleShot(50, lambda: self.UndoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_undone()))
             QTimer.singleShot(50, lambda: self.RedoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_redone()))
@@ -308,6 +314,8 @@ class ViewWidget(QWidget):
             # make action
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixel_values]
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             # update status of undo/redo buttons
             QTimer.singleShot(50, lambda: self.UndoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_undone()))
             QTimer.singleShot(50, lambda: self.RedoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_redone()))

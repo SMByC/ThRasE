@@ -39,6 +39,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
 from ThRasE.gui.navigation_dialog import NavigationDialog
+from ThRasE.core.registry import Registry
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import get_file_path_of_layer, apply_symbology
 from ThRasE.utils.system_utils import wait_process, block_signals_to
@@ -58,6 +59,9 @@ def check_before_editing():
 def edit_layer(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        from ThRasE.thrase import ThRasE
+        # pre-edit cleanup: clear rubber bands of show all pixel changes for performance reasons
+        ThRasE.dialog.registry_widget.showAll.setChecked(False)
         # set layer for edit
         if not LayerToEdit.current.data_provider.isEditable():
             if not LayerToEdit.current.data_provider.setEditable(True):
@@ -99,11 +103,10 @@ class LayerToEdit(object):
         # setup decimal-place tolerance for comparing pixels, derived from pixel size
         pixel_size = min(self.qgs_layer.rasterUnitsPerPixelX(), self.qgs_layer.rasterUnitsPerPixelY())
         self.pixel_tolerance = 1 - math.floor(math.log10(abs(pixel_size))) + (1 if abs(pixel_size) >= 1 else 0)
-        Pixel.tolerance = self.pixel_tolerance
-        # store the PixelLog registry specific to this layer instance
-        self.pixel_log_registry = {}
         # store the PixelLog store specific to this layer instance
         self.pixel_log_store = {}
+        # registry of edits
+        self.registry = Registry(self)
         # save event editions of the layer using the picker editing tools
         self.pixel_edit_logs = EditLog("pixel")
         self.line_edit_logs = EditLog("line")
@@ -230,6 +233,8 @@ class LayerToEdit(object):
             self.qgs_layer.triggerRepaint()
             # save history item
             self.pixel_edit_logs.add((pixel_log.pixel, pixel_log.old_value))
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             return True
 
     @wait_process
@@ -277,6 +282,8 @@ class LayerToEdit(object):
             self.qgs_layer.triggerRepaint()
             # save history item
             self.line_edit_logs.add((line_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             return True
 
     @wait_process
@@ -318,6 +325,8 @@ class LayerToEdit(object):
             self.qgs_layer.triggerRepaint()
             # save history item
             self.polygon_edit_logs.add((polygon_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             return True
 
     @wait_process
@@ -359,6 +368,8 @@ class LayerToEdit(object):
             self.qgs_layer.triggerRepaint()
             # save history item
             self.freehand_edit_logs.add((freehand_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
+            # refresh registry widget
+            ThRasE.dialog.registry_widget.update_and_go_to_last()
             return True
 
     @wait_process

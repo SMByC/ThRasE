@@ -101,6 +101,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         # open in Google Earth
         self.QPBtn_OpenInGE.clicked.connect(self.open_current_tile_navigation_in_google_engine)
 
+        # ######### registry widget ######### #
+        self.registry_widget.setVisible(False)
+
         # ######### build the view render widgets windows ######### #
         self.init_dialog = InitDialog()
         if self.init_dialog.exec_():
@@ -126,7 +129,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # configure the views layout
         views_layout = QGridLayout()
-        views_layout.setSpacing(0)
+        views_layout.setSpacing(3)
         views_layout.setMargin(0)
         view_widgets = []
         for row in range(self.grid_rows):
@@ -139,7 +142,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 view_widgets.append(new_view_widget)
 
         # add to change analysis dialog
-        self.widget_view_windows.setLayout(views_layout)
+        self.view_windows_widget.setLayout(views_layout)
         # save instances
         ThRasEDialog.view_widgets = view_widgets
         # setup view widget
@@ -963,8 +966,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.recodePixelTable.setColumnWidth(0, 45)
             # adjust the editor block based on table content
             table_width = self.recodePixelTable.horizontalHeader().length() + 40
-            self.EditionBlock.setMaximumWidth(table_width)
-            self.EditionBlock.setMinimumWidth(table_width)
+            self.EditSettingsBlock.setMaximumWidth(table_width)
+            self.EditSettingsBlock.setMinimumWidth(table_width)
 
     @pyqtSlot(QTableWidgetItem)
     def table_item_clicked(self, table_item):

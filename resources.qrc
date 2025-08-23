@@ -32,5 +32,8 @@
         <file>icons/clear.svg</file>
         <file>icons/navigation.svg</file>
         <file>icons/ccd_plugin.svg</file>
+        <file>icons/registry.svg</file>
+        <file>icons/export.svg</file>
+        <file>icons/center.svg</file>
     </qresource>
 </RCC>

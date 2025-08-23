@@ -52,7 +52,7 @@
     <widget class="QWidget" name="layer_toolbar_widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_26">
       <property name="spacing">
-       <number>2</number>
+       <number>3</number>
       </property>
       <property name="leftMargin">
        <number>0</number>

@@ -1,0 +1,195 @@
+# -*- coding: utf-8 -*-
+"""
+/***************************************************************************
+ ThRasE
+ 
+ A powerful and fast thematic raster editor Qgis plugin
+                              -------------------
+        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        email                : xavier.corredor.llano@gmail.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+"""
+
+import os
+from pathlib import Path
+
+from qgis.PyQt import uic
+from qgis.PyQt.QtWidgets import QWidget, QColorDialog
+from qgis.PyQt.QtCore import pyqtSlot
+
+from ThRasE.core.editing import LayerToEdit
+from ThRasE.utils.system_utils import block_signals_to, wait_process
+
+# plugin path
+plugin_folder = os.path.dirname(os.path.dirname(__file__))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'registry_widget.ui'))
+
+
+class RegistryWidget(QWidget, FORM_CLASS):
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+        self.setupUi(self)
+        self.setup_gui()
+        self.total_pixels_modified = 0  # cache total pixels modified
+
+    def setup_gui(self):
+        # initial state
+        self.PixelLogGroups_Slider.setEnabled(False)
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup 0 of 0")
+        self.PixelLogGroup_DetailText.setText("")
+        self.previousTileGroup.setEnabled(False)
+        self.nextTileGroup.setEnabled(False)
+        # hooks
+        self.TilesColor.clicked.connect(self.change_tiles_color)
+        self.previousTileGroup.clicked.connect(self.go_previous_group)
+        self.nextTileGroup.clicked.connect(self.go_next_group)
+        self.PixelLogGroups_Slider.valueChanged.connect(self.slider_changed)
+        # show tiles while dragging the slider, not only on release
+        self.PixelLogGroups_Slider.sliderMoved.connect(self.change_group_from_slider)
+        self.PixelLogGroups_Slider.sliderReleased.connect(lambda: self.change_group_from_slider(self.PixelLogGroups_Slider.value()))
+        # auto center button
+        self.autoCenter.clicked.connect(self.center_to_current_group)
+        # show all button
+        self.showAll.setChecked(False)
+        self.showAll.toggled.connect(self.toggle_show_all)
+
+    def update_and_go_to_last(self):
+        # only process when the widget is visible
+        if not self.isVisible():
+            return
+        if not LayerToEdit.current:
+            self.set_empty_state()
+            return
+        status = LayerToEdit.current.registry.update()
+        total_groups = len(LayerToEdit.current.registry.groups)
+        # compute total modified pixels once to avoid repeated sums during slider moves
+        self.total_pixels_modified = sum(len(g.tiles) for g in LayerToEdit.current.registry.groups)
+        if not status or total_groups == 0:
+            self.set_empty_state()
+            return
+        # enable and set controls
+        with block_signals_to(self.PixelLogGroups_Slider):
+            self.PixelLogGroups_Slider.setEnabled(True)
+            self.PixelLogGroups_Slider.setMaximum(total_groups)
+            # go to latest registry tile group
+            self.PixelLogGroups_Slider.setValue(total_groups)
+            self.change_group_from_slider(total_groups)
+        # enable show-all toggle and repaint if needed
+        self.showAll.setEnabled(True)
+        if self.showAll.isChecked():
+            LayerToEdit.current.registry.show_all()
+
+    @wait_process
+    def showEvent(self, event):
+        # when the widget becomes visible
+        super().showEvent(event)
+        self.update_and_go_to_last()
+
+    def hideEvent(self, event):
+        # when the widget is hidden, clear tiles from canvases
+        if LayerToEdit.current:
+            LayerToEdit.current.registry.clear()
+            LayerToEdit.current.registry.clear_show_all()
+        super().hideEvent(event)
+
+    def set_empty_state(self):
+        self.PixelLogGroups_Slider.setEnabled(False)
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup 0 of 0")
+        self.PixelLogGroup_DetailText.setText("No modified pixels found in the registry")
+        self.previousTileGroup.setEnabled(False)
+        self.nextTileGroup.setEnabled(False)
+        # reset cached counters
+        self.total_pixels_modified = 0
+        # show-all toggler reset
+        self.showAll.setEnabled(False)
+        self.showAll.setChecked(False)
+        if LayerToEdit.current:
+            LayerToEdit.current.registry.clear_show_all()
+
+    @pyqtSlot()
+    def change_tiles_color(self, color=None):
+        if not LayerToEdit.current:
+            return
+        if not color:
+            color = QColorDialog.getColor(LayerToEdit.current.registry.tiles_color, self)
+        if color.isValid():
+            # update the registry color
+            LayerToEdit.current.registry.tiles_color = color
+            self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            
+            # update color for all existing groups without rebuilding
+            for group in LayerToEdit.current.registry.groups:
+                group.tile_color = color
+            
+            # update color of current group without rebuilding geometry
+            LayerToEdit.current.registry.update_current_group_color()
+            # recolor show-all overlays if visible
+            LayerToEdit.current.registry.update_show_all_color()
+
+    @pyqtSlot(int)
+    def change_group_from_slider(self, idx_group):
+        if not LayerToEdit.current or not LayerToEdit.current.registry.groups:
+            self.set_empty_state()
+            return
+        registry = LayerToEdit.current.registry
+        registry.set_current_group(idx_group)
+        total_groups = len(registry.groups)
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup {} of {}".format(idx_group, total_groups))
+        group = registry.current_group
+        self.PixelLogGroup_DetailText.setText(
+            "{} pixels modified at {} | Total: {} pixels modified".format(
+                len(group.tiles), group.edit_date.strftime('%I:%M %p, %d-%m-%Y'), self.total_pixels_modified)
+        )
+        # enable/disable nav buttons
+        self.previousTileGroup.setEnabled(idx_group > 1)
+        self.nextTileGroup.setEnabled(idx_group < total_groups)
+
+    def slider_changed(self, idx_group):
+        total_groups = len(LayerToEdit.current.registry.groups) if LayerToEdit.current else 0
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup {} of {}".format(idx_group, total_groups))
+
+    @pyqtSlot()
+    def go_previous_group(self):
+        if not LayerToEdit.current or not LayerToEdit.current.registry.current_group:
+            return
+        idx_group = LayerToEdit.current.registry.current_group.idx
+        if idx_group <= 1:
+            return
+        self.PixelLogGroups_Slider.setValue(idx_group - 1)
+        self.change_group_from_slider(idx_group - 1)
+
+    @pyqtSlot()
+    def go_next_group(self):
+        if not LayerToEdit.current or not LayerToEdit.current.registry.current_group:
+            return
+        total = len(LayerToEdit.current.registry.groups)
+        idx_group = LayerToEdit.current.registry.current_group.idx
+        if idx_group >= total:
+            return
+        self.PixelLogGroups_Slider.setValue(idx_group + 1)
+        self.change_group_from_slider(idx_group + 1)
+
+    @pyqtSlot()
+    def center_to_current_group(self):
+        if not LayerToEdit.current or not LayerToEdit.current.registry.current_group:
+            return
+        if self.autoCenter.isChecked():
+            LayerToEdit.current.registry.current_group.center()
+
+    @pyqtSlot(bool)
+    def toggle_show_all(self, checked):
+        if not LayerToEdit.current:
+            return
+        if checked:
+            LayerToEdit.current.registry.show_all()
+        else:
+            LayerToEdit.current.registry.clear_show_all()

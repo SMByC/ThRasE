@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1117</width>
+    <width>1138</width>
     <height>561</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ThRasE - Thematic Raster Editor</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_5">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <property name="leftMargin">
     <number>3</number>
    </property>
@@ -26,12 +29,28 @@
    <property name="bottomMargin">
     <number>3</number>
    </property>
-   <property name="spacing">
-    <number>0</number>
-   </property>
-   <item row="1" column="0">
+   <item>
+    <widget class="QgsMessageBar" name="MsgBar">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QWidget" name="DialogContent" native="true">
-     <layout class="QGridLayout" name="gridLayout_3">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <property name="spacing">
+       <number>3</number>
+      </property>
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -44,72 +63,12 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <property name="spacing">
-       <number>3</number>
-      </property>
-      <item row="2" column="0">
-       <widget class="QSplitter" name="splitter">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="childrenCollapsible">
-         <bool>false</bool>
-        </property>
-        <widget class="QWidget" name="widget_view_windows" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>1</verstretch>
-          </sizepolicy>
+      <item>
+       <widget class="QWidget" name="MainBlock" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="spacing">
+          <number>3</number>
          </property>
-        </widget>
-        <widget class="QWidget" name="widget_ccd" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-         </layout>
-        </widget>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QWidget" name="footer_widget" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-         </font>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -123,45 +82,493 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLabel" name="editing_status">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string/>
+          <widget class="QWidget" name="HeaderMainBlock" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="spacing">
+             <number>3</number>
+            </property>
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMaximumSize</enum>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>3</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QWidget" name="LayersEditSettingsBlockWidget" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_13">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QToolButton" name="QPBtn_LayerToolbars">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
+                 <property name="toolTip">
+                  <string>Show/Hide layer toolbars per view</string>
+                 </property>
+                 <property name="text">
+                  <string>Layers</string>
+                 </property>
+                 <property name="icon">
+                  <iconset>
+                   <normaloff>:/plugins/thrase/icons/layer_toolbar.svg</normaloff>:/plugins/thrase/icons/layer_toolbar.svg</iconset>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                 <property name="toolButtonStyle">
+                  <enum>Qt::ToolButtonTextBesideIcon</enum>
+                 </property>
+                 <property name="autoRaise">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="QCBox_NumLayerToolbars">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>40</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>Set the maximum number of layer rows that
+can be displayed and overlaid per view</string>
+                 </property>
+                 <property name="currentText">
+                  <string>1</string>
+                 </property>
+                 <property name="maxCount">
+                  <number>3</number>
+                 </property>
+                 <property name="sizeAdjustPolicy">
+                  <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+                 </property>
+                 <property name="frame">
+                  <bool>false</bool>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>3</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="QPBtn_EditingToolbars">
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
+                 <property name="toolTip">
+                  <string>Show/Hide the editing toolbar</string>
+                 </property>
+                 <property name="text">
+                  <string>Edit</string>
+                 </property>
+                 <property name="icon">
+                  <iconset>
+                   <normaloff>:/plugins/thrase/icons/editing_toolbar.svg</normaloff>:/plugins/thrase/icons/editing_toolbar.svg</iconset>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                 <property name="toolButtonStyle">
+                  <enum>Qt::ToolButtonTextBesideIcon</enum>
+                 </property>
+                 <property name="autoRaise">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_14">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>3</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="Line" name="line_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_13">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>3</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="QPBtn_EnableNavigation">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>Enable tile-based navigation tool for better map inspection</string>
+              </property>
+              <property name="text">
+               <string>Navigation</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/navigation.svg</normaloff>:/plugins/thrase/icons/navigation.svg</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="NavigationBlockWidget" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <horstretch>2</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QWidget" name="NavigationBlockWidgetControls" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_10">
+                  <property name="spacing">
+                   <number>3</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QWidget" name="widget_7" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_4">
+                     <property name="spacing">
+                      <number>3</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QToolButton" name="previousTile">
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
+                       <property name="toolTip">
+                        <string>Go to the previous navigation tile</string>
+                       </property>
+                       <property name="text">
+                        <string>Previous</string>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/previous.svg</normaloff>:/plugins/thrase/icons/previous.svg</iconset>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonTextBesideIcon</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_11" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_6">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item>
+                         <widget class="QToolButton" name="currentTile">
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>Go to current navigation tile</string>
+                          </property>
+                          <property name="text">
+                           <string>Current Tile</string>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>:/plugins/thrase/icons/current_tile.svg</normaloff>:/plugins/thrase/icons/current_tile.svg</iconset>
+                          </property>
+                          <property name="toolButtonStyle">
+                           <enum>Qt::ToolButtonTextBesideIcon</enum>
+                          </property>
+                          <property name="autoRaise">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QToolButton" name="currentTileKeepVisible">
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>Keep the current navigation tile always visible</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>:/plugins/thrase/icons/visible.svg</normaloff>:/plugins/thrase/icons/visible.svg</iconset>
+                          </property>
+                          <property name="checkable">
+                           <bool>true</bool>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                          <property name="toolButtonStyle">
+                           <enum>Qt::ToolButtonIconOnly</enum>
+                          </property>
+                          <property name="autoRaise">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QToolButton" name="nextTile">
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
+                       <property name="toolTip">
+                        <string>Go to the next navigation tile</string>
+                       </property>
+                       <property name="layoutDirection">
+                        <enum>Qt::RightToLeft</enum>
+                       </property>
+                       <property name="text">
+                        <string>Next</string>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/next.svg</normaloff>:/plugins/thrase/icons/next.svg</iconset>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonTextBesideIcon</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QProgressBar" name="QPBar_TilesNavigation">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="value">
+                     <number>24</number>
+                    </property>
+                    <property name="format">
+                     <string>%v/%m</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="QPBtn_OpenInGE">
+                    <property name="toolTip">
+                     <string>Open the current navigation tile in Google Earth (KML)</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="icon">
+                     <iconset>
+                      <normaloff>:/plugins/thrase/icons/open_in_ge.svg</normaloff>:/plugins/thrase/icons/open_in_ge.svg</iconset>
+                    </property>
+                    <property name="autoRaise">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="QPBtn_OpenNavigationDialog">
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
+                 <property name="toolTip">
+                  <string>Generate and explore tile-based navigation for the current thematic layer</string>
+                 </property>
+                 <property name="text">
+                  <string>Build | Explore</string>
+                 </property>
+                 <property name="icon">
+                  <iconset>
+                   <normaloff>:/plugins/thrase/icons/run_nav.svg</normaloff>:/plugins/thrase/icons/run_nav.svg</iconset>
+                 </property>
+                 <property name="toolButtonStyle">
+                  <enum>Qt::ToolButtonTextBesideIcon</enum>
+                 </property>
+                 <property name="autoRaise">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget_2" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="map_coordinate">
-           <property name="font">
-            <font>
-             <family>Monospace</family>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
-           <property name="toolTip">
-            <string>Current map coordinate</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget_5" native="true">
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <widget class="QWidget" name="widget_8" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
             <property name="spacing">
              <number>0</number>
             </property>
@@ -178,38 +585,270 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLabel" name="label_4">
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
+             <widget class="QSplitter" name="splitter">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <property name="text">
-               <string/>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
               </property>
+              <property name="childrenCollapsible">
+               <bool>false</bool>
+              </property>
+              <widget class="QWidget" name="view_windows_widget" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>1</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+              <widget class="QWidget" name="ccd_plugin_widget" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_3">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+               </layout>
+              </widget>
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="QPBtn_CCDPlugin">
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Open the Continuous Change Detection widget</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/ccd_plugin.svg</normaloff>:/plugins/thrase/icons/ccd_plugin.svg</iconset>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonIconOnly</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
+             <widget class="QWidget" name="bottom_widgets" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_2">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="RegistryWidget" name="registry_widget" native="true"/>
+               </item>
+               <item>
+                <widget class="Line" name="line_5">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="footer_widget" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_8">
+                  <property name="spacing">
+                   <number>3</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>3</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QWidget" name="widget_10" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_15">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QToolButton" name="QPBtn_Registry">
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
+                       <property name="toolTip">
+                        <string>Open the registry tool to review pixel changes over time
+
+Note: For better performance, close the registry during active editing</string>
+                       </property>
+                       <property name="text">
+                        <string>Registry</string>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/registry.svg</normaloff>:/plugins/thrase/icons/registry.svg</iconset>
+                       </property>
+                       <property name="checkable">
+                        <bool>true</bool>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonTextBesideIcon</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="editing_status">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_9">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="map_coordinate">
+                    <property name="font">
+                     <font>
+                      <family>Monospace</family>
+                      <pointsize>8</pointsize>
+                     </font>
+                    </property>
+                    <property name="toolTip">
+                     <string>Current map coordinate</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="widget_9" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_14">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <spacer name="horizontalSpacer_8">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_4">
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QToolButton" name="QPBtn_CCDPlugin">
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
+                       <property name="toolTip">
+                        <string>Open the Continuous Change Detection widget</string>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normaloff>:/plugins/thrase/icons/ccd_plugin.svg</normaloff>:/plugins/thrase/icons/ccd_plugin.svg</iconset>
+                       </property>
+                       <property name="checkable">
+                        <bool>true</bool>
+                       </property>
+                       <property name="toolButtonStyle">
+                        <enum>Qt::ToolButtonIconOnly</enum>
+                       </property>
+                       <property name="autoRaise">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
            </layout>
@@ -218,15 +857,15 @@
         </layout>
        </widget>
       </item>
-      <item row="0" column="1" rowspan="4">
+      <item>
        <widget class="Line" name="line">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
        </widget>
       </item>
-      <item row="0" column="2" rowspan="4">
-       <widget class="QWidget" name="EditionBlock" native="true">
+      <item>
+       <widget class="QWidget" name="EditSettingsBlock" native="true">
         <property name="minimumSize">
          <size>
           <width>340</width>
@@ -773,508 +1412,7 @@
         </layout>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QWidget" name="HeaderMainBlock" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <property name="spacing">
-          <number>3</number>
-         </property>
-         <property name="sizeConstraint">
-          <enum>QLayout::SetMaximumSize</enum>
-         </property>
-         <property name="leftMargin">
-          <number>3</number>
-         </property>
-         <property name="topMargin">
-          <number>3</number>
-         </property>
-         <property name="rightMargin">
-          <number>3</number>
-         </property>
-         <property name="bottomMargin">
-          <number>3</number>
-         </property>
-         <item>
-          <widget class="QWidget" name="LayersEditionBlockWidget" native="true">
-           <layout class="QHBoxLayout" name="horizontalLayout_13">
-            <property name="spacing">
-             <number>3</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QToolButton" name="QPBtn_LayerToolbars">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Show/Hide layer toolbars per view</string>
-              </property>
-              <property name="text">
-               <string>Layers</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/layer_toolbar.svg</normaloff>:/plugins/thrase/icons/layer_toolbar.svg</iconset>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="QCBox_NumLayerToolbars">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>40</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>Set the maximum number of layer rows that
-can be displayed and overlaid per view</string>
-              </property>
-              <property name="currentText">
-               <string>1</string>
-              </property>
-              <property name="maxCount">
-               <number>3</number>
-              </property>
-              <property name="sizeAdjustPolicy">
-               <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
-              <item>
-               <property name="text">
-                <string>1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>2</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>3</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="QPBtn_EditingToolbars">
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Show/Hide the editing toolbar</string>
-              </property>
-              <property name="text">
-               <string>Edit</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/editing_toolbar.svg</normaloff>:/plugins/thrase/icons/editing_toolbar.svg</iconset>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_14">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>3</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="Line" name="line_4">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_13">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>3</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QToolButton" name="QPBtn_EnableNavigation">
-           <property name="cursor">
-            <cursorShape>PointingHandCursor</cursorShape>
-           </property>
-           <property name="toolTip">
-            <string>Enable tile-based navigation tool for better map inspection</string>
-           </property>
-           <property name="text">
-            <string>Navigation</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>:/plugins/thrase/icons/navigation.svg</normaloff>:/plugins/thrase/icons/navigation.svg</iconset>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-           <property name="autoRaise">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="NavigationBlockWidget" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-             <horstretch>2</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <property name="spacing">
-             <number>3</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QWidget" name="NavigationBlockWidgetControls" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_10">
-               <property name="spacing">
-                <number>3</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QWidget" name="widget_7" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_4">
-                  <property name="spacing">
-                   <number>3</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QToolButton" name="previousTile">
-                    <property name="cursor">
-                     <cursorShape>PointingHandCursor</cursorShape>
-                    </property>
-                    <property name="toolTip">
-                     <string>Go to the previous navigation tile</string>
-                    </property>
-                    <property name="text">
-                     <string>Previous</string>
-                    </property>
-                    <property name="icon">
-                     <iconset>
-                      <normaloff>:/plugins/thrase/icons/previous.svg</normaloff>:/plugins/thrase/icons/previous.svg</iconset>
-                    </property>
-                    <property name="toolButtonStyle">
-                     <enum>Qt::ToolButtonTextBesideIcon</enum>
-                    </property>
-                    <property name="autoRaise">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="widget_11" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_6">
-                     <property name="spacing">
-                      <number>0</number>
-                     </property>
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QToolButton" name="currentTile">
-                       <property name="cursor">
-                        <cursorShape>PointingHandCursor</cursorShape>
-                       </property>
-                       <property name="toolTip">
-                        <string>Go to current navigation tile</string>
-                       </property>
-                       <property name="text">
-                        <string>Current Tile</string>
-                       </property>
-                       <property name="icon">
-                        <iconset>
-                         <normaloff>:/plugins/thrase/icons/current_tile.svg</normaloff>:/plugins/thrase/icons/current_tile.svg</iconset>
-                       </property>
-                       <property name="toolButtonStyle">
-                        <enum>Qt::ToolButtonTextBesideIcon</enum>
-                       </property>
-                       <property name="autoRaise">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QToolButton" name="currentTileKeepVisible">
-                       <property name="cursor">
-                        <cursorShape>PointingHandCursor</cursorShape>
-                       </property>
-                       <property name="toolTip">
-                        <string>Keep the current navigation tile always visible</string>
-                       </property>
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="icon">
-                        <iconset>
-                         <normaloff>:/plugins/thrase/icons/visible.svg</normaloff>:/plugins/thrase/icons/visible.svg</iconset>
-                       </property>
-                       <property name="checkable">
-                        <bool>true</bool>
-                       </property>
-                       <property name="checked">
-                        <bool>true</bool>
-                       </property>
-                       <property name="toolButtonStyle">
-                        <enum>Qt::ToolButtonIconOnly</enum>
-                       </property>
-                       <property name="autoRaise">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QToolButton" name="nextTile">
-                    <property name="cursor">
-                     <cursorShape>PointingHandCursor</cursorShape>
-                    </property>
-                    <property name="toolTip">
-                     <string>Go to the next navigation tile</string>
-                    </property>
-                    <property name="layoutDirection">
-                     <enum>Qt::RightToLeft</enum>
-                    </property>
-                    <property name="text">
-                     <string>Next</string>
-                    </property>
-                    <property name="icon">
-                     <iconset>
-                      <normaloff>:/plugins/thrase/icons/next.svg</normaloff>:/plugins/thrase/icons/next.svg</iconset>
-                    </property>
-                    <property name="toolButtonStyle">
-                     <enum>Qt::ToolButtonTextBesideIcon</enum>
-                    </property>
-                    <property name="autoRaise">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QProgressBar" name="QPBar_TilesNavigation">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="value">
-                  <number>24</number>
-                 </property>
-                 <property name="format">
-                  <string>%v/%m</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QToolButton" name="QPBtn_OpenInGE">
-                 <property name="toolTip">
-                  <string>Open the current navigation tile in Google Earth (KML)</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>:/plugins/thrase/icons/open_in_ge.svg</normaloff>:/plugins/thrase/icons/open_in_ge.svg</iconset>
-                 </property>
-                 <property name="autoRaise">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="QPBtn_OpenNavigationDialog">
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Generate and explore tile-based navigation for the current thematic layer</string>
-              </property>
-              <property name="text">
-               <string>Build | Explore</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/plugins/thrase/icons/run_nav.svg</normaloff>:/plugins/thrase/icons/run_nav.svg</iconset>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget_2" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
      </layout>
-    </widget>
-   </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="QgsMessageBar" name="MsgBar">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
-     </property>
     </widget>
    </item>
   </layout>
@@ -1289,6 +1427,12 @@ can be displayed and overlaid per view</string>
    <class>QgsMessageBar</class>
    <extends>QFrame</extends>
    <header>qgis.gui</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RegistryWidget</class>
+   <extends>QWidget</extends>
+   <header>ThRasE.gui.registry_widget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -1339,6 +1483,22 @@ can be displayed and overlaid per view</string>
     <hint type="destinationlabel">
      <x>86</x>
      <y>33</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>QPBtn_Registry</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>registry_widget</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>33</x>
+     <y>542</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>26</x>
+     <y>520</y>
     </hint>
    </hints>
   </connection>
