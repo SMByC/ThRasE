@@ -178,9 +178,9 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # ######### CCD plugin widget ######### #
         # set up the Continuous Change Detection widget
-        self.QPBtn_CCDPlugin.clicked.connect(self.ccd_plugin_widget)
-        self.widget_ccd.setVisible(False)
-        ccd_widget_layout = self.widget_ccd.layout()
+        self.QPBtn_CCDPlugin.clicked.connect(self.toggle_ccd_plugin_widget)
+        self.ccd_plugin_widget.setVisible(False)
+        ccd_widget_layout = self.ccd_plugin_widget.layout()
         try:
             from qgis.PyQt.QtWebKit import QWebSettings  # check first if the QtWebKit is available in QT5 client
             from CCD_Plugin.CCD_Plugin import CCD_Plugin
@@ -223,7 +223,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             if ThRasE.tmp_dir is None:
                 ThRasE.tmp_dir = tempfile.mkdtemp()
             self.ccd_plugin.tmp_dir = ThRasE.tmp_dir
-            # replace the "widget_ccd" UI widget inside ThRasE window with the ccd widget
+            # replace the "ccd_plugin_widget" UI widget inside ThRasE window with the ccd widget
             ccd_widget_layout.insertWidget(0, self.ccd_plugin.widget)
             ccd_widget_layout.update()
 
@@ -506,7 +506,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 restore_plugin_config(self.ccd_plugin.id, yaml_config["ccd_plugin_config"])
                 # set the CCD plugin widget visible
                 self.QPBtn_CCDPlugin.setChecked(yaml_config["ccd_plugin_opened"])
-                self.widget_ccd.setVisible(yaml_config["ccd_plugin_opened"])
+                self.ccd_plugin_widget.setVisible(yaml_config["ccd_plugin_opened"])
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -1100,11 +1100,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                                 level=Qgis.Success, duration=5)
 
     @pyqtSlot(bool)
-    def ccd_plugin_widget(self, checked):
+    def toggle_ccd_plugin_widget(self, checked):
         if checked:
-            self.widget_ccd.setVisible(True)
+            self.ccd_plugin_widget.setVisible(True)
         else:
-            self.widget_ccd.setVisible(False)
+            self.ccd_plugin_widget.setVisible(False)
             if self.ccd_plugin_available:
                 from CCD_Plugin.gui.CCD_Plugin_dockwidget import PickerCoordsOnMap
                 PickerCoordsOnMap.delete_markers()
@@ -1116,4 +1116,3 @@ class InitDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
-
