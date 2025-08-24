@@ -41,7 +41,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.setupUi(self)
         self.setup_gui()
         self.total_pixels_modified = 0  # cache total pixels modified
-        self.last_slider_position = 1
+        self.last_slider_position = 0
 
     def setup_gui(self):
         # initial state

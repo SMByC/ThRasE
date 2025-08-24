@@ -22,6 +22,7 @@
 import os
 import configparser
 import tempfile
+from datetime import datetime
 from copy import deepcopy
 from pathlib import Path
 import yaml
@@ -500,6 +501,65 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 if view_widget.is_active and not view_widget.render_widget.canvas.extent().isEmpty():
                     view_widget.render_widget.canvas.setExtent(QgsRectangle(*yaml_config["extent"]))
                     break
+
+        # restore registry widget and pixel logs
+        if "registry" in yaml_config:
+            reg_cfg = yaml_config["registry"]
+            # decode pixel logs (supports compressed and legacy plain list)
+            logs_list = []
+            pixel_logs_data = reg_cfg.get("pixel_logs")
+            if isinstance(pixel_logs_data, str) and reg_cfg.get("pixel_logs_encoding") == "gzip+base64+json":
+                import base64, gzip, json
+                try:
+                    gz_bytes = base64.b64decode(pixel_logs_data.encode("ascii"))
+                    json_bytes = gzip.decompress(gz_bytes)
+                    logs_list = json.loads(json_bytes.decode("utf-8"))
+                except Exception:
+                    logs_list = []
+            elif isinstance(pixel_logs_data, list):
+                logs_list = pixel_logs_data
+
+            # rebuild pixel_log_store
+            from ThRasE.core.editing import Pixel, PixelLog
+            LayerToEdit.current.pixel_log_store = {}
+            for item in logs_list:
+                try:
+                    pixel = Pixel(x=item["x"], y=item["y"])
+                    PixelLog(pixel, item["old_value"], item["new_value"], item.get("group_id"),
+                             datetime.fromisoformat(item.get("edit_date")))
+                except Exception:
+                    continue
+
+            # registry visual settings
+            if reg_cfg.get("tiles_color"):
+                self.registry_widget.change_tiles_color(QColor(reg_cfg["tiles_color"]))
+            self.registry_widget.autoCenter.setChecked(bool(reg_cfg.get("auto_center", False)))
+
+            # ensure registry groups are built
+            LayerToEdit.current.registry.update()
+
+            # open/visibility and position
+            opened = bool(reg_cfg.get("opened", False))
+            with block_signals_to(self.registry_widget):
+                self.registry_widget.setVisible(opened)
+            with block_signals_to(self.QPBtn_Registry):
+                self.QPBtn_Registry.setChecked(opened)
+            if opened:
+                total_groups = len(LayerToEdit.current.registry.groups)
+                slider_pos = int(reg_cfg.get("slider_position", total_groups or 0))
+                if total_groups:
+                    slider_pos = max(1, min(slider_pos, total_groups))
+                    with block_signals_to(self.registry_widget.PixelLogGroups_Slider):
+                        self.registry_widget.PixelLogGroups_Slider.setEnabled(True)
+                        self.registry_widget.PixelLogGroups_Slider.setMaximum(total_groups)
+                        self.registry_widget.last_slider_position = slider_pos
+                        self.registry_widget.PixelLogGroups_Slider.setValue(slider_pos)
+                        self.registry_widget.change_group_from_slider(slider_pos)
+                # show all overlays if requested
+                self.registry_widget.showAll.setChecked(bool(reg_cfg.get("show_all", False)))
+            else:
+                LayerToEdit.current.registry.clear()
+                LayerToEdit.current.registry.clear_show_all()
 
         # restore the CCD plugin widget config
         if "ccd_plugin_config" in yaml_config:

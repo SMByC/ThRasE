@@ -532,6 +532,37 @@ class LayerToEdit(object):
                 data["navigation"]["vector_file"] = \
                     setup_path(get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer()))
 
+        # registry (widget state and pixel logs)
+        rw = ThRasE.dialog.registry_widget
+        data["registry"] = {
+            "opened": rw.isVisible(),
+            "tiles_color": self.registry.tiles_color.name(),
+            "slider_position": int(rw.PixelLogGroups_Slider.value()),
+            "auto_center": rw.autoCenter.isChecked(),
+            "show_all": rw.showAll.isChecked(),
+        }
+        # serialize all pixel logs from the current layer registry
+        def serialize_pixel_log(pixel_log):
+            return {
+                "x": pixel_log.pixel.x(),
+                "y": pixel_log.pixel.y(),
+                "old_value": int(pixel_log.old_value),
+                "new_value": int(pixel_log.new_value),
+                "edit_date": pixel_log.edit_date.isoformat(),
+                "group_id": str(pixel_log.group_id) if pixel_log.group_id is not None else None,
+            }
+        # compress pixel logs: JSON -> gzip -> base64
+        import json, gzip, base64
+        pixel_logs = list(self.pixel_log_store.values())
+        pixel_logs.sort(key=lambda pl: (pl.edit_date, str(pl.group_id)))
+        pixel_logs_serialized = [serialize_pixel_log(pl) for pl in pixel_logs]
+        json_bytes = json.dumps(pixel_logs_serialized, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        gz_bytes = gzip.compress(json_bytes)
+        b64_str = base64.b64encode(gz_bytes).decode("ascii")
+        data["registry"]["pixel_logs"] = b64_str
+        data["registry"]["pixel_logs_encoding"] = "gzip+base64+json"
+        data["registry"]["pixel_logs_count"] = len(pixel_logs_serialized)
+
         # CCD plugin config
         if ThRasE.dialog.ccd_plugin_available:
             from CCD_Plugin.utils.config import get_plugin_config
@@ -573,11 +604,11 @@ class PixelLog:
     def __hash__(self):
         return self.pixel.__hash__()
 
-    def __init__(self, pixel, old_value, new_value, group_id):
+    def __init__(self, pixel, old_value, new_value, group_id, edit_date=None):
         self.pixel = pixel
         self.old_value = int(old_value)
         self.new_value = int(new_value)
-        self.edit_date = datetime.now()
+        self.edit_date = edit_date or datetime.now()
         self.group_id = group_id
 
         if self.pixel in LayerToEdit.current.pixel_log_store:
