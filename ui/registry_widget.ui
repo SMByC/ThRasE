@@ -34,55 +34,6 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="2" column="2">
-    <widget class="QToolButton" name="previousTileGroup">
-     <property name="cursor">
-      <cursorShape>PointingHandCursor</cursorShape>
-     </property>
-     <property name="toolTip">
-      <string>Previous registry entry</string>
-     </property>
-     <property name="text">
-      <string>Previous</string>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/plugins/thrase/icons/previous.svg</normaloff>:/plugins/thrase/icons/previous.svg</iconset>
-     </property>
-     <property name="toolButtonStyle">
-      <enum>Qt::ToolButtonIconOnly</enum>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="4">
-    <widget class="QToolButton" name="nextTileGroup">
-     <property name="cursor">
-      <cursorShape>PointingHandCursor</cursorShape>
-     </property>
-     <property name="toolTip">
-      <string>Next registry entry</string>
-     </property>
-     <property name="layoutDirection">
-      <enum>Qt::RightToLeft</enum>
-     </property>
-     <property name="text">
-      <string>Next</string>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/plugins/thrase/icons/next.svg</normaloff>:/plugins/thrase/icons/next.svg</iconset>
-     </property>
-     <property name="toolButtonStyle">
-      <enum>Qt::ToolButtonIconOnly</enum>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="1">
     <widget class="QToolButton" name="showAll">
      <property name="enabled">
@@ -114,17 +65,33 @@ Note: For performance reasons, this will be disabled by any editing action</stri
      </property>
     </widget>
    </item>
-   <item row="1" column="3">
-    <widget class="QLabel" name="PixelLogGroup_DetailText">
-     <property name="text">
-      <string>TextLabel</string>
+   <item row="2" column="5">
+    <widget class="QToolButton" name="nextTileGroup">
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
+     <property name="toolTip">
+      <string>Next registry entry</string>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="text">
+      <string>Next</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/plugins/thrase/icons/next.svg</normaloff>:/plugins/thrase/icons/next.svg</iconset>
+     </property>
+     <property name="toolButtonStyle">
+      <enum>Qt::ToolButtonIconOnly</enum>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="2" column="3">
+   <item row="2" column="4">
     <widget class="QSlider" name="PixelLogGroups_Slider">
      <property name="toolTip">
       <string>Pixel changes timeline slider</string>
@@ -146,10 +113,26 @@ Note: For performance reasons, this will be disabled by any editing action</stri
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="7">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="2" column="8">
+    <widget class="QToolButton" name="QPBtn_ExportRegistry">
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <property name="toolTip">
+      <string>Export all registered modified pixels to a vector file</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/plugins/thrase/icons/export.svg</normaloff>:/plugins/thrase/icons/export.svg</iconset>
+     </property>
+     <property name="toolButtonStyle">
+      <enum>Qt::ToolButtonIconOnly</enum>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -179,20 +162,20 @@ QToolButton
      </property>
     </widget>
    </item>
-   <item row="2" column="6">
-    <widget class="QToolButton" name="QPBtn_ExportRegistry">
+   <item row="2" column="7">
+    <widget class="QToolButton" name="DeleteRegistry">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="cursor">
       <cursorShape>PointingHandCursor</cursorShape>
      </property>
      <property name="toolTip">
-      <string>Export all registered modified pixels to a vector file</string>
-     </property>
-     <property name="text">
-      <string/>
+      <string>Delete the entire registry of pixel changes for this layer</string>
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>:/plugins/thrase/icons/export.svg</normaloff>:/plugins/thrase/icons/export.svg</iconset>
+       <normaloff>:/plugins/thrase/icons/trash.svg</normaloff>:/plugins/thrase/icons/trash.svg</iconset>
      </property>
      <property name="toolButtonStyle">
       <enum>Qt::ToolButtonIconOnly</enum>
@@ -202,7 +185,47 @@ QToolButton
      </property>
     </widget>
    </item>
-   <item row="2" column="5">
+   <item row="2" column="3">
+    <widget class="QToolButton" name="previousTileGroup">
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <property name="toolTip">
+      <string>Previous registry entry</string>
+     </property>
+     <property name="text">
+      <string>Previous</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/plugins/thrase/icons/previous.svg</normaloff>:/plugins/thrase/icons/previous.svg</iconset>
+     </property>
+     <property name="toolButtonStyle">
+      <enum>Qt::ToolButtonIconOnly</enum>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="9">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4">
+    <widget class="QLabel" name="PixelLogGroup_DetailText">
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="6">
     <widget class="QToolButton" name="autoCenter">
      <property name="toolTip">
       <string>Automatically center the current registry entry</string>

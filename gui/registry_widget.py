@@ -24,7 +24,7 @@ from pathlib import Path
 
 from qgis.core import Qgis
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog
+from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import pyqtSlot
 
 from ThRasE.core.editing import LayerToEdit
@@ -66,6 +66,8 @@ class RegistryWidget(QWidget, FORM_CLASS):
         # export registry
         self.QPBtn_ExportRegistry.clicked.connect(self.export_registry)
         self.QPBtn_ExportRegistry.setEnabled(False)
+        # delete registry
+        self.DeleteRegistry.clicked.connect(self.delete_registry)
 
     def update_registry(self, go_to_last=True):
         # only process when the widget is visible
@@ -234,3 +236,24 @@ class RegistryWidget(QWidget, FORM_CLASS):
             ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Exported {count} edited pixels to {output_file}"), level=Qgis.Success, duration=5)
         else:
             ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Export failed: {msg}"), level=Qgis.Critical, duration=10)
+
+    @pyqtSlot()
+    def delete_registry(self):
+        from ThRasE.thrase import ThRasE
+        if not LayerToEdit.current:
+            return
+        # confirm action to delete entire registry
+        reply = QMessageBox.warning(
+            self,
+            self.tr("Delete registry"),
+            self.tr("Are you sure you want to delete the entire pixel change registry for this layer? This action cannot be undone."),
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+        # delete all registry entries for the current layer
+        LayerToEdit.current.pixel_log_store = {}
+        LayerToEdit.current.registry.delete()
+        self.set_empty_state()
+        ThRasE.dialog.MsgBar.pushMessage(self.tr("Registry cleared"), level=Qgis.Success, duration=5)
