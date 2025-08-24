@@ -234,7 +234,7 @@ class LayerToEdit(object):
             # save history item
             self.pixel_edit_logs.add((pixel_log.pixel, pixel_log.old_value))
             # refresh registry widget
-            ThRasE.dialog.registry_widget.update_and_go_to_last()
+            ThRasE.dialog.registry_widget.update_registry()
             return True
 
     @wait_process
@@ -283,7 +283,7 @@ class LayerToEdit(object):
             # save history item
             self.line_edit_logs.add((line_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
             # refresh registry widget
-            ThRasE.dialog.registry_widget.update_and_go_to_last()
+            ThRasE.dialog.registry_widget.update_registry()
             return True
 
     @wait_process
@@ -326,7 +326,7 @@ class LayerToEdit(object):
             # save history item
             self.polygon_edit_logs.add((polygon_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
             # refresh registry widget
-            ThRasE.dialog.registry_widget.update_and_go_to_last()
+            ThRasE.dialog.registry_widget.update_registry()
             return True
 
     @wait_process
@@ -369,7 +369,7 @@ class LayerToEdit(object):
             # save history item
             self.freehand_edit_logs.add((freehand_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
             # refresh registry widget
-            ThRasE.dialog.registry_widget.update_and_go_to_last()
+            ThRasE.dialog.registry_widget.update_registry()
             return True
 
     @wait_process

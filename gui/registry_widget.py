@@ -41,6 +41,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.setupUi(self)
         self.setup_gui()
         self.total_pixels_modified = 0  # cache total pixels modified
+        self.last_slider_position = 1
 
     def setup_gui(self):
         # initial state
@@ -66,7 +67,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.QPBtn_ExportRegistry.clicked.connect(self.export_registry)
         self.QPBtn_ExportRegistry.setEnabled(False)
 
-    def update_and_go_to_last(self):
+    def update_registry(self, go_to_last=True):
         # only process when the widget is visible
         if not self.isVisible():
             return
@@ -87,8 +88,12 @@ class RegistryWidget(QWidget, FORM_CLASS):
             self.PixelLogGroups_Slider.setEnabled(True)
             self.PixelLogGroups_Slider.setMaximum(total_groups)
             # go to latest registry tile group
-            self.PixelLogGroups_Slider.setValue(total_groups)
-            self.change_group_from_slider(total_groups)
+            if go_to_last:
+                self.PixelLogGroups_Slider.setValue(total_groups)
+                self.change_group_from_slider(total_groups)
+            else:
+                self.PixelLogGroups_Slider.setValue(self.last_slider_position)
+                self.change_group_from_slider(self.last_slider_position)
         # enable show-all toggle and repaint if needed
         self.showAll.setEnabled(True)
         if self.showAll.isChecked():
@@ -98,13 +103,14 @@ class RegistryWidget(QWidget, FORM_CLASS):
     def showEvent(self, event):
         # when the widget becomes visible
         super().showEvent(event)
-        self.update_and_go_to_last()
+        self.update_registry(go_to_last=False)
 
     def hideEvent(self, event):
         # when the widget is hidden, clear tiles from canvases
         if LayerToEdit.current:
             LayerToEdit.current.registry.clear()
             LayerToEdit.current.registry.clear_show_all()
+        self.last_slider_position = self.PixelLogGroups_Slider.value()
         super().hideEvent(event)
 
     def set_empty_state(self):
