@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>471</width>
-    <height>129</height>
+    <width>490</width>
+    <height>115</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -60,7 +60,7 @@
     <widget class="QWidget" name="widget_EditingToolbar" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
-       <number>3</number>
+       <number>2</number>
       </property>
       <property name="leftMargin">
        <number>0</number>
@@ -87,6 +87,9 @@
           <normaloff>:/plugins/thrase/icons/mouse_pixel_value.svg</normaloff>:/plugins/thrase/icons/mouse_pixel_value.svg</iconset>
         </property>
         <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
          <bool>true</bool>
         </property>
         <property name="toolButtonStyle">
@@ -1097,6 +1100,36 @@ QToolButton
           </widget>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_5">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="AutoClear">
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="toolTip">
+         <string>Automatically clear the drawing after each edit</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>:/plugins/thrase/icons/auto_clear.svg</normaloff>:/plugins/thrase/icons/auto_clear.svg</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonIconOnly</enum>
+        </property>
        </widget>
       </item>
      </layout>

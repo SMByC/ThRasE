@@ -96,6 +96,27 @@ class ViewWidget(QWidget):
         # clean actions
         self.ClearAllFreehand.clicked.connect(self.clear_all_freehand_drawn)
 
+    def trigger_auto_clear(self, picker_type="all"):
+        """Trigger auto-clear after edit if enabled with a delay
+        
+        Args:
+            picker_type: Type of picker tool - "line", "polygon", "freehand", or "all"
+        """
+        if not self.AutoClear.isChecked() or picker_type not in ["line", "polygon", "freehand", "all"]:
+            return
+
+        def auto_clear():
+            if picker_type == "line" or picker_type == "all":
+                self.clear_all_lines_drawn()
+            if picker_type == "polygon" or picker_type == "all":
+                self.clear_all_polygons_drawn()
+            if picker_type == "freehand" or picker_type == "all":
+                self.clear_all_freehand_drawn()
+            self.render_widget.canvas.clearCache()
+            self.render_widget.refresh()
+        
+        QTimer.singleShot(500, auto_clear)
+
     @staticmethod
     @pyqtSlot()
     def unhighlight_cells_in_recode_pixel_table():
@@ -322,6 +343,8 @@ class ViewWidget(QWidget):
             self.ClearAllFreehand.setEnabled(len(self.freehand_drawn) > 0)
         # update changes done in the layer and view
         self.render_widget.refresh()
+        # trigger auto-clear drawings if enabled
+        self.trigger_auto_clear(from_edit_tool)
 
     @staticmethod
     @pyqtSlot()
@@ -591,6 +614,8 @@ class PickerLineTool(QgsMapTool):
             self.view_widget.UndoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_undone())
             self.view_widget.RedoLine.setEnabled(LayerToEdit.current.line_edit_logs.can_be_redone())
             self.view_widget.ClearAllLines.setEnabled(len(self.view_widget.lines_drawn) > 0)
+            # trigger auto-clear if enabled for line drawings
+            self.view_widget.trigger_auto_clear("line")
         else:
             self.line.reset(QgsWkbTypes.LineGeometry)
             rubber_band = self.view_widget.lines_drawn[-1]
@@ -708,6 +733,8 @@ class PickerPolygonTool(QgsMapTool):
             self.view_widget.UndoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_undone())
             self.view_widget.RedoPolygon.setEnabled(LayerToEdit.current.polygon_edit_logs.can_be_redone())
             self.view_widget.ClearAllPolygons.setEnabled(len(self.view_widget.polygons_drawn) > 0)
+            # trigger auto-clear if enabled for polygon drawings
+            self.view_widget.trigger_auto_clear("polygon")
         else:
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             rubber_band = self.view_widget.polygons_drawn[-1]
@@ -879,6 +906,8 @@ class PickerFreehandTool(QgsMapTool):
             self.view_widget.UndoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_undone())
             self.view_widget.RedoFreehand.setEnabled(LayerToEdit.current.freehand_edit_logs.can_be_redone())
             self.view_widget.ClearAllFreehand.setEnabled(len(self.view_widget.freehand_drawn) > 0)
+            # trigger auto-clear if enabled for freehand drawings
+            self.view_widget.trigger_auto_clear("freehand")
         else:
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
             rubber_band = self.view_widget.freehand_drawn[-1]

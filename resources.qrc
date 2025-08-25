@@ -35,5 +35,6 @@
         <file>icons/registry.svg</file>
         <file>icons/export.svg</file>
         <file>icons/center.svg</file>
+        <file>icons/auto_clear.svg</file>
     </qresource>
 </RCC>

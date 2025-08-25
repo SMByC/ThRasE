@@ -416,6 +416,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 view_widget.use_freehand_picker_for_edit()
             if "freehand_color" in yaml_view_widget and yaml_view_widget["freehand_color"]:
                 view_widget.change_freehand_color(QColor(yaml_view_widget["freehand_color"]))
+            if "auto_clear_enabled" in yaml_view_widget:
+                view_widget.AutoClear.setChecked(bool(yaml_view_widget["auto_clear_enabled"]))
         # set the render layers in the views
         if "num_layer_toolbars_per_view" in yaml_config:
             # set the number of layer toolbars

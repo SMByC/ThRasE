@@ -504,7 +504,8 @@ class LayerToEdit(object):
                                          "polygons_picker_enabled": view_widget.PolygonsPicker.isChecked(),
                                          "polygons_color": view_widget.polygons_color.name(),
                                          "freehand_picker_enabled": view_widget.FreehandPicker.isChecked(),
-                                         "freehand_color": view_widget.freehand_color.name()})
+                                         "freehand_color": view_widget.freehand_color.name(),
+                                         "auto_clear_enabled": view_widget.AutoClear.isChecked()})
         # navigation
         data["navigation"] = {}
 
