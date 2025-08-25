@@ -46,7 +46,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
     def setup_gui(self):
         # initial state
         self.PixelLogGroups_Slider.setEnabled(False)
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup 0 of 0")
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group 0 of 0")
         self.PixelLogGroup_DetailText.setText("")
         self.previousTileGroup.setEnabled(False)
         self.nextTileGroup.setEnabled(False)
@@ -119,7 +119,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
 
     def set_empty_state(self):
         self.PixelLogGroups_Slider.setEnabled(False)
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup 0 of 0")
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group 0 of 0")
         self.PixelLogGroup_DetailText.setText("No modified pixels found in the registry")
         self.previousTileGroup.setEnabled(False)
         self.nextTileGroup.setEnabled(False)
@@ -161,7 +161,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         registry = LayerToEdit.current.registry
         registry.set_current_group(idx_group)
         total_groups = len(registry.groups)
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup {} of {}".format(idx_group, total_groups))
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group {} of {}".format(idx_group, total_groups))
         group = registry.current_group
         self.PixelLogGroup_DetailText.setText(
             "{} pixels modified at {} | Total: {} pixels modified".format(
@@ -173,7 +173,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
 
     def slider_changed(self, idx_group):
         total_groups = len(LayerToEdit.current.registry.groups) if LayerToEdit.current else 0
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nGroup {} of {}".format(idx_group, total_groups))
+        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group {} of {}".format(idx_group, total_groups))
 
     @pyqtSlot()
     def go_previous_group(self):
@@ -274,7 +274,8 @@ class RegistryWidget(QWidget, FORM_CLASS):
         reply = QMessageBox.warning(
             self,
             self.tr("Delete registry"),
-            self.tr("Are you sure you want to delete the entire pixel change registry for this layer? This action cannot be undone."),
+            self.tr("Are you sure you want to delete the entire registry for this layer? "
+                    "This action does not undo the changes made in the layer."),
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
