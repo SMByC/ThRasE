@@ -160,6 +160,7 @@ class Registry:
         self.groups = []
         self.current_group = None
         self.tiles_color = QColor("#ff00ff")
+        self.enabled = True
         # cache for show-all pixels modified geoms
         self.all_union_geom = None
         self.show_all_rubber_bands = []

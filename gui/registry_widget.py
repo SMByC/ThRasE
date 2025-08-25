@@ -68,10 +68,12 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.QPBtn_ExportRegistry.setEnabled(False)
         # delete registry
         self.DeleteRegistry.clicked.connect(self.delete_registry)
+        # enable/disable registry
+        self.EnableRegistry.toggled.connect(self.toggle_registry_enabled)
 
     def update_registry(self, go_to_last=True):
-        # only process when the widget is visible
-        if not self.isVisible():
+        # only process when the widget is visible and enabled
+        if not self.isVisible() or not LayerToEdit.current.registry.enabled:
             return
         if not LayerToEdit.current:
             self.set_empty_state()
@@ -203,12 +205,38 @@ class RegistryWidget(QWidget, FORM_CLASS):
 
     @pyqtSlot(bool)
     def toggle_show_all(self, checked):
-        if not LayerToEdit.current:
+        if not LayerToEdit.current or not LayerToEdit.current.registry.enabled:
             return
         if checked:
             LayerToEdit.current.registry.show_all()
         else:
             LayerToEdit.current.registry.clear_show_all()
+
+    @pyqtSlot(bool)
+    def toggle_registry_enabled(self, enabled):
+        if not LayerToEdit.current:
+            return
+        LayerToEdit.current.registry.enabled = enabled
+        # restore or clear drawings
+        if enabled and self.isVisible():
+            if LayerToEdit.current.registry.groups:
+                idx = self.PixelLogGroups_Slider.value()
+                self.change_group_from_slider(idx)
+            if self.showAll.isChecked():
+                LayerToEdit.current.registry.show_all()
+        else:
+            LayerToEdit.current.registry.clear()
+            LayerToEdit.current.registry.clear_show_all()
+        # update controls state
+        self.PixelLogGroups_Slider.setEnabled(enabled and self.total_pixels_modified > 0)
+        self.previousTileGroup.setEnabled(enabled and self.PixelLogGroups_Slider.value() > 1)
+        self.nextTileGroup.setEnabled(enabled and self.PixelLogGroups_Slider.value() < len(LayerToEdit.current.registry.groups))
+        self.showAll.setEnabled(enabled)
+        self.autoCenter.setEnabled(enabled)
+        self.TilesColor.setEnabled(enabled)
+        self.DeleteRegistry.setEnabled(enabled)
+        self.QPBtn_ExportRegistry.setEnabled(enabled and self.total_pixels_modified > 0)
+        self.PixelLogGroup_DetailText.setEnabled(enabled)
 
     @pyqtSlot()
     def export_registry(self):

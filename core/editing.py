@@ -215,7 +215,7 @@ class LayerToEdit(object):
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
         if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
-            return PixelLog(pixel, old_value, new_value, group_id)
+            return PixelLog(pixel, old_value, new_value, group_id, store=self.registry.enabled)
 
     @wait_process
     @edit_layer
@@ -535,6 +535,7 @@ class LayerToEdit(object):
         # registry (widget state and pixel logs)
         rw = ThRasE.dialog.registry_widget
         data["registry"] = {
+            "enabled": self.registry.enabled,
             "opened": rw.isVisible(),
             "tiles_color": self.registry.tiles_color.name(),
             "slider_position": int(rw.PixelLogGroups_Slider.value()),
@@ -604,24 +605,25 @@ class PixelLog:
     def __hash__(self):
         return self.pixel.__hash__()
 
-    def __init__(self, pixel, old_value, new_value, group_id, edit_date=None):
+    def __init__(self, pixel, old_value, new_value, group_id, edit_date=None, store=True):
         self.pixel = pixel
         self.old_value = int(old_value)
         self.new_value = int(new_value)
         self.edit_date = edit_date or datetime.now()
         self.group_id = group_id
 
-        if self.pixel in LayerToEdit.current.pixel_log_store:
-            # if the pixel is already registered, update it
-            pixel_logged = LayerToEdit.current.pixel_log_store[self.pixel]
-            if pixel_logged.old_value == self.new_value:
-                del LayerToEdit.current.pixel_log_store[self.pixel]
+        if store:
+            if self.pixel in LayerToEdit.current.pixel_log_store:
+                # if the pixel is already registered, update it
+                pixel_logged = LayerToEdit.current.pixel_log_store[self.pixel]
+                if pixel_logged.old_value == self.new_value:
+                    del LayerToEdit.current.pixel_log_store[self.pixel]
+                else:
+                    pixel_logged.new_value = self.new_value
+                    pixel_logged.edit_date = self.edit_date
+                    pixel_logged.group_id = self.group_id
             else:
-                pixel_logged.new_value = self.new_value
-                pixel_logged.edit_date = self.edit_date
-                pixel_logged.group_id = self.group_id
-        else:
-            LayerToEdit.current.pixel_log_store[self.pixel] = self
+                LayerToEdit.current.pixel_log_store[self.pixel] = self
 
 
 class EditLog:

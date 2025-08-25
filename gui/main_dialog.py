@@ -526,40 +526,43 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 try:
                     pixel = Pixel(x=item["x"], y=item["y"])
                     PixelLog(pixel, item["old_value"], item["new_value"], item.get("group_id"),
-                             datetime.fromisoformat(item.get("edit_date")))
+                             datetime.fromisoformat(item.get("edit_date")), store=True)
                 except Exception:
                     continue
+            self.registry_widget.total_pixels_modified = reg_cfg.get("pixel_logs_count", len(LayerToEdit.current.pixel_log_store))
 
             # registry visual settings
             if reg_cfg.get("tiles_color"):
                 self.registry_widget.change_tiles_color(QColor(reg_cfg["tiles_color"]))
             self.registry_widget.autoCenter.setChecked(bool(reg_cfg.get("auto_center", False)))
+            self.registry_widget.showAll.setChecked(bool(reg_cfg.get("show_all", False)))
 
             # ensure registry groups are built
             LayerToEdit.current.registry.update()
 
-            # open/visibility and position
+            # enable/disable registry
+            LayerToEdit.current.registry.enabled = bool(reg_cfg.get("enabled", True))
+            self.registry_widget.EnableRegistry.setChecked(LayerToEdit.current.registry.enabled)
+
+            # ui configuration
             opened = bool(reg_cfg.get("opened", False))
             with block_signals_to(self.registry_widget):
                 self.registry_widget.setVisible(opened)
             with block_signals_to(self.QPBtn_Registry):
                 self.QPBtn_Registry.setChecked(opened)
-            if opened:
-                total_groups = len(LayerToEdit.current.registry.groups)
-                slider_pos = int(reg_cfg.get("slider_position", total_groups or 0))
-                if total_groups:
-                    slider_pos = max(1, min(slider_pos, total_groups))
-                    with block_signals_to(self.registry_widget.PixelLogGroups_Slider):
-                        self.registry_widget.PixelLogGroups_Slider.setEnabled(True)
-                        self.registry_widget.PixelLogGroups_Slider.setMaximum(total_groups)
-                        self.registry_widget.last_slider_position = slider_pos
-                        self.registry_widget.PixelLogGroups_Slider.setValue(slider_pos)
-                        self.registry_widget.change_group_from_slider(slider_pos)
-                # show all overlays if requested
-                self.registry_widget.showAll.setChecked(bool(reg_cfg.get("show_all", False)))
-            else:
-                LayerToEdit.current.registry.clear()
-                LayerToEdit.current.registry.clear_show_all()
+            total_groups = len(LayerToEdit.current.registry.groups)
+            slider_pos = int(reg_cfg.get("slider_position", total_groups or 0))
+            if total_groups:
+                slider_pos = max(1, min(slider_pos, total_groups))
+                with block_signals_to(self.registry_widget.PixelLogGroups_Slider):
+                    self.registry_widget.PixelLogGroups_Slider.setMaximum(total_groups)
+                    self.registry_widget.last_slider_position = slider_pos
+                    self.registry_widget.PixelLogGroups_Slider.setValue(slider_pos)
+                    self.registry_widget.change_group_from_slider(slider_pos)
+            # restore state
+            if len(LayerToEdit.current.pixel_log_store) == 0:
+                self.registry_widget.set_empty_state()
+            self.registry_widget.toggle_registry_enabled(LayerToEdit.current.registry.enabled)
 
         # restore the CCD plugin widget config
         if "ccd_plugin_config" in yaml_config:
