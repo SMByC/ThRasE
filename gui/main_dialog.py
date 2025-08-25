@@ -31,9 +31,10 @@ try:
 except ImportError:
     from yaml import Loader
 
-from qgis.PyQt import QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer
-from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog, QWidget, QLabel
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer, QEvent
+from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog, QWidget, QLabel, \
+    QComboBox, QDialog, QDockWidget
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
     QgsCoordinateTransform, QgsProject
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
@@ -60,7 +61,7 @@ VERSION = cfg.get('general', 'version')
 HOMEPAGE = cfg.get('general', 'homepage')
 
 
-class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
+class ThRasEDialog(QDialog, FORM_CLASS):
     closingPlugin = pyqtSignal()
     view_widgets = []
 
@@ -216,7 +217,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.ccd_plugin.widget.setWindowFlag(Qt.WindowCloseButtonHint, False)
             self.ccd_plugin.widget.setFloating(False)
             self.ccd_plugin.widget.setTitleBarWidget(QWidget(None))
-            self.ccd_plugin.widget.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
+            self.ccd_plugin.widget.setFeatures(QDockWidget.NoDockWidgetFeatures)
             self.ccd_plugin.widget.setContentsMargins(0, 0, 0, 0)
             self.ccd_plugin.widget.setStyleSheet("QDockWidget { border: 0px; }")
             self.ccd_plugin.widget.MainWidget.layout().setContentsMargins(0, 0, 0, 3)
@@ -259,7 +260,16 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         if settings_type == "load":
             self.restore_config(yaml_file_path, yaml_config)
 
+        # install event filter on all QComboBox to block wheel events
+        for combo in self.findChildren(QComboBox):
+            combo.installEventFilter(self)
+
         return True
+
+    def eventFilter(self, obj, event):
+        if isinstance(obj, QComboBox) and event.type() == QEvent.Wheel:
+            return True  # Block the event
+        return super().eventFilter(obj, event)
 
     def set_layer_toolbars(self, index):
         num_layer_toolbars = index + 1
@@ -1197,7 +1207,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'init_dialog.ui'))
 
 
-class InitDialog(QtWidgets.QDialog, FORM_CLASS):
+class InitDialog(QDialog, FORM_CLASS):
     def __init__(self):
-        QtWidgets.QDialog.__init__(self)
+        QDialog.__init__(self)
         self.setupUi(self)
