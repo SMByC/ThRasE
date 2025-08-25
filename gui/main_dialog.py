@@ -344,11 +344,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.update_recode_pixel_table()
         # view_widgets, layer and editing toolbars
         if "layer_toolbars_enabled" in yaml_config:
-            self.QPBtn_LayerToolbars.setChecked(yaml_config["layer_toolbars_enabled"])
+            self.QPBtn_LayerToolbars.setChecked(bool(yaml_config["layer_toolbars_enabled"]))
             ViewWidget.toggle_layer_toolbars(enable=yaml_config["layer_toolbars_enabled"])
         if "editing_toolbars_enabled" in yaml_config:
-            self.QPBtn_EditingToolbars.setChecked(yaml_config["editing_toolbars_enabled"])
+            self.QPBtn_EditingToolbars.setChecked(bool(yaml_config["editing_toolbars_enabled"]))
             ViewWidget.toggle_editing_toolbars(enable=yaml_config["editing_toolbars_enabled"])
+
         for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"]):
             # layer toolbars
             for layer_toolbar, yaml_layer_toolbar in zip(view_widget.layer_toolbars, yaml_view_widget["layer_toolbars"]):
@@ -376,7 +377,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         layer = load_and_select_filepath_in(layer_toolbar.QCBox_RenderFile, layer_path, layer_name=layer_name)
                         layer_toolbar.set_render_layer(layer)
                     else:
-                        view_name = yaml_view_widget["view_name"] or view_widget.id
+                        view_name = yaml_view_widget.get("view_name") or view_widget.id
                         self.MsgBar.pushMessage(
                                 "Could not load the layer '{layer_name}' in the view '{view_name}': "
                                 "no such file {layer_path}".format(layer_name=layer_name, view_name=view_name,
@@ -392,32 +393,38 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                         layer_toolbar.OnOff_LayerToolbar.setChecked(False)
                     layer_toolbar.layer_toolbar_widget.setDisabled(True)
                     layer_toolbar.disable()
+
             # editing toolbar
-            if yaml_view_widget["mouse_pixel_value"]:
-                view_widget.mousePixelValue2Table.setChecked(True)
-            if yaml_view_widget["pixels_picker_enabled"]:
-                view_widget.PixelsPicker.setChecked(True)
+            view_widget.mousePixelValue2Table.setChecked(bool(yaml_view_widget.get("mouse_pixel_value", False)))
+
+            view_widget.PixelsPicker.setChecked(bool(yaml_view_widget.get("pixels_picker_enabled", False)))
+            if yaml_view_widget.get("pixels_picker_enabled", False):
                 view_widget.use_pixels_picker_for_edit()
-            if yaml_view_widget["lines_picker_enabled"]:
-                view_widget.LinesPicker.setChecked(True)
+
+            view_widget.LinesPicker.setChecked(bool(yaml_view_widget.get("lines_picker_enabled", False)))
+            if yaml_view_widget.get("lines_picker_enabled", False):
                 view_widget.use_lines_picker_for_edit()
-            if yaml_view_widget["line_buffer"]:
+
+            if yaml_view_widget.get("line_buffer"):
                 selected_index = view_widget.LineBuffer.findText(yaml_view_widget["line_buffer"], Qt.MatchFixedString)
                 view_widget.LineBuffer.setCurrentIndex(selected_index)
-            if yaml_view_widget["lines_color"]:
+            if yaml_view_widget.get("lines_color"):
                 view_widget.change_lines_color(QColor(yaml_view_widget["lines_color"]))
-            if yaml_view_widget["polygons_picker_enabled"]:
-                view_widget.PolygonsPicker.setChecked(True)
+
+            view_widget.PolygonsPicker.setChecked(bool(yaml_view_widget.get("polygons_picker_enabled", False)))
+            if yaml_view_widget.get("polygons_picker_enabled", False):
                 view_widget.use_polygons_picker_for_edit()
-            if yaml_view_widget["polygons_color"]:
+            if yaml_view_widget.get("polygons_color"):
                 view_widget.change_polygons_color(QColor(yaml_view_widget["polygons_color"]))
-            if "freehand_picker_enabled" in yaml_view_widget and yaml_view_widget["freehand_picker_enabled"]:
-                view_widget.FreehandPicker.setChecked(True)
+
+            view_widget.FreehandPicker.setChecked(bool(yaml_view_widget.get("freehand_picker_enabled", False)))
+            if yaml_view_widget.get("freehand_picker_enabled", False):
                 view_widget.use_freehand_picker_for_edit()
-            if "freehand_color" in yaml_view_widget and yaml_view_widget["freehand_color"]:
+            if yaml_view_widget.get("freehand_color"):
                 view_widget.change_freehand_color(QColor(yaml_view_widget["freehand_color"]))
-            if "auto_clear_enabled" in yaml_view_widget:
-                view_widget.AutoClear.setChecked(bool(yaml_view_widget["auto_clear_enabled"]))
+
+            view_widget.AutoClear.setChecked(bool(yaml_view_widget.get("auto_clear_enabled", True)))
+
         # set the render layers in the views
         if "num_layer_toolbars_per_view" in yaml_config:
             # set the number of layer toolbars
@@ -483,7 +490,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.navigation.current_tile = \
                 next((tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None)
             # navigation dialog
-            LayerToEdit.current.navigation_dialog.QPBtn_BuildNavigationTools.setChecked(yaml_config["navigation"]["build_tools"])
+            LayerToEdit.current.navigation_dialog.QPBtn_BuildNavigationTools.setChecked(bool(yaml_config["navigation"]["build_tools"]))
             LayerToEdit.current.navigation_dialog.build_tools()
             if "size_dialog" in yaml_config["navigation"] and yaml_config["navigation"]:
                 LayerToEdit.current.navigation_dialog.resize(*yaml_config["navigation"]["size_dialog"])
@@ -492,11 +499,12 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             LayerToEdit.current.navigation_dialog.change_tile_from_slider(current_tile_id)
             LayerToEdit.current.navigation_dialog.change_tile_from_spinbox(current_tile_id)
             # navigation block widget
-            self.currentTileKeepVisible.setChecked(yaml_config["navigation"]["tile_keep_visible"])
+            self.currentTileKeepVisible.setChecked(bool(yaml_config["navigation"]["tile_keep_visible"]))
             self.enable_navigation_tool(True)
             self.NavigationBlockWidgetControls.setEnabled(True)
             self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
             self.QPBar_TilesNavigation.setValue(current_tile_id)
+
         # restore the extent in the views using a view with a valid layer (not empty)
         if "extent" in yaml_config and yaml_config["extent"]:
             for view_widget in ThRasEDialog.view_widgets:
@@ -573,8 +581,8 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
                 # restore the CCD plugin config
                 restore_plugin_config(self.ccd_plugin.id, yaml_config["ccd_plugin_config"])
                 # set the CCD plugin widget visible
-                self.QPBtn_CCDPlugin.setChecked(yaml_config["ccd_plugin_opened"])
-                self.ccd_plugin_widget.setVisible(yaml_config["ccd_plugin_opened"])
+                self.QPBtn_CCDPlugin.setChecked(bool(yaml_config.get("ccd_plugin_opened", False)))
+                self.ccd_plugin_widget.setVisible(bool(yaml_config.get("ccd_plugin_opened", False)))
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
@@ -776,7 +784,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.unset_thematic_layer_to_edit()
             return
         if not valid_file_selected_in(self.QCBox_LayerToEdit):
-            self.MsgBar.pushMessage("The thematic layer to edit is not valid", level=Qgis.Warning, duration=5)
+            self.MsgBar.pushMessage("Thematic layer to edit is not valid", level=Qgis.Warning, duration=5)
             self.unset_thematic_layer_to_edit()
             return
         # show warning for layer to edit different to tif format
@@ -792,7 +800,7 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
-            self.MsgBar.pushMessage("The thematic layer to edit must be byte or integer as data type",
+            self.MsgBar.pushMessage("Thematic layer to edit must be byte or integer as data type",
                                     level=Qgis.Warning, duration=5)
             self.unset_thematic_layer_to_edit()
             return
