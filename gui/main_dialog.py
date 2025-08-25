@@ -759,6 +759,10 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
             self.QCBox_band_LayerToEdit.clear()
         LayerToEdit.current = None
         [view_widget.widget_EditingToolbar.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
+        # registry
+        self.QPBtn_Registry.setDisabled(True)
+        if self.registry_widget.isVisible():
+            self.registry_widget.setDisabled(True)
 
     def select_layer_to_edit(self, layer_selected):
         # first clear table
@@ -893,6 +897,11 @@ class ThRasEDialog(QtWidgets.QDialog, FORM_CLASS):
         self.QPBtn_AutoFill.setEnabled(True)
         self.Widget_GlobalEditingTools.setEnabled(True)
         self.SaveConfig.setEnabled(True)
+        # registry
+        self.QPBtn_Registry.setEnabled(True)
+        if self.registry_widget.isVisible():
+            self.registry_widget.setEnabled(True)
+
 
     @pyqtSlot()
     @error_handler

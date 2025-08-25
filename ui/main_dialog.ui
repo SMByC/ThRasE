@@ -707,6 +707,9 @@ can be displayed and overlaid per view</string>
                      </property>
                      <item>
                       <widget class="QToolButton" name="QPBtn_Registry">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
                        <property name="cursor">
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
