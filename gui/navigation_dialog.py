@@ -28,7 +28,7 @@ from qgis.gui import QgsMapToolPan, QgsRubberBand, QgsMapTool
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QColorDialog
-from qgis.PyQt.QtCore import pyqtSlot, Qt
+from qgis.PyQt.QtCore import pyqtSlot, Qt, QTimer
 
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in
 from ThRasE.utils.system_utils import block_signals_to
@@ -156,8 +156,32 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if not color:
             color = QColorDialog.getColor(self.layer_to_edit.navigation.tiles_color, self)
         if color.isValid():
-            self.layer_to_edit.navigation.tiles_color = color
+            # update navigation color state
+            navigation = self.layer_to_edit.navigation
+            navigation.tiles_color = color
             self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+
+            # propagate new color to all tiles
+            for tile in navigation.tiles:
+                tile.tile_color = color
+
+            # redraw in navigation dialog (all tiles and highlight)
+            if navigation.is_valid and navigation.current_tile is not None:
+                navigation.clear(rbs_in="nav_dialog")
+                self.highlight(navigation.current_tile.idx)
+
+            # redraw current tile in all active view widgets
+            if navigation.is_valid and navigation.current_tile is not None:
+                from ThRasE.thrase import ThRasE
+                navigation.clear(rbs_in="main_dialog")
+                navigation.current_tile.show()
+                if not ThRasE.dialog.currentTileKeepVisible.isChecked():
+                    QTimer.singleShot(1200, navigation.current_tile.hide)
+                # refresh active view widgets
+                from ThRasE.gui.main_dialog import ThRasEDialog
+                for view_widget in ThRasEDialog.view_widgets:
+                    if view_widget.is_active:
+                        view_widget.render_widget.refresh()
 
     @pyqtSlot(str)
     def set_navigation_type_tool(self, nav_type):

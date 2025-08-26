@@ -734,8 +734,7 @@
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string>Select the color for the navigation tiles
-(rebuild the navigation to make the changes)</string>
+            <string>Select a color for the navigation tiles</string>
            </property>
            <property name="styleSheet">
             <string notr="true">
