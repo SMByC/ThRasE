@@ -107,11 +107,6 @@ class LayerToEdit(object):
         self.pixel_log_store = {}
         # registry of edits
         self.registry = Registry(self)
-        # save event editions of the layer using the picker editing tools
-        self.pixel_edit_logs = EditLog("pixel")
-        self.line_edit_logs = EditLog("line")
-        self.polygon_edit_logs = EditLog("polygon")
-        self.freehand_edit_logs = EditLog("polygon")
         # save config file
         self.config_file = None
 
@@ -231,11 +226,10 @@ class LayerToEdit(object):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
-            # save history item
-            self.pixel_edit_logs.add((pixel_log.pixel, pixel_log.old_value))
-            # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
-            return True
+            # pixel value edited to send to the history
+            pixel_value = pixel_log.old_value
+            return pixel_value
 
     @wait_process
     @edit_layer
@@ -280,11 +274,10 @@ class LayerToEdit(object):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
-            # save history item
-            self.line_edit_logs.add((line_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
-            # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
-            return True
+            # pixels and values edited to send to the history
+            pixels_and_values = [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]
+            return pixels_and_values
 
     @wait_process
     @edit_layer
@@ -323,11 +316,10 @@ class LayerToEdit(object):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
-            # save history item
-            self.polygon_edit_logs.add((polygon_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
-            # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
-            return True
+            # pixels and values edited to send to the history
+            pixels_and_values = [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]
+            return pixels_and_values
 
     @wait_process
     @edit_layer
@@ -366,11 +358,10 @@ class LayerToEdit(object):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
-            # save history item
-            self.freehand_edit_logs.add((freehand_feature, [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]))
-            # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
-            return True
+            # pixels and values edited to send to the history
+            pixels_and_values = [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]
+            return pixels_and_values
 
     @wait_process
     @edit_layer
