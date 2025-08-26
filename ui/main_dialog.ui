@@ -570,7 +570,7 @@ can be displayed and overlaid per view</string>
           <widget class="QWidget" name="widget_8" native="true">
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <property name="spacing">
-             <number>0</number>
+             <number>2</number>
             </property>
             <property name="leftMargin">
              <number>0</number>

@@ -34,7 +34,7 @@ except ImportError:
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer, QEvent
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog, QWidget, QLabel, \
-    QComboBox, QDialog, QDockWidget
+    QComboBox, QDialog, QDockWidget, QFrame
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
     QgsCoordinateTransform, QgsProject
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
@@ -129,19 +129,35 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.close()
             return False
 
-        # configure the views layout
+        # configure the views layout with separators between view widgets
         views_layout = QGridLayout()
-        views_layout.setSpacing(3)
+        views_layout.setSpacing(2)
         views_layout.setMargin(0)
         view_widgets = []
-        for row in range(self.grid_rows):
-            for column in range(self.grid_columns):
-                if self.grid_columns == 1:
-                    new_view_widget = ViewWidgetSingle()
-                else:
-                    new_view_widget = ViewWidgetMulti()
-                views_layout.addWidget(new_view_widget, row, column)
+        rows = int(self.grid_rows)
+        cols = int(self.grid_columns)
+        layout_rows = rows * 2 - 1
+        # place view widgets in even-even cells
+        for row in range(rows):
+            for column in range(cols):
+                new_view_widget = ViewWidgetSingle() if cols == 1 else ViewWidgetMulti()
+                views_layout.addWidget(new_view_widget, row * 2, column * 2)
                 view_widgets.append(new_view_widget)
+        # vertical separators
+        if cols > 1:
+            for c in range(cols - 1):
+                vline = QFrame()
+                vline.setFrameShape(QFrame.VLine)
+                views_layout.addWidget(vline, 0, c * 2 + 1, layout_rows, 1)
+                views_layout.setColumnMinimumWidth(c * 2 + 1, 1)
+        # horizontal separators
+        if rows > 1:
+            for r in range(rows - 1):
+                for c in range(cols):
+                    hline = QFrame()
+                    hline.setFrameShape(QFrame.HLine)
+                    views_layout.addWidget(hline, r * 2 + 1, c * 2)
+                views_layout.setRowMinimumHeight(r * 2 + 1, 1)
 
         # add to change analysis dialog
         self.view_windows_widget.setLayout(views_layout)
@@ -220,7 +236,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.ccd_plugin.widget.setFeatures(QDockWidget.NoDockWidgetFeatures)
             self.ccd_plugin.widget.setContentsMargins(0, 0, 0, 0)
             self.ccd_plugin.widget.setStyleSheet("QDockWidget { border: 0px; }")
-            self.ccd_plugin.widget.MainWidget.layout().setContentsMargins(0, 0, 0, 3)
+            self.ccd_plugin.widget.MainWidget.layout().setContentsMargins(0, 3, 0, 0)
             self.ccd_plugin.widget.MainWidget.layout().setSpacing(3)
 
             # init tmp dir for all process and intermediate files
