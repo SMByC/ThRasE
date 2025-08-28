@@ -364,25 +364,9 @@ class LayerToEdit(object):
             return pixels_and_values
 
     @wait_process
-    @edit_layer
     def edit_whole_image(self):
-        # check if the image is relative small for process pixel by pixel
-        if self.qgs_layer.width() * self.qgs_layer.height() <= 100000:
-            ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
-            ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
-
-            # define x and y min/max in the extent
-            y_min = self.bounds[1] + ps_y / 2
-            y_max = self.bounds[3] - ps_y / 2
-            x_min = self.bounds[0] + ps_x / 2
-            x_max = self.bounds[2] - ps_x / 2
-
-            # edit all the pixel using recode table
-            group_id = uuid.uuid4()
-            [self.edit_pixel(Pixel(x, y), group_id=group_id)
-             for y in np.arange(y_min, y_max + ps_y, ps_y)
-             for x in np.arange(x_min, x_max + ps_x, ps_x)]
-        else:
+        """Edit the whole image with the new values using gdal"""
+        try:
             # read
             ds_in = gdal.Open(self.file_path)
             num_bands = ds_in.RasterCount
@@ -416,6 +400,10 @@ class LayerToEdit(object):
 
             del ds_in, ds_out, driver, new_data_array
             move(fn_out, self.file_path)
+        except Exception as e:
+            from ThRasE.thrase import ThRasE
+            ThRasE.dialog.MsgBar.pushMessage(f"An error occurred while editing the image: {e}", level=Qgis.Critical, duration=20)
+            return False
 
         if hasattr(self.qgs_layer, 'setCacheImage'):
             self.qgs_layer.setCacheImage(None)
