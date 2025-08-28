@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -148,6 +148,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             for c in range(cols - 1):
                 vline = QFrame()
                 vline.setFrameShape(QFrame.VLine)
+                vline.setFrameShadow(QFrame.Sunken)
+                vline.setLineWidth(1)
                 views_layout.addWidget(vline, 0, c * 2 + 1, layout_rows, 1)
                 views_layout.setColumnMinimumWidth(c * 2 + 1, 1)
         # horizontal separators
@@ -156,6 +158,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 for c in range(cols):
                     hline = QFrame()
                     hline.setFrameShape(QFrame.HLine)
+                    hline.setFrameShadow(QFrame.Sunken)
+                    hline.setLineWidth(1)
                     views_layout.addWidget(hline, r * 2 + 1, c * 2)
                 views_layout.setRowMinimumHeight(r * 2 + 1, 1)
 
@@ -919,11 +923,11 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         [view_widget.render_widget.set_crs(layer_to_edit.qgs_layer.crs()) for view_widget in ThRasEDialog.view_widgets]
         # create the recode table
         self.set_recode_pixel_table()
-        
+
         # Check if recode pixel table is empty and disable/enable editing toolbars
         [view_widget.widget_EditingToolbar.setEnabled(bool(layer_to_edit.old_new_value)) for view_widget in
          ThRasEDialog.view_widgets]
-        
+
         # tooltip
         self.QCBox_LayerToEdit.setToolTip(layer_to_edit.qgs_layer.name())
         # enable some components
@@ -1205,7 +1209,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
         if not output_file.endswith(('.yaml', '.yml')):
             output_file += ".yaml"
-        
+
         LayerToEdit.current.save_config(output_file)
         self.MsgBar.pushMessage("ThRasE", "Configuration file saved successfully in '{}'".format(output_file),
                                 level=Qgis.Success, duration=5)
