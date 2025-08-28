@@ -355,7 +355,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.MsgBar.pushMessage(
                 "Could not load the thematic layer '{}' ThRasE need this layer to setup the config, "
                 "check the path in the yaml file".format(thematic_filepath_to_edit),
-                level=Qgis.Critical)
+                level=Qgis.Critical, duration=-1)
             return
         if thematic_filepath_to_edit:
             load_and_select_filepath_in(self.QCBox_LayerToEdit, thematic_filepath_to_edit)
@@ -409,10 +409,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                     else:
                         view_name = yaml_view_widget.get("view_name") or view_widget.id
                         self.MsgBar.pushMessage(
-                                "Could not load the layer '{layer_name}' in the view '{view_name}': "
-                                "no such file {layer_path}".format(layer_name=layer_name, view_name=view_name,
+                                "Could not load layer \"{layer_name}\" in view {view_name}: "
+                                "file \"{layer_path}\" does not exist".format(layer_name=layer_name, view_name=view_name,
                                                                    layer_path=layer_path),
-                                level=Qgis.Warning, duration=5)
+                                level=Qgis.Warning, duration=-1)
                         continue
 
                 # opacity
@@ -645,7 +645,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     def enable_navigation_tool(self, checked):
         if not LayerToEdit.current:
-            self.MsgBar.pushMessage("First select a valid thematic layer to edit", level=Qgis.Warning, duration=5)
+            self.MsgBar.pushMessage("First select a valid thematic layer to edit", level=Qgis.Warning, duration=10)
             with block_signals_to(self.QPBtn_EnableNavigation):
                 self.QPBtn_EnableNavigation.setChecked(False)
             return
@@ -814,7 +814,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.unset_thematic_layer_to_edit()
             return
         if not valid_file_selected_in(self.QCBox_LayerToEdit):
-            self.MsgBar.pushMessage("Thematic layer to edit is not valid", level=Qgis.Warning, duration=5)
+            self.MsgBar.pushMessage("Thematic layer to edit is not valid", level=Qgis.Warning, duration=10)
             self.unset_thematic_layer_to_edit()
             return
         # show warning for layer to edit different to tif format
@@ -831,7 +831,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # check if thematic layer to edit has data type as integer or byte
         if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
             self.MsgBar.pushMessage("Thematic layer to edit must be byte or integer as data type",
-                                    level=Qgis.Warning, duration=5)
+                                    level=Qgis.Warning, duration=10)
             self.unset_thematic_layer_to_edit()
             return
 
@@ -890,12 +890,12 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         self.QCBox_band_LayerToEdit.setCurrentIndex(band_idx)
                     nodata = None
                     self.MsgBar.pushMessage(
-                        "The NoData value for the thematic layer '{}' was successfully unset".format(layer.name()),
-                        level=Qgis.Success, duration=5)
+                        "DONE: The NoData value for the thematic layer '{}' was successfully unset".format(layer.name()),
+                        level=Qgis.Success, duration=10)
                 else:
                     self.MsgBar.pushMessage(
                         "It was not possible to unset the NoData value for the thematic layer '{}'".format(layer.name()),
-                        level=Qgis.Critical, duration=5)
+                        level=Qgis.Critical, duration=20)
                     return
             elif msgBox.clickedButton() != hide_button:
                 # cancel action
@@ -1174,8 +1174,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if reply == QMessageBox.Apply:
             if LayerToEdit.current.edit_whole_image() is not False:
                 self.MsgBar.pushMessage(
-                    "Changes in recode pixels table were successfully applied to the whole thematic file",
-                    level=Qgis.Success, duration=5)
+                    "DONE: Changes in recode pixels table were successfully applied to the whole thematic file",
+                    level=Qgis.Success, duration=10)
 
     @pyqtSlot()
     def apply_from_thematic_classes_dialog(self):
@@ -1183,14 +1183,14 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if not LayerToEdit.current.old_new_value:
             self.MsgBar.pushMessage(
                 "There are no changes to apply in the recode pixel table. Please set new pixel values first",
-                level=Qgis.Warning, duration=5)
+                level=Qgis.Warning, duration=10)
             return
 
         self.apply_from_thematic_classes.setup_gui()
         if self.apply_from_thematic_classes.exec_():
             self.MsgBar.pushMessage(
-                "Changes in recode pixels table were successfully applied using thematic file classes",
-                level=Qgis.Success, duration=5)
+                "DONE: Changes in recode pixels table were successfully applied using thematic file classes",
+                level=Qgis.Success, duration=10)
 
     @pyqtSlot()
     def file_dialog_save_thrase_config(self):
@@ -1211,8 +1211,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             output_file += ".yaml"
 
         LayerToEdit.current.save_config(output_file)
-        self.MsgBar.pushMessage("ThRasE", "Configuration file saved successfully in '{}'".format(output_file),
-                                level=Qgis.Success, duration=5)
+        self.MsgBar.pushMessage("DONE: Configuration file saved successfully in '{}'".format(output_file),
+                                level=Qgis.Success, duration=10)
 
     @pyqtSlot(bool)
     def toggle_ccd_plugin_widget(self, checked):

@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -143,11 +143,11 @@ class RegistryWidget(QWidget, FORM_CLASS):
             # update the registry color
             LayerToEdit.current.registry.tiles_color = color
             self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
-            
+
             # update color for all existing groups without rebuilding
             for group in LayerToEdit.current.registry.groups:
                 group.tile_color = color
-            
+
             # update color of current group without rebuilding geometry
             LayerToEdit.current.registry.update_current_group_color()
             # recolor show-all overlays if visible
@@ -261,9 +261,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
         ok, msg, count = LayerToEdit.current.registry.export_pixel_logs(output_file)
 
         if ok:
-            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Exported {count} edited pixels to {output_file}"), level=Qgis.Success, duration=5)
+            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"DONE: Registry exported with {count} edited pixels to {output_file}"), level=Qgis.Success, duration=10)
         else:
-            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Export failed: {msg}"), level=Qgis.Critical, duration=10)
+            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Export failed: {msg}"), level=Qgis.Critical, duration=20)
 
     @pyqtSlot()
     def delete_registry(self):
@@ -285,4 +285,4 @@ class RegistryWidget(QWidget, FORM_CLASS):
         LayerToEdit.current.pixel_log_store = {}
         LayerToEdit.current.registry.delete()
         self.set_empty_state()
-        ThRasE.dialog.MsgBar.pushMessage(self.tr("Registry cleared"), level=Qgis.Success, duration=5)
+        ThRasE.dialog.MsgBar.pushMessage(self.tr("DONE: Registry cleared"), level=Qgis.Success, duration=10)

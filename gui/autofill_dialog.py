@@ -59,7 +59,7 @@ class AutoFill(QDialog, FORM_CLASS):
             eval(condition_to_evaluate)
             return True
         except Exception:
-            self.MsgBar.pushMessage(condition.replace('<', '＜').replace('>', '＞'), "Invalid condition", level=Qgis.Warning, duration=5)
+            self.MsgBar.pushMessage(condition, "Invalid condition", level=Qgis.Warning, duration=10)
             return False
 
     def check_value(self, value):
@@ -70,7 +70,7 @@ class AutoFill(QDialog, FORM_CLASS):
             eval(value_to_evaluate)
             return True
         except Exception:
-            self.MsgBar.pushMessage(value, "Invalid value", level=Qgis.Warning, duration=5)
+            self.MsgBar.pushMessage(value, "Invalid value", level=Qgis.Warning, duration=10)
             return False
 
     def apply_autofill(self):
@@ -115,4 +115,3 @@ class AutoFill(QDialog, FORM_CLASS):
 
         ThRasE.dialog.set_recode_pixel_table()
         ThRasE.dialog.update_recode_pixel_table()
-

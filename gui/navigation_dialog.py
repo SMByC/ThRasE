@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -256,7 +256,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         if self.QCBox_BuildNavType.currentText() == "AOIs":
             if not self.aoi_drawn:
-                self.MsgBar.pushMessage("Navigation building failed: no polygons were drawn", level=Qgis.Warning, duration=5)
+                self.MsgBar.pushMessage("Navigation building failed: no polygons were drawn", level=Qgis.Warning, duration=10)
                 return
             aois = [aoi.asGeometry() for aoi in self.aoi_drawn]
             # build navigation
@@ -265,7 +265,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning, duration=5)
+                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning, duration=10)
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
@@ -279,7 +279,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "points":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.Warning, duration=5)
+                self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.Warning, duration=10)
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as points
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
@@ -294,7 +294,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "centroid of polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning, duration=5)
+                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning, duration=10)
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
@@ -329,7 +329,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.layer_to_edit.navigation.is_valid = False
             self.DeleteNavigation.setEnabled(False)
             ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
-            self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical, duration=5)
+            self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical, duration=20)
 
     @pyqtSlot(int)
     def change_tile_from_slider(self, idx_tile):
