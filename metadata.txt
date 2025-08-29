@@ -3,7 +3,7 @@ name=ThRasE
 description=A powerful and flexible Thematic Raster Editor QGIS plugin with an additional navigation tool to ensure systematic layer inspection
 about=ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table to modify multiple classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. The plugin also features a navigation tool to facilitate systematic layer inspection.
 
-version=25.6
+version=25.8
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 
@@ -15,20 +15,36 @@ tracker=https://github.com/SMByC/ThRasE/issues
 repository=https://github.com/SMByC/ThRasE
 
 changelog=
-    25.6:
-    - Integrating the Continuous Change Detection (CCD) plugin inside the ThRasE plugin. CCD helps to analyze the trends and breakpoints of change of the samples over multi-year, using Landsat and Sentinel throught Google Earth Engine.
-    - Refactoring the UI setting up the active layers and edition tools configuration buttons in the main dialog
-    - Refactor navigation tool handling in the main dialog
-    - New feature to set the maximum number of layer rows that can be displayed and overlaid per view
-    - Add the nodata value in black within the new symbology when nodata is unsetted and is not present in the symbology
-    - Several icons improvements and fixes
-    - Improve many tooltips, messages, text, descriptions and docs
-    - Enhance map coordinate text to include projection/CRS information
-    - Remove limits on undo/redo actions. After some testing these historical undo/redo actions, they don't consume much memory, so there's no reason to set limits on this ThRasE feature.
-    - ThRasE now will save and restore relative paths from the YAML file if the layers are in the same directory or subdirectory tree as the YAML file, making it a portable and shareable project.
-    - Update the save dialog for the ThRasE configuration YAML file, set the default extension as .yaml
-    - Handle locale initialization to fix some issues for some edge cases loading the plugin
-    - Other minor fixes and improvements
+    25.8:
+    - Implement the registry tool widget for pixel modification tracking to review pixel changes over time
+    - Implement the button to export all registered modified pixels to a vector file, where each feature is a square polygon representing the pixel modified with the attributes: old_value, new_value, edit_date
+    - Implement saving and restoring of pixel logs and registry configuration and state from/to Thrase yaml file
+    - Add optional registry recording changes in the thematic class global editing tool
+    - Refactored the process for storing editing events and edited pixels using the PixelLog and EditLog classes, registering unique pixel edits by time and improving the overall editing workflow. Implemented QGIS’s geometry engine to optimize and improve performance of contains operations for polygon and freehand editing tools.
+    - Add auto-clear functionality for drawing tools
+    - Enhance layout or multiples view widgets with vertical and horizontal separators between them
+    - Refactor edit logging to use per-view history of edit actions for pixel, line, polygon, and freehand tools
+    - Add enable/disable functionality for the pixel change registry
+    - Only use GDAL for editing the whole-image function and catch any error in the process
+    - Set undo/redo buttons with a delay for pixel, line, polygon, and freehand to avoid issues in processing undo/redo actions for fast clicks
+    - Add the functionality to delete the entire pixel change registry
+    - Update navigation tiles color on color change without rebuild navigation
+    - Block wheel events on all QComboBoxes in Thrase dialog to prevent unwanted changes to selected items
+    - Fixing some issues in restoring configuration settings
+    - Disable and enable the registry button and widget based on layer selection
+    - Remove borders and adjust the layout margins of the CCD plugin for improvement integration
+    - Improve caching hash value in Pixel class
+    - Add group ID for pixel edits to track edit sessions
+    - Adjust edited pixels status messages
+    - Enable/disable editing toolbars if recode pixel table is empty
+    - Store/restore pixel tolerance handling and registry for current editing layer
+    - Set pixel tolerance for comparison based on pixel size
+    - Another rename related variables and methods
+    - Refactor typos in functions, variables, files names
+    - Avoid RuntimeError in edge cases with deleted plugin objects
+    - Improving and adjusting warning and error bar messages
+    - Minor UI and others
+    - Refine some icons
     - All commits in: https://github.com/SMByC/ThRasE/commits
 
 tags=raster,thematic,categorical,edit,editing,reclassification,navigation,inspection
