@@ -409,8 +409,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                     else:
                         view_name = yaml_view_widget.get("view_name") or view_widget.id
                         self.MsgBar.pushMessage(
-                                "Could not load layer \"{layer_name}\" in view {view_name}: "
-                                "file \"{layer_path}\" does not exist".format(layer_name=layer_name, view_name=view_name,
+                                "Could not load the layer \"{layer_name}\" in the view {view_name}: "
+                                "no such file \"{layer_path}\"".format(layer_name=layer_name, view_name=view_name,
                                                                    layer_path=layer_path),
                                 level=Qgis.Warning, duration=-1)
                         continue

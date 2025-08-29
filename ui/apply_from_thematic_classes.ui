@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>698</width>
-    <height>397</height>
+    <width>681</width>
+    <height>504</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -185,8 +185,8 @@
       <item>
        <widget class="RenderWidget" name="render_widget" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-          <horstretch>0</horstretch>
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>4</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
@@ -201,18 +201,6 @@
       </item>
       <item>
        <widget class="QWidget" name="TableBlock" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>360</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>360</width>
-          <height>16777215</height>
-         </size>
-        </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
           <number>4</number>
@@ -243,7 +231,27 @@
           </widget>
          </item>
          <item>
-          <widget class="QTableWidget" name="PixelTable"/>
+          <widget class="QTableWidget" name="PixelTable">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="RecordChangesInRegistry">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the changes that will be applied here to the ThRasE registry (for tracking, inspection, or export).&lt;/p&gt;&lt;p&gt;Note: This may slightly increase processing time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Record the changes in the registry</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_2" native="true"/>
          </item>
          <item>
           <widget class="QDialogButtonBox" name="DialogButtons">
@@ -267,15 +275,15 @@
    <header>qgsmaplayercombobox.h</header>
   </customwidget>
   <customwidget>
-   <class>RenderWidget</class>
-   <extends>QWidget</extends>
-   <header>ThRasE.gui.render_widget</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>QgsMessageBar</class>
    <extends>QFrame</extends>
    <header>qgis.gui</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RenderWidget</class>
+   <extends>QWidget</extends>
+   <header>ThRasE.gui.render_widget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -196,7 +196,7 @@ class LayerToEdit(object):
         return True if self.bounds[0] <= pixel.x() <= self.bounds[2] \
                        and self.bounds[1] <= pixel.y() <= self.bounds[3] else False
 
-    def edit_pixel(self, pixel, new_value=None, group_id=None):
+    def edit_pixel(self, pixel, new_value=None, group_id=None, store=None):
         if new_value is None:
             old_value, new_value = self.get_old_and_new_pixel_values(pixel)
             if new_value is None:
@@ -210,7 +210,7 @@ class LayerToEdit(object):
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
         if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
-            return PixelLog(pixel, old_value, new_value, group_id, store=self.registry.enabled)
+            return PixelLog(pixel, old_value, new_value, group_id, store=self.registry.enabled if store is None else store)
 
     @wait_process
     @edit_layer

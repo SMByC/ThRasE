@@ -81,6 +81,8 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         # for select the classes
         self.PixelTable.itemClicked.connect(self.table_item_clicked)
         # apply
+        try: self.DialogButtons.button(QDialogButtonBox.Apply).clicked.disconnect()
+        except TypeError: pass
         self.DialogButtons.button(QDialogButtonBox.Apply).clicked.connect(lambda: self.apply())
 
     @pyqtSlot()
@@ -224,10 +226,6 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             # adjust size of Table
             self.PixelTable.resizeColumnsToContents()
             self.PixelTable.resizeRowsToContents()
-            # adjust the editor block based on table content
-            table_width = self.PixelTable.horizontalHeader().length() + 40
-            self.TableBlock.setMaximumWidth(table_width)
-            self.TableBlock.setMinimumWidth(table_width)
 
     @pyqtSlot(QTableWidgetItem)
     def table_item_clicked(self, table_item):
@@ -253,6 +251,9 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
     @edit_layer
     def apply(self):
         pixel_table = self.PixelTable
+        if pixel_table.rowCount() == 0:
+            self.MsgBar.pushMessage("Error: pixel table for class selection is empty", level=Qgis.Warning, duration=10)
+            return
         classes_selected = [int(pixel_table.item(row_idx, 1).text()) for row_idx in range(len(self.pixel_classes))
                             if pixel_table.item(row_idx, 2).checkState() == 2]
 
@@ -291,7 +292,8 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
         # edit all pixels inside the classes selected based on the recode pixel table
         group_id = uuid.uuid4()
-        edit_status = [LayerToEdit.current.edit_pixel(pixel, group_id=group_id) for pixel in pixels_to_process]
+        record_changes = self.RecordChangesInRegistry.isChecked()
+        edit_status = [LayerToEdit.current.edit_pixel(pixel, group_id=group_id, store=record_changes) for pixel in pixels_to_process]
         if edit_status:
             if hasattr(LayerToEdit.current.qgs_layer, 'setCacheImage'):
                 LayerToEdit.current.qgs_layer.setCacheImage(None)
