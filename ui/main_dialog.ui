@@ -1372,7 +1372,7 @@ Note: For better performance, close the registry during active editing</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all ThRasE configurations and states to a file (.yaml) for later restoration. This includes:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Pixel table with colors and values&lt;/li&gt;&lt;li&gt;layer toolbars and their opacity settings&lt;/li&gt;&lt;li&gt;View configurations and layout&lt;/li&gt;&lt;li&gt;Navigation settings and current tile position&lt;/li&gt;&lt;li&gt;Current map extent and position&lt;/li&gt;&lt;li&gt;Dialog size and appearance&lt;/li&gt;&lt;li&gt;Editing tool settings&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save all ThRasE configurations and states to a file (.yaml) for later restoration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Save state</string>
