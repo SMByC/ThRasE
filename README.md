@@ -2,15 +2,17 @@
 
 ![](docs/img/thrase.svg)
 
-ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table 
-to modify multiple classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing. 
-The plugin also features a navigation tool to facilitate systematic layer inspection.
+ThRasE is a powerful and flexible QGIS Python plugin for fast thematic raster editing. It utilizes a recode pixel table
+to modify multiple classes simultaneously using various tools, including pixels, lines, polygons, and freehand drawing.
+It includes a registry system that tracks all modifications made during editing sessions. The plugin also features a
+navigation tool to facilitate systematic layer inspection.
 
-The main purpose of the plugin is to ensure the quality of thematic maps throughout editing and reclassification 
-processes by enabling systematic visual inspection and comparison with reference data. However, multiple users and 
-projects have used the plugin for various purposes, such as: Recreating thematic maps from scratch, labeling images for 
-tasks such as semantic segmentation, creating training data for machine learning models, refining agricultural maps,
-updating urban planning maps, classifying and fixing land cover types.
+The main purpose of the plugin is to ensure the quality of thematic maps throughout editing and reclassification
+processes by providing modification tracking registry, systematic visual inspection tools, and comparison capabilities
+with reference data. However, multiple users and projects have used the plugin for various purposes, such as:
+Recreating thematic maps from scratch, labeling images for tasks such as semantic segmentation, creating training data
+for machine learning models, refining agricultural maps, updating urban planning maps, classifying and fixing land
+cover types.
 
 ![](docs/img/overview.webp)
 
@@ -31,7 +33,7 @@ The plugin homepage on plugins.qgis.org: [https://plugins.qgis.org/plugins/ThRas
 ThRasE was developed, designed, and implemented by the Group of Forest and Carbon Monitoring System (SMByC), operated by
 the Institute of Hydrology, Meteorology and Environmental Studies (IDEAM) - Colombia.
 
-Author and developer: *Xavier C. Llano* *<xavier.corredor.llano@gmail.com>*  
+Author and developer: *Xavier C. Llano* *<xavier.corredor.llano@gmail.com>*
 Theoretical support, testing, and product verification: SMByC-PDI group
 
 ## License
