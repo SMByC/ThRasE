@@ -1,0 +1,6 @@
+# Test dependencies for ThRasE
+pytest
+pytest-qgis
+PyYAML
+
+
