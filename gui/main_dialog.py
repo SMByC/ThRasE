@@ -44,6 +44,7 @@ from ThRasE.core.editing import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.autofill_dialog import AutoFill
+from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer, \
@@ -471,6 +472,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
         # navigation
         if yaml_config["navigation"]["type"] != "free":
+            if LayerToEdit.current.navigation_dialog is None:
+                LayerToEdit.current.navigation_dialog = NavigationDialog(layer_to_edit=LayerToEdit.current)
+
             # TODO delete after some time, compatibility old yaml file
             if yaml_config["navigation"]["type"] == "by tiles throughout the thematic file":
                 yaml_config["navigation"]["type"] = "thematic file"
@@ -651,6 +655,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             return
 
         if checked:
+            if LayerToEdit.current.navigation_dialog is None:
+                LayerToEdit.current.navigation_dialog = NavigationDialog(layer_to_edit=LayerToEdit.current)
+
             self.NavigationBlockWidget.setVisible(True)
             if LayerToEdit.current.navigation.is_valid:
                 LayerToEdit.current.navigation.current_tile.show()

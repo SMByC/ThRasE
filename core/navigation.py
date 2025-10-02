@@ -261,12 +261,14 @@ class Navigation(object):
 
         self.clear(rbs_in="main_dialog")
         self.clear(rbs_in="nav_dialog")
-        if LayerToEdit.current.navigation_dialog.highlight_tile:
+        if LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.highlight_tile:
             LayerToEdit.current.navigation_dialog.highlight_tile.reset(QgsWkbTypes.PolygonGeometry)
         self.is_valid = False
         self.current_tile = None
         self.tiles = []
 
         # disable navigations widgets
-        LayerToEdit.current.navigation_dialog.SliderNavigationBlock.setEnabled(False)
-        ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
+        if LayerToEdit.current.navigation_dialog:
+            LayerToEdit.current.navigation_dialog.SliderNavigationBlock.setEnabled(False)
+        if hasattr(ThRasE.dialog, 'NavigationBlockWidgetControls'):
+            ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)

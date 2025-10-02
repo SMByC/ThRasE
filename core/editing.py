@@ -38,7 +38,6 @@ from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
-from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.core.registry import Registry
 from ThRasE.utils.others_utils import get_xml_style
 from ThRasE.utils.qgis_utils import get_file_path_of_layer, apply_symbology
@@ -90,7 +89,7 @@ class LayerToEdit(object):
         self.bounds = layer.extent().toRectF().getCoords()  # (xmin , ymin, xmax, ymax)
         # navigation
         self.navigation = Navigation(self)
-        self.navigation_dialog = NavigationDialog(layer_to_edit=self)
+        self.navigation_dialog = None  # Created only when navigation is explicitly enabled
         # store pixels: value, color, new_value, on/off
         #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool}, ...]
         self.pixels_backup = None  # backup for save the original values
@@ -488,7 +487,7 @@ class LayerToEdit(object):
         # navigation
         data["navigation"] = {}
 
-        if not ThRasE.dialog.QPBtn_EnableNavigation.isChecked() or not self.navigation.is_valid:
+        if self.navigation_dialog is None or not ThRasE.dialog.QPBtn_EnableNavigation.isChecked() or not self.navigation.is_valid:
             data["navigation"]["type"] = "free"
         else:
             data["navigation"]["type"] = self.navigation_dialog.QCBox_BuildNavType.currentText()
