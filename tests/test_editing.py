@@ -29,7 +29,8 @@ from ThRasE.utils.qgis_utils import load_layer
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 
 
-@pytest.mark.usefixtures("thrase_dialog_stub")
+
+@pytest.mark.usefixtures("plugin", "thrase_dialog")
 class TestEditingTools:
     def test_line_edit(self, tmp_path, load_yaml_mapping):
         # original source tif

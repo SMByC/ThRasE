@@ -7,8 +7,7 @@ from qgis.testing import start_app
 
 # Use pytest-qgis to bootstrap a QGIS app and iface
 pytest_plugins = ("pytest_qgis",)
-
-# Expose tests data dir as in AcATaMa
+# Expose tests data dir
 pytest.tests_data_dir = Path(__file__).parent.resolve() / "data"
 
 if os.environ.get("IS_DOCKER_CONTAINER") and os.environ["IS_DOCKER_CONTAINER"].lower()[
@@ -59,18 +58,34 @@ class DummyDialog:
 
 
 @pytest.fixture
-def thrase_dialog_stub(monkeypatch):
-    """Install a lightweight stub as ThRasE.dialog for headless tests"""
-    from ThRasE.thrase import ThRasE as _ThRasE
-    _ThRasE.dialog = DummyDialog()
-    yield _ThRasE.dialog
-    # cleanup tmp dir produced by any processing
+def plugin(pytestconfig, qgis_iface, qgis_parent, qgis_new_project):
+    """Initialize and return the plugin instance using pytest-qgis fixtures.
+
+    The plugin GUI is registered but we avoid running modal dialogs in tests.
+    """
+    from ThRasE import classFactory
+    plugin = classFactory(qgis_iface)
+    plugin.initGui()
+    yield plugin
     try:
-        if getattr(_ThRasE, "tmp_dir", None) and os.path.isdir(_ThRasE.tmp_dir):
-            shutil.rmtree(_ThRasE.tmp_dir, ignore_errors=True)
+        plugin.removes_temporary_files()
     except Exception:
         pass
-    _ThRasE.dialog = None
+
+
+@pytest.fixture
+def thrase_dialog(plugin):
+    """Provide a lightweight `ThRasE.dialog` stub for headless tests.
+
+    Many core functions expect `ThRasE.dialog` to exist. We install a minimal
+    object satisfying the methods/attributes touched by tests.
+    """
+    _ThRasE = plugin.__class__
+    _ThRasE.dialog = DummyDialog()
+    try:
+        yield _ThRasE.dialog
+    finally:
+        _ThRasE.dialog = None
 
 
 @pytest.fixture
