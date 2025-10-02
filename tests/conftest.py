@@ -3,12 +3,22 @@ import shutil
 from pathlib import Path
 import pytest
 
+from qgis.testing import start_app
+
 # Use pytest-qgis to bootstrap a QGIS app and iface
 pytest_plugins = ("pytest_qgis",)
 
 # Expose tests data dir as in AcATaMa
 pytest.tests_data_dir = Path(__file__).parent.resolve() / "data"
 
+if os.environ.get("IS_DOCKER_CONTAINER") and os.environ["IS_DOCKER_CONTAINER"].lower()[
+    0
+] in ["t", "y", "1"]:
+    # when running in a docker container, we use the start_app provided by qgis rather
+    # than that of pytest-qgis. pytest-qgis does not clean up the application properly
+    # and results in a seg-fault
+    print("RUNNING IN DOCKER CONTAINER")
+    start_app()
 
 class _MsgBar:
     def pushMessage(self, *args, **kwargs):
