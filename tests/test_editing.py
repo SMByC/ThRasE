@@ -23,6 +23,7 @@ import numpy as np
 from osgeo import gdal
 
 from qgis.PyQt.QtCore import Qt
+from qgis.core import QgsProject
 
 from ThRasE.core.editing import LayerToEdit
 from ThRasE.utils.qgis_utils import load_layer
@@ -32,6 +33,15 @@ from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 
 @pytest.mark.usefixtures("plugin", "thrase_dialog")
 class TestEditingTools:
+    @pytest.fixture(autouse=True)
+    def cleanup_after_test(self):
+        """Ensure proper cleanup of Qt objects and QGIS layers after each test."""
+        yield
+        # Reset LayerToEdit.current to avoid dangling references
+        LayerToEdit.current = None
+        # Remove all layers from the QGIS project to prevent memory issues
+        QgsProject.instance().removeAllMapLayers()
+    
     def test_line_edit(self, tmp_path, load_yaml_mapping):
         # original source tif
         src = pytest.tests_data_dir / "test_data.tif"
@@ -296,37 +306,42 @@ class TestEditingTools:
         # Create dialog and configure
         dialog = ApplyFromThematicClasses(parent=qgis_parent)
         
-        # Mock MsgBar for the dialog
-        class MockMsgBar:
-            def pushMessage(self, *args, **kwargs):
-                pass
-        dialog.MsgBar = MockMsgBar()
-        
-        dialog.setup_gui()
-        
-        # Set the thematic file
-        dialog.QCBox_ThematicFile.setLayer(thematic_classes_layer)
-        
-        # Set band to 1
-        dialog.QCBox_band_ThematicFile.setCurrentText("1")
-        
-        # Select classes 42 and 46 (checkState: 0=Unchecked, 2=Checked)
-        for row_idx in range(dialog.PixelTable.rowCount()):
-            class_value = int(dialog.PixelTable.item(row_idx, 1).text())
-            if class_value in [42, 46]:
-                dialog.PixelTable.item(row_idx, 2).setCheckState(2)  # Qt.Checked = 2
-        
-        # Disable recording changes in registry for testing
-        dialog.RecordChangesInRegistry.setChecked(False)
-        
-        # Apply changes
-        dialog.apply()
-        
-        # Reload the layer to ensure we're reading the updated file
-        layer_data_to_edit.reload()
+        try:
+            # Mock MsgBar for the dialog
+            class MockMsgBar:
+                def pushMessage(self, *args, **kwargs):
+                    pass
+            dialog.MsgBar = MockMsgBar()
+            
+            dialog.setup_gui()
+            
+            # Set the thematic file
+            dialog.QCBox_ThematicFile.setLayer(thematic_classes_layer)
+            
+            # Set band to 1
+            dialog.QCBox_band_ThematicFile.setCurrentText("1")
+            
+            # Select classes 42 and 46 (checkState: 0=Unchecked, 2=Checked)
+            for row_idx in range(dialog.PixelTable.rowCount()):
+                class_value = int(dialog.PixelTable.item(row_idx, 1).text())
+                if class_value in [42, 46]:
+                    dialog.PixelTable.item(row_idx, 2).setCheckState(2)  # Qt.Checked = 2
+            
+            # Disable recording changes in registry for testing
+            dialog.RecordChangesInRegistry.setChecked(False)
+            
+            # Apply changes
+            dialog.apply()
+            
+            # Reload the layer to ensure we're reading the updated file
+            layer_data_to_edit.reload()
 
-        # Finally, compare the two rasters by reading band arrays with GDAL
-        _assert_rasters_equal(saved_test_data, layer_data_to_edit, band=1)
+            # Finally, compare the two rasters by reading band arrays with GDAL
+            _assert_rasters_equal(saved_test_data, layer_data_to_edit, band=1)
+        finally:
+            # Properly cleanup Qt dialog to avoid double-free errors
+            dialog.close()
+            dialog.deleteLater()
 
 
 def _assert_rasters_equal(layer_a, layer_b, band=1):
