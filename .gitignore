@@ -1,3 +1,35 @@
+# Python
 **/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
 *.zip
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+.zed/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# QGIS
 *.db
+
+# Virtual environments
+venv/
+.venv/
+
+# Temporary files
+*.log
+*.tmp

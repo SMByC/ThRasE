@@ -1,3 +1,8 @@
 [tool.pyright]
 extraPaths = [".."]  # include project folder
 # venv = ".venv"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportUnknownMemberType = "none"
+reportMissingTypeStubs = false
+reportMissingParameterType = false
