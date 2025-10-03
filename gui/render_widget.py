@@ -70,7 +70,9 @@ class RenderWidget(QWidget):
                 # use the crs set in Qgis
                 self.canvas.setDestinationCrs(iface.mapCanvas().mapSettings().destinationCrs())
             # get all valid activated layers
-            valid_layers = [layer_toolbar.layer for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
+            valid_layers = [layer_toolbar.layer for layer_toolbar in self.layer_toolbars
+                           if layer_toolbar.is_active and layer_toolbar.layer is not None
+                           and layer_toolbar.layer.isValid()]
             if len(valid_layers) == 0:
                 self.canvas.setLayers([])
                 self.refresh()

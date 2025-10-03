@@ -633,6 +633,18 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 # don't close
                 event.ignore()
                 return
+
+        # disconnect signals for combo boxes
+        try:
+            self.QCBox_LayerToEdit.layerChanged.disconnect()
+            self.QCBox_band_LayerToEdit.currentIndexChanged.disconnect()
+            # self.QCBox_RenderFile.layerChanged
+            for view_widget in ThRasEDialog.view_widgets:
+                for layer_toolbar in view_widget.layer_toolbars:
+                    layer_toolbar.QCBox_RenderFile.layerChanged.disconnect()
+        except Exception:
+            pass
+
         # close
         self.closingPlugin.emit()
         event.accept()
