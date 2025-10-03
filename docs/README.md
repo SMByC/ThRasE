@@ -50,7 +50,7 @@ ThRasE accepts two types of formats, depending on the pixel-value/color associat
    embedded in its metadata. You can view this using `gdalinfo` or in the `Symbology` tab in layer `Properties`, where
    it will be shown as `Paletted`.
 
-You can download an example of a valid thematic raster [here](https://raw.githubusercontent.com/SMByC/ThRasE/master/docs/thematic_example.tif).
+You can download an example of a valid thematic raster [here](https://raw.githubusercontent.com/SMByC/ThRasE/main/docs/thematic_example.tif).
 
 ## View Configuration and Layer Toolbar
 
