@@ -1,0 +1,23 @@
+format: jb-book
+root: introduction
+parts:
+  - caption: ''
+    chapters:
+      - file: thematic_requirements
+  - caption: 'Core Features'
+    chapters:
+      - file: multi_view
+      - file: editing_tools
+      - file: registry
+      - file: navigation
+      - file: session_persistence
+  - caption: 'Other Features'
+    chapters:
+      - file: global_editing
+      - file: ccd_integration
+  - caption: 'About'
+    chapters:
+      - file: about
+      - url: https://smbyc.github.io/ThRasE/paper.pdf
+        title: Paper pdf
+      - file: references
