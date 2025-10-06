@@ -1,0 +1,3 @@
+# Documentation build dependencies for ThRasE
+jupyter-book
+jupytext
