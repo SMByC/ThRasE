@@ -47,7 +47,7 @@ changelog=
     - Refine some icons
     - All commits in: https://github.com/SMByC/ThRasE/commits
 
-tags=raster,thematic,categorical,edit,editing,reclassification,navigation,inspection
+tags=raster,thematic,categorical,edit,editing,reclassification,navigation,inspection,quality
 
 external_deps=
 

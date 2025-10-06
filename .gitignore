@@ -10,6 +10,7 @@
 *.egg-info/
 dist/
 build/
+docs/_build/
 
 # Testing
 .pytest_cache/
