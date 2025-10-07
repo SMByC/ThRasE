@@ -20,4 +20,5 @@ parts:
       - file: about
       - url: https://smbyc.github.io/ThRasE/paper.pdf
         title: Paper pdf
+      - file: example
       - file: references
