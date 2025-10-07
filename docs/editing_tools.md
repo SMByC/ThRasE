@@ -1,7 +1,7 @@
 # Editing and Reclassification Tools
 
 ```{image} images/editing.webp
-:width: 85%
+:width: 90%
 :align: center
 ```
 <br>
