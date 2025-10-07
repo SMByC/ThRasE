@@ -1,7 +1,5 @@
 <p align="center"><img src="docs/images/thrase.svg"></p>
-<p align="center">
-    <span style="font-size:2.2em; font-weight:bold;">ThRasE</span>
-</p>
+<h1 align="center">ThRasE</h1>
 <p align="center">
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
 <a href="https://plugins.qgis.org/plugins/ThRasE/"><img src="https://img.shields.io/badge/QGIS%20Plugin-Available-brightgreen.svg" alt="QGIS Plugin"></a>
