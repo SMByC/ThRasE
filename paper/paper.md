@@ -43,25 +43,25 @@ ThRasE offers a suite of editing tools, a modification tracking registry, system
 
 ThRasE is designed to prioritize visual comparison. To that end, analysts can arrange multiple synchronized panels in a grid, with each panel blending up to three layers (for example, the target thematic raster, a reference product, and ancillary context) with independent opacity controls. Creating several panels with different layer combinations and opacity settings enables overlap inspection and side-by-side comparison, making it easier to spot boundary errors, edge artifacts, and local inconsistencies that are often missed when toggling a single map. This layout shortens the loop between detection and correction during post-classification editing and quality assurance.
 
-![Multi-view panels and their layer configuration toolbar with controls for visual comparison.\label{fig:multiview}](../docs/images/layer_toolbar.webp){ width=80% }
+![Multi-view panels and their layer configuration toolbar with controls for visual comparison.\label{fig:multiview}](images/layer_toolbar.png){ width=80% }
 
 ## Editing and Reclassification Tools
 
 ThRasE provides pixel-level editing and bulk class recoding for fast, large-scale corrections. The Recode Pixel Table lets analysts define class-to-class mappings and apply them across the thematic map, enabling multiple classes to be updated in a single operation. Each view offers an editing toolset with options for pixel, line, polygon, and freehand drawing, supported by independent undo and redo actions per tool and per view. Analysts can initiate edits from any panel while targeting the thematic map, preserving full visual context during correction and facilitating precise, context-aware refinements.
 
-![Editing toolbar featuring pixel, line, polygon, and freehand drawing tools.\label{fig:editing}](../docs/images/editing.webp){ width=80% }
+![Editing toolbar featuring pixel, line, polygon, and freehand drawing tools.\label{fig:editing}](images/editing.png){ width=80% }
 
 ## Modification Tracking System
 
 ThRasE includes a modification tracking system that records all edits to the thematic map during editing sessions. Every pixel change is recorded with its original value and timestamp, enabling a complete edit history and strong traceability for quality assurance. Modified areas can be highlighted on the canvas to provide immediate spatial feedback and help reveal patterns or missed regions during the editing process. By maintaining a comprehensive record of edits, the system supports quality assurance workflows where transparency and reproducibility are essential, allowing teams to verify corrections, trace decisions, and export change logs for documentation or peer review.
 
-![Modification tracking registry showing edit history with timestamps and visual highlighting of modified areas on the canvas.\label{fig:registry}](../docs/images/registry.webp){ width=80% }
+![Modification tracking registry showing edit history with timestamps and visual highlighting of modified areas on the canvas.\label{fig:registry}](images/registry.png){ width=80% }
 
 ## Systematic Inspection Navigator
 
 Systematic inspection is fundamental to quality assurance in thematic mapping. ThRasE provides a tile-based navigation tool that divides the area of interest within the thematic map into manageable units and sequences through tiles in a defined pattern to guarantee full spatial coverage. The navigation tool offers multiple configuration options, allowing teams to adapt their review strategy to data characteristics or geographic features. This structured approach transforms what could be an unstructured visual inspection into a methodical process, reducing the risk of missed areas and supporting complete spatial coverage during editing and quality control operations.
 
-![Tile-based navigation interface dividing the study area into manageable units for systematic inspection with configurable patterns.\label{fig:navigation}](../docs/images/navigation.webp){ width=80% }
+![Tile-based navigation interface dividing the study area into manageable units for systematic inspection with configurable patterns.\label{fig:navigation}](images/navigation.png){ width=80% }
 
 ## Session Persistence
 

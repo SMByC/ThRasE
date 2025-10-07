@@ -11,6 +11,7 @@
 dist/
 build/
 docs/_build/
+docs/images/originals/
 
 # Testing
 .pytest_cache/
