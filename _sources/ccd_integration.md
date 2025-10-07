@@ -1,7 +1,7 @@
 # CCD Plugin Integration
 
 ```{image} images/ccd_plugin.webp
-:width: 70%
+:width: 90%
 :align: center
 ```
 <br>

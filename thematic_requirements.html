@@ -364,15 +364,16 @@ The thematic raster file to be edited must satisfy the following criteria:
 <section id="thematic-with-paletted-or-singleband-pseudocolor">
 <h3>1. Thematic with Paletted or Singleband Pseudocolor<a class="headerlink" href="#thematic-with-paletted-or-singleband-pseudocolor" title="Link to this heading">#</a></h3>
 <p>Use any raster (byte or integer data type) with a specific style loaded from a QGIS project or QML file, or applied on the fly in QGIS.</p>
-<ul class="simple">
+<ul>
 <li><p><strong>Paletted/Unique values</strong> (recommended)</p></li>
-<li><p><strong>Singleband pseudocolor</strong> (using <code class="docutils literal notranslate"><span class="pre">Exact</span> <span class="pre">Interpolation</span></code>, <code class="docutils literal notranslate"><span class="pre">Equal</span> <span class="pre">Interval</span></code> mode, number of classes must match layer classes)</p></li>
-</ul>
+<li><p><strong>Singleband pseudocolor</strong> (using <code class="docutils literal notranslate"><span class="pre">Exact</span> <span class="pre">Interpolation</span></code>, <code class="docutils literal notranslate"><span class="pre">Equal</span> <span class="pre">Interval</span></code> mode, number of classes must match layer classes)</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>After configuring the style in QGIS, save it as a <code class="docutils literal notranslate"><span class="pre">.qml</span></code> style file by going to <code class="docutils literal notranslate"><span class="pre">Style</span></code> → <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">as</span> <span class="pre">Default</span></code>. Otherwise, you’ll lose the pixel-value/color association if you restart QGIS.</p>
 <p><strong>Alternative:</strong> Save all layer styles in a QGIS project.</p>
 </div>
+</li>
+</ul>
 </section>
 <section id="thematic-with-embedded-color-table">
 <h3>2. Thematic with Embedded Color Table<a class="headerlink" href="#thematic-with-embedded-color-table" title="Link to this heading">#</a></h3>

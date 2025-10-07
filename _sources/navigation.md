@@ -1,7 +1,7 @@
 # Systematic Inspection Navigator
 
 ```{image} images/navigation.webp
-:width: 85%
+:width: 90%
 :align: center
 ```
 <br>

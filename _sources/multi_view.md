@@ -1,7 +1,7 @@
 # Multi-View Configuration
 
 ```{image} images/layer_toolbar.webp
-:width: 85%
+:width: 90%
 :align: center
 ```
 <br>

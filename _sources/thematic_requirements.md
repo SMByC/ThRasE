@@ -19,11 +19,11 @@ Use any raster (byte or integer data type) with a specific style loaded from a Q
 - **Paletted/Unique values** (recommended)
 - **Singleband pseudocolor** (using `Exact Interpolation`, `Equal Interval` mode, number of classes must match layer classes)
 
-```{tip}
-After configuring the style in QGIS, save it as a `.qml` style file by going to `Style` → `Save as Default`. Otherwise, you'll lose the pixel-value/color association if you restart QGIS.
+  ```{tip}
+  After configuring the style in QGIS, save it as a `.qml` style file by going to `Style` → `Save as Default`. Otherwise, you'll lose the pixel-value/color association if you restart QGIS.
 
-**Alternative:** Save all layer styles in a QGIS project.
-```
+  **Alternative:** Save all layer styles in a QGIS project.
+  ```
 
 ### 2. Thematic with Embedded Color Table
 

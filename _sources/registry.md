@@ -1,7 +1,7 @@
 # Modification Tracking System
 
 ```{image} images/registry.webp
-:width: 80%
+:width: 90%
 :align: center
 ```
 <br>
@@ -14,7 +14,7 @@ ThRasE includes a modification tracking system that automatically records all ed
 - **Export capabilities** - save your registry to a vector file with all pixel modifications, including original and new pixel values, and timestamps
 
 ```{image} images/export_registry.webp
-:width: 85%
+:width: 90%
 :align: center
 ```
 <br>
