@@ -22,5 +22,5 @@ ThRasE is designed for anyone who needs to review, correct, or validate thematic
 
 - **Remote sensing analysts** working with land cover classifications who need to correct misclassifications using visual interpretation of satellite imagery
 - **GIS specialists** responsible for quality control of thematic products, ensuring that final maps meet accuracy requirements before publication or delivery
-- **Environmental monitoring teams** conducting systematic reviews of forest maps, wetland classifications, or other environmental datasets where accuracy is critical for decision-making
+- **Environmental monitoring teams** conducting systematic reviews of forest maps or other environmental datasets where accuracy is critical for decision-making
 - **Research teams** who need to manually refine classification results, annotate training data, or validate model outputs with expert knowledge
