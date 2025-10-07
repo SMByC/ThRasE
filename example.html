@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Modification Tracking System &#8212; ThRasE - Thematic Raster Editor</title>
+    <title>Example &#8212; ThRasE - Thematic Raster Editor</title>
   
   
   
@@ -57,13 +57,13 @@
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'registry';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'example';</script>
     <link rel="icon" href="_static/thrase.svg"/>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Systematic Inspection Navigator" href="navigation.html" />
-    <link rel="prev" title="Editing and Reclassification Tools" href="editing_tools.html" />
+    <link rel="next" title="References" href="references.html" />
+    <link rel="prev" title="About Us" href="about.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -185,10 +185,10 @@
 <li class="toctree-l1"><a class="reference internal" href="thematic_requirements.html">Thematic Raster Requirements</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Core Features</span></p>
-<ul class="current nav bd-sidenav">
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="multi_view.html">Multi-View Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="editing_tools.html">Editing and Reclassification Tools</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Modification Tracking System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registry.html">Modification Tracking System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="navigation.html">Systematic Inspection Navigator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="session_persistence.html">Session Persistence</a></li>
 </ul>
@@ -198,10 +198,10 @@
 <li class="toctree-l1"><a class="reference internal" href="ccd_integration.html">CCD Plugin Integration</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">About</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="about.html">About Us</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://smbyc.github.io/ThRasE/paper.pdf">Paper pdf</a></li>
-<li class="toctree-l1"><a class="reference internal" href="example.html">Example</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -274,7 +274,7 @@
       
       
       
-      <li><a href="https://github.com/SMByC/ThRasE/edit/main/docs/registry.md" target="_blank"
+      <li><a href="https://github.com/SMByC/ThRasE/edit/main/docs/example.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -322,7 +322,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Modification Tracking System</h1>
+    <h1>Example</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -336,32 +336,23 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="modification-tracking-system">
-<h1>Modification Tracking System<a class="headerlink" href="#modification-tracking-system" title="Link to this heading">#</a></h1>
-<a class="reference internal image-reference" href="_images/registry.webp"><img alt="_images/registry.webp" class="align-center" src="_images/registry.webp" style="width: 90%;" />
+  <section id="example">
+<h1>Example<a class="headerlink" href="#example" title="Link to this heading">#</a></h1>
+<a class="reference internal image-reference" href="_images/tinigua.webp"><img alt="_images/tinigua.webp" class="align-center" src="_images/tinigua.webp" style="width: 30%;" />
 </a>
-<br>
-ThRasE includes a modification tracking system that automatically records all edits to your thematic map during editing sessions.
-<br>
+<p>This example provides a sample dataset to demonstrate the capabilities of ThRasE using a demo of a scenario. The data covers the Tinigua National Natural Park in Colombia, an area with a high rate of deforestation, and showcases forest land change between 2019 and 2020.</p>
+<p>The thematic map includes the following classes:</p>
 <ul class="simple">
-<li><p><strong>Complete edit history</strong> - every pixel change is logged with its original value and timestamp, creating a complete edit history with strong traceability for quality assurance</p></li>
-<li><p><strong>Visual modifications</strong> - modified areas can be highlighted directly on the canvas, providing immediate spatial feedback and helping you identify patterns or regions you may have missed during editing</p></li>
-<li><p><strong>Timeline navigation</strong> - use the registry slider to navigate through different stages of your editing process</p></li>
-<li><p><strong>Export capabilities</strong> - save your registry to a vector file with all pixel modifications, including original and new pixel values, and timestamps</p></li>
+<li><p>Stable Forest (class 1)</p></li>
+<li><p>Non-Stable Forest (class 5)</p></li>
+<li><p>Deforestation (class 2)</p></li>
 </ul>
-<a class="reference internal image-reference" href="_images/export_registry.webp"><img alt="_images/export_registry.webp" class="align-center" src="_images/export_registry.webp" style="width: 90%;" />
-</a>
-<br>
-<blockquote>
-<div><p>This comprehensive record supports workflows where transparency and reproducibility are critical, allowing you to verify corrections, trace your decisions, and export change logs for documentation or review purposes.</p>
-</div></blockquote>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>Enable the highlight feature to visualize your editing progress across the map. This helps ensure you haven’t accidentally skipped areas or concentrated edits in one region while neglecting others.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>While the registry is enabled (by default), ThRasE will save the registry in the configuration file (YAML) and restore it when loaded. The registry can grow over time for large edits. If it makes ThRasE slow down, consider disabling the registry or using different editing sessions. You can restart the registry by clearing it.</p>
+<p>The example also includes mean composite maps for each year as a reference data.</p>
+<p><a class="reference external" href="https://github.com/SMByC/ThRasE/raw/refs/heads/main/docs/ThRasE%20Example.zip">Download the ThRasE Example ZIP file</a></p>
+<p>Unzip the file and load the ThRasE session file (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>) in the init ThRasE dialog.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>All files in this example are for demonstration purposes only and do not represent official/real data.</p>
 </div>
 </section>
 
@@ -396,20 +387,20 @@ ThRasE includes a modification tracking system that automatically records all ed
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="editing_tools.html"
+       href="about.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Editing and Reclassification Tools</p>
+        <p class="prev-next-title">About Us</p>
       </div>
     </a>
     <a class="right-next"
-       href="navigation.html"
+       href="references.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Systematic Inspection Navigator</p>
+        <p class="prev-next-title">References</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
