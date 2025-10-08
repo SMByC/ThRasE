@@ -1,9 +1,9 @@
 <p align="center"><img src="docs/images/thrase.svg"></p>
 <h1 align="center">ThRasE</h1>
 <p align="center">
-<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
 <a href="https://plugins.qgis.org/plugins/ThRasE/"><img src="https://img.shields.io/badge/QGIS%20Plugin-Available-brightgreen.svg" alt="QGIS Plugin"></a>
 <a href="https://github.com/SMByC/ThRasE/actions"><img src="https://github.com/SMByC/ThRasE/workflows/Tests/badge.svg" alt="Tests"></a>
+<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
 <br>
 <b>Documentation:</b> <a href="https://smbyc.github.io/ThRasE">https://smbyc.github.io/ThRasE</a><br>
 <b>Paper:</b> <a href="">soon</a>
