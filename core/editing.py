@@ -30,9 +30,9 @@ from osgeo import gdal
 from collections import OrderedDict
 import yaml
 try:
-    from yaml import CDumper as Dumper
+    from yaml import CSafeDumper as SafeDumper
 except ImportError:
-    from yaml import Dumper
+    from yaml import SafeDumper
 
 from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
 from qgis.PyQt.QtCore import Qt
@@ -416,9 +416,22 @@ class LayerToEdit(object):
         self.config_file = file_out
 
         def setup_yaml():
-            """Keep dump ordered with orderedDict"""
-            represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', list(data.items()))
-            yaml.add_representer(OrderedDict, represent_dict_order)
+            """
+            Return a dumper that preserves key order for mappings.
+            """
+
+            class OrderedDumper(SafeDumper):
+                """Custom dumper that keeps insertion order for dict-like objects."""
+                pass
+
+            def represent_ordered_mapping(dumper, data):
+                return dumper.represent_mapping(
+                    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                    list(data.items()))
+
+            OrderedDumper.add_representer(dict, represent_ordered_mapping)
+            OrderedDumper.add_representer(OrderedDict, represent_ordered_mapping)
+            return OrderedDumper
 
         def setup_path(_path):
             """
@@ -439,7 +452,7 @@ class LayerToEdit(object):
                 # If the paths cannot be related, return the original input path
                 return _path
 
-        setup_yaml()
+        dumper = setup_yaml()
 
         data = OrderedDict()
         # general settings
@@ -549,8 +562,8 @@ class LayerToEdit(object):
             data["ccd_plugin_config"] = get_plugin_config(ThRasE.dialog.ccd_plugin.id)
             data["ccd_plugin_opened"] = ThRasE.dialog.QPBtn_CCDPlugin.isChecked()
 
-        with open(file_out, 'w') as yaml_file:
-            yaml.dump(data, yaml_file, Dumper=Dumper)
+        with open(file_out, 'w', encoding='utf-8') as yaml_file:
+            yaml.dump(data, yaml_file, Dumper=dumper, default_flow_style=False, sort_keys=False)
 
 
 class Pixel:

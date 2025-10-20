@@ -27,9 +27,9 @@ from copy import deepcopy
 from pathlib import Path
 import yaml
 try:
-    from yaml import CLoader as Loader
+    from yaml import CSafeLoader as SafeLoader
 except ImportError:
-    from yaml import Loader
+    from yaml import SafeLoader
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer, QEvent
@@ -49,7 +49,7 @@ from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer, \
     add_color_value_to_symbology
-from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process, open_file
+from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -303,16 +303,20 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     def get_yaml_config(self, yaml_file_path):
         if yaml_file_path != '' and os.path.isfile(yaml_file_path) and os.access(yaml_file_path, os.R_OK):
-            # load classification from yaml file
-            with open(yaml_file_path, 'r') as yaml_file:
-                try:
-                    yaml_config = yaml.load(yaml_file, Loader=Loader)
+            try:
+                with open(yaml_file_path, 'r', encoding='utf-8') as yaml_file:
+                    yaml_config = yaml.load(yaml_file, Loader=SafeLoader)
                     return yaml_config
-                except Exception as err:
-                    msg = "Error while read the yaml file ThRasE configuration:\n\n{}".format(err)
-                    QMessageBox.critical(self.init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
-                    self.close()
-                    return False
+            except yaml.constructor.ConstructorError:
+                # Support legacy YAML files that store ordered mappings and tuples
+                with open(yaml_file_path, 'r', encoding='utf-8') as yaml_file:
+                    yaml_config = yaml.load(yaml_file, Loader=LegacyLoader)
+                    return yaml_config
+            except Exception as err:
+                msg = "Error while read the yaml file ThRasE configuration:\n\n{}".format(err)
+                QMessageBox.critical(self.init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.Ok)
+                self.close()
+                return False
         else:
             msg = "Opening the config ThRasE file:\n{}\n\nFile does not exist, or you do not " \
                   "have read access to the file".format(self.init_dialog.QgsFile_LoadConfigFile.filePath())
