@@ -367,9 +367,12 @@ class LayerToEdit(object):
         """Edit the whole image with the new values using gdal"""
         try:
             # read
-            ds_in = gdal.Open(self.file_path)
+            ds_in = gdal.Open(self.file_path, gdal.GA_ReadOnly)
+            if ds_in is None:
+                raise RuntimeError(f"Unable to open raster {self.file_path}")
             num_bands = ds_in.RasterCount
-            data_array = ds_in.GetRasterBand(self.band).ReadAsArray().astype(int)
+            src_band = ds_in.GetRasterBand(self.band)
+            data_array = src_band.ReadAsArray().astype(int)
             new_data_array = deepcopy(data_array)
 
             # apply changes
@@ -377,27 +380,116 @@ class LayerToEdit(object):
                 new_data_array[data_array == old_value] = new_value
             del data_array
 
+            def safe_call(method, *args):
+                try:
+                    method(*args)
+                except Exception:
+                    pass
+
+            def copy_band_metadata(src, dst):
+                nodata = src.GetNoDataValue()
+                if nodata is not None:
+                    safe_call(dst.SetNoDataValue, nodata)
+
+                color_table = src.GetRasterColorTable()
+                if color_table is not None:
+                    safe_call(dst.SetRasterColorTable, color_table.Clone())
+
+                category_names = src.GetCategoryNames()
+                if category_names:
+                    safe_call(dst.SetCategoryNames, category_names)
+
+                rat = src.GetDefaultRAT()
+                if rat is not None:
+                    safe_call(dst.SetDefaultRAT, rat.Clone())
+
+                metadata_domains = src.GetMetadataDomainList()
+                if not metadata_domains:
+                    metadata = src.GetMetadata()
+                    if metadata:
+                        safe_call(dst.SetMetadata, metadata)
+                else:
+                    for domain in metadata_domains:
+                        metadata = src.GetMetadata(domain)
+                        if metadata:
+                            safe_call(dst.SetMetadata, metadata, domain)
+
+                unit = src.GetUnitType()
+                if unit:
+                    safe_call(dst.SetUnitType, unit)
+
+                scale = src.GetScale()
+                if scale is not None:
+                    safe_call(dst.SetScale, scale)
+
+                offset = src.GetOffset()
+                if offset is not None:
+                    safe_call(dst.SetOffset, offset)
+
+                description = src.GetDescription()
+                if description:
+                    safe_call(dst.SetDescription, description)
+
+                safe_call(dst.SetColorInterpretation, src.GetColorInterpretation())
+
+            def copy_dataset_metadata(src, dst):
+                metadata_domains = src.GetMetadataDomainList()
+                if not metadata_domains:
+                    metadata = src.GetMetadata()
+                    if metadata:
+                        safe_call(dst.SetMetadata, metadata)
+                else:
+                    for domain in metadata_domains:
+                        metadata = src.GetMetadata(domain)
+                        if metadata:
+                            safe_call(dst.SetMetadata, metadata, domain)
+
+                description = src.GetDescription()
+                if description:
+                    safe_call(dst.SetDescription, description)
+
+                gcps = src.GetGCPs()
+                if gcps:
+                    safe_call(dst.SetGCPs, gcps, src.GetGCPProjection())
+
             # create file
             fn, ext = os.path.splitext(self.file_path)
             fn_out = fn + "_tmp" + ext
-            driver = gdal.GetDriverByName(ds_in.GetDriver().ShortName)
+            driver_name = ds_in.GetDriver().ShortName
+            driver = gdal.GetDriverByName(driver_name)
+            if driver is None:
+                raise RuntimeError(f"GDAL driver '{driver_name}' is not available")
+
             (x, y) = new_data_array.shape
-            ds_out = driver.Create(fn_out, y, x, num_bands, ds_in.GetRasterBand(self.band).DataType)
+            ds_out = None
+            create_copy_used = False
+            if driver.GetMetadataItem("DCAP_CREATECOPY") == "YES":
+                ds_out = driver.CreateCopy(fn_out, ds_in)
+                if ds_out is not None:
+                    create_copy_used = True
 
-            for b in range(1, num_bands + 1):
-                if b == self.band:
-                    ds_out.GetRasterBand(b).WriteArray(new_data_array)
-                else:
-                    ds_out.GetRasterBand(b).WriteArray(ds_in.GetRasterBand(b).ReadAsArray())
-                nodata = ds_in.GetRasterBand(b).GetNoDataValue()
-                if nodata is not None:
-                    ds_out.GetRasterBand(b).SetNoDataValue(nodata)
+            if ds_out is None:
+                ds_out = driver.Create(fn_out, y, x, num_bands, src_band.DataType)
+                if ds_out is None:
+                    raise RuntimeError(f"Failed to create output raster {fn_out}")
 
-            # set output geo info based on first input layer
+            src_band_i = dst_band_i = None
+            for band_index in range(1, num_bands + 1):
+                src_band_i = ds_in.GetRasterBand(band_index)
+                dst_band_i = ds_out.GetRasterBand(band_index)
+                if band_index == self.band:
+                    dst_band_i.WriteArray(new_data_array)
+                elif not create_copy_used:
+                    dst_band_i.WriteArray(src_band_i.ReadAsArray())
+                copy_band_metadata(src_band_i, dst_band_i)
+            del src_band_i, dst_band_i
+
             ds_out.SetGeoTransform(ds_in.GetGeoTransform())
             ds_out.SetProjection(ds_in.GetProjection())
+            copy_dataset_metadata(ds_in, ds_out)
 
-            del ds_in, ds_out, driver, new_data_array
+            ds_out.FlushCache()
+            del ds_out, driver, new_data_array, src_band, ds_in
             move(fn_out, self.file_path)
         except Exception as e:
             from ThRasE.thrase import ThRasE
