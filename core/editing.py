@@ -363,8 +363,14 @@ class LayerToEdit(object):
             return pixels_and_values
 
     @wait_process
-    def edit_whole_image(self):
+    def edit_whole_image(self, record_in_registry=False):
         """Edit the whole image with the new values using gdal"""
+        from ThRasE.thrase import ThRasE
+
+        edited_pixels_count = 0
+        row_indices = col_indices = None
+        old_values = new_values_changed = None
+
         try:
             # read
             ds_in = gdal.Open(self.file_path, gdal.GA_ReadOnly)
@@ -378,7 +384,13 @@ class LayerToEdit(object):
             # apply changes
             for old_value, new_value in self.old_new_value.items():
                 new_data_array[data_array == old_value] = new_value
-            del data_array
+
+            # compute which pixels actually changed
+            row_indices, col_indices = np.nonzero(new_data_array != data_array)
+            edited_pixels_count = int(row_indices.size)
+            if edited_pixels_count:
+                old_values = data_array[row_indices, col_indices]
+                new_values_changed = new_data_array[row_indices, col_indices]
 
             def safe_call(method, *args):
                 try:
@@ -489,17 +501,44 @@ class LayerToEdit(object):
             copy_dataset_metadata(ds_in, ds_out)
 
             ds_out.FlushCache()
-            del ds_out, driver, new_data_array, src_band, ds_in
+            del ds_out, driver, src_band, ds_in
             move(fn_out, self.file_path)
+
+            # record the changes in ThRasE registry
+            if record_in_registry and edited_pixels_count:
+                # enable the registry if not enabled
+                if not LayerToEdit.current.registry.enabled:
+                    ThRasE.dialog.registry_widget.EnableRegistry.setChecked(True)
+
+                ps_x = self.qgs_layer.rasterUnitsPerPixelX()
+                ps_y = self.qgs_layer.rasterUnitsPerPixelY()
+                xmin, ymin, xmax, ymax = self.bounds
+
+                group_id = uuid.uuid4()
+                for row_idx, col_idx, old_val, new_val in zip(row_indices, col_indices, old_values, new_values_changed):
+                    x_coord = xmin + (float(col_idx) + 0.5) * ps_x
+                    y_coord = ymax - (float(row_idx) + 0.5) * ps_y
+                    PixelLog(Pixel(x=x_coord, y=y_coord), int(old_val), int(new_val), group_id, store=True)
+
+            del new_data_array, data_array
+            if old_values is not None:
+                del old_values, new_values_changed
+            if row_indices is not None:
+                del row_indices, col_indices
         except Exception as e:
-            from ThRasE.thrase import ThRasE
-            ThRasE.dialog.MsgBar.pushMessage(f"An error occurred while editing the image: {e}", level=Qgis.Critical, duration=20)
+            ThRasE.dialog.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.Critical, duration=20)
             return False
 
         if hasattr(self.qgs_layer, 'setCacheImage'):
             self.qgs_layer.setCacheImage(None)
         self.qgs_layer.reload()
         self.qgs_layer.triggerRepaint()
+
+        ThRasE.dialog.editing_status.setText(f"{edited_pixels_count} pixels edited!")
+        if record_in_registry and edited_pixels_count:
+            ThRasE.dialog.registry_widget.update_registry()
+
+        return edited_pixels_count
 
     @wait_process
     def save_config(self, file_out):

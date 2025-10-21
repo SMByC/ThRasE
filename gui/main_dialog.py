@@ -34,7 +34,7 @@ except ImportError:
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer, QEvent
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog, QWidget, QLabel, \
-    QComboBox, QDialog, QDockWidget, QFrame
+    QComboBox, QDialog, QDockWidget, QFrame, QCheckBox
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
     QgsCoordinateTransform, QgsProject
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
@@ -1189,16 +1189,40 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     @pyqtSlot()
     def apply_whole_image(self):
         # first prompt
-        quit_msg = "This action applies the changes defined in the pixel recoding table to the entire image. " \
-                   "This operation cannot be undone. \n\n" \
-                   "Target file: \"{}\"".format(LayerToEdit.current.file_path)
-        reply = QMessageBox.question(None, 'Applying changes to the whole image',
-                                     quit_msg, QMessageBox.Apply | QMessageBox.Cancel, QMessageBox.Cancel)
+        quit_msg = (
+            "This action applies the changes defined in the pixel recoding table to the entire image. "
+            "This operation cannot be undone.\n\n"
+            'Target file: "{}"\n'.format(LayerToEdit.current.file_path)
+        )
+
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setWindowTitle('Applying changes to the entire image')
+        msg_box.setText(quit_msg)
+        msg_box.setStandardButtons(QMessageBox.Apply | QMessageBox.Cancel)
+        msg_box.setDefaultButton(QMessageBox.Cancel)
+
+        record_checkbox = QCheckBox("Record the changes in the registry")
+        record_checkbox.setChecked(False)
+        record_checkbox.setToolTip(
+            "<html><head/><body><p>Add the changes that will be applied here to the ThRasE registry."
+            "</p><p>Note: Be aware of the image size and number of pixels that will change.</p></body></html>"
+        )
+        msg_box.setCheckBox(record_checkbox)
+
+        reply = msg_box.exec_()
+        record_in_registry = record_checkbox.isChecked()
+
         if reply == QMessageBox.Apply:
-            if LayerToEdit.current.edit_whole_image() is not False:
+            status = LayerToEdit.current.edit_whole_image(record_in_registry=record_in_registry)
+            if status is not False and status > 0:
                 self.MsgBar.pushMessage(
-                    "DONE: Changes in recode pixels table were successfully applied to the whole thematic file",
+                    "DONE: Changes in the recoded pixels table were successfully applied to the entire thematic file.",
                     level=Qgis.Success, duration=10)
+            elif status is not False and status == 0:
+                self.MsgBar.pushMessage(
+                    "No changes were applied: no pixels matched the recode criteria. Please check the recode table.",
+                    level=Qgis.Info, duration=10)
 
     @pyqtSlot()
     def apply_from_thematic_classes_dialog(self):
