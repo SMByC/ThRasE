@@ -6,7 +6,7 @@
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
 <br>
 <b>Documentation:</b> <a href="https://smbyc.github.io/ThRasE">https://smbyc.github.io/ThRasE</a><br>
-<b>Paper:</b> <a href="">soon</a>
+<!--<b>Paper:</b> <a href="">soon</a>-->
 </p>
 
 ThRasE is an open-source QGIS plugin for rigorous editing and quality assurance of thematic rasters. It offers synchronized multi-panel views for side-by-side and overlap comparisons with reference data. It utilizes a recode pixel table to modify multiple classes simultaneously in one operation with various editing tool options. An integrated modification tracking system automatically records all changes, providing spatial feedback, transparency, and reproducibility. Systematic tile-based navigation ensures complete spatial coverage during inspection, while session persistence enables seamless multi-day workflows.
@@ -19,7 +19,11 @@ ThRasE has been adopted worldwide for diverse applications including manual post
 
 ## Install
 
-ThRasE is an official QGIS plugin that can be easily installed directly within QGIS without any additional requirements.
+ThRasE is available from the official QGIS Plugin Repository. To install it:
+
+1. Open QGIS and go to `Plugins` → `Manage and Install Plugins…`.
+2. In the search bar, type `ThRasE` and click `Install Plugin`.
+3. After installation, activate the plugin from the `Plugins` menu or by opening the ThRasE icon.
 
 ## About Us
 
