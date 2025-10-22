@@ -84,6 +84,21 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         try: self.DialogButtons.button(QDialogButtonBox.Apply).clicked.disconnect()
         except TypeError: pass
         self.DialogButtons.button(QDialogButtonBox.Apply).clicked.connect(lambda: self.apply())
+        # registry
+        registry_enabled = LayerToEdit.current.registry.enabled if LayerToEdit.current else False
+        self.RecordChangesInRegistry.setChecked(False)
+        self.RecordChangesInRegistry.setEnabled(registry_enabled)
+        # Set tooltip based on registry status
+        tooltip_base = (
+            "<p>Add the changes that will be applied here to the ThRasE registry.</p>" +
+            "<p>Note: Be aware of the image size and number of pixels that will change.</p>"
+        )
+        if registry_enabled:
+            tooltip = f"<html><head/><body>{tooltip_base}</body></html>"
+        else:
+            tooltip_notice = "<p><b>Registry is disabled:</b> enable it in the main dialog to store these edits.</p>"
+            tooltip = f"<html><head/><body>{tooltip_base}{tooltip_notice}</body></html>"
+        self.RecordChangesInRegistry.setToolTip(tooltip)
 
     @pyqtSlot()
     def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
@@ -163,14 +178,27 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             return
         self.pixel_classes = []
         for xml_item in xml_style_items:
-            pixel = {"value": int(xml_item.get("value")), "color": {}, "select": False}
-            item_color = xml_item.get("color").lstrip('#')
-            item_color = tuple(int(item_color[i:i + 2], 16) for i in (0, 2, 4))
-            pixel["color"]["R"] = item_color[0]
-            pixel["color"]["G"] = item_color[1]
-            pixel["color"]["B"] = item_color[2]
-            pixel["color"]["A"] = int(xml_item.get("alpha"))
-            self.pixel_classes.append(pixel)
+            try:
+                # Validate required attributes are present
+                value = xml_item.get("value")
+                color = xml_item.get("color")
+                alpha = xml_item.get("alpha")
+                
+                if value is None or color is None or alpha is None:
+                    continue  # Skip items with missing attributes
+                
+                pixel = {"value": int(value), "color": {}, "select": False}
+                item_color = color.lstrip('#')
+                item_color = tuple(int(item_color[i:i + 2], 16) for i in (0, 2, 4))
+                pixel["color"]["R"] = item_color[0]
+                pixel["color"]["G"] = item_color[1]
+                pixel["color"]["B"] = item_color[2]
+                pixel["color"]["A"] = int(alpha)
+                self.pixel_classes.append(pixel)
+            except (ValueError, AttributeError, TypeError):
+                # Skip items with invalid data
+                continue
+        
         self.pixel_classes_backup = deepcopy(self.pixel_classes)
 
         self.set_pixel_table()
@@ -231,15 +259,15 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
     def table_item_clicked(self, table_item):
         if table_item.text() == "none":
             return
-        # set color
+        # set color when checkbox in "select" column is clicked
         if table_item.column() == 2:
             band = int(self.QCBox_band_ThematicFile.currentText())
-            class_value = int(self.PixelTable.item(table_item.row(), 1).text())
+            row_idx = table_item.row()
 
-            if table_item.checkState() == 0:
-                self.pixel_classes[table_item.row()]["color"] = self.pixel_classes_backup[table_item.row()]["color"]
-            if table_item.checkState() == 2:
-                self.pixel_classes[table_item.row()]["color"] = {"R": 255, "G": 255, "B": 0, "A": 255}
+            if table_item.checkState() == Qt.Unchecked:
+                self.pixel_classes[row_idx]["color"] = self.pixel_classes_backup[row_idx]["color"]
+            elif table_item.checkState() == Qt.Checked:
+                self.pixel_classes[row_idx]["color"] = {"R": 255, "G": 255, "B": 0, "A": 255}
 
             symbology = \
                 [(str(pixel["value"]), pixel["value"],
