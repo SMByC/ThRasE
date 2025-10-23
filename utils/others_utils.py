@@ -31,6 +31,8 @@ from qgis.core import QgsPalettedRasterRenderer
 from ThRasE.utils.qgis_utils import get_file_path_of_layer
 from ThRasE.utils.system_utils import wait_process
 
+# --------------------------------------------------------------------------
+
 
 def mask(input_list, boolean_mask):
     """Apply boolean mask to input list
@@ -46,6 +48,7 @@ def mask(input_list, boolean_mask):
     return [i for i, b in zip(input_list, boolean_mask) if b]
 
 # --------------------------------------------------------------------------
+# symbology utils
 
 
 @wait_process
@@ -108,6 +111,7 @@ def get_pixel_values(layer, band):
     return pixel_values
 
 # --------------------------------------------------------------------------
+# pixel count utils
 
 
 def chunks(l, n):
@@ -155,3 +159,93 @@ def get_pixel_count_by_pixel_values(layer, band, pixel_values=None):
         return dict(zip(pixel_values, pixel_counts))
 
 # --------------------------------------------------------------------------
+# GDAL metadata copy utils
+
+
+def safe_call(method, *args):
+    """Safely call a GDAL method, ignoring exceptions"""
+    try:
+        method(*args)
+    except Exception:
+        pass
+
+
+def copy_band_metadata(src, dst):
+    """Copy all metadata from source band to destination band
+    
+    Args:
+        src: Source GDAL raster band
+        dst: Destination GDAL raster band
+    """
+    nodata = src.GetNoDataValue()
+    if nodata is not None:
+        safe_call(dst.SetNoDataValue, nodata)
+
+    color_table = src.GetRasterColorTable()
+    if color_table is not None:
+        safe_call(dst.SetRasterColorTable, color_table.Clone())
+
+    category_names = src.GetCategoryNames()
+    if category_names:
+        safe_call(dst.SetCategoryNames, category_names)
+
+    rat = src.GetDefaultRAT()
+    if rat is not None:
+        safe_call(dst.SetDefaultRAT, rat.Clone())
+
+    metadata_domains = src.GetMetadataDomainList()
+    if not metadata_domains:
+        metadata = src.GetMetadata()
+        if metadata:
+            safe_call(dst.SetMetadata, metadata)
+    else:
+        for domain in metadata_domains:
+            metadata = src.GetMetadata(domain)
+            if metadata:
+                safe_call(dst.SetMetadata, metadata, domain)
+
+    unit = src.GetUnitType()
+    if unit:
+        safe_call(dst.SetUnitType, unit)
+
+    scale = src.GetScale()
+    if scale is not None:
+        safe_call(dst.SetScale, scale)
+
+    offset = src.GetOffset()
+    if offset is not None:
+        safe_call(dst.SetOffset, offset)
+
+    description = src.GetDescription()
+    if description:
+        safe_call(dst.SetDescription, description)
+
+    safe_call(dst.SetColorInterpretation, src.GetColorInterpretation())
+
+
+def copy_dataset_metadata(src, dst):
+    """Copy all metadata from source dataset to destination dataset
+    
+    Args:
+        src: Source GDAL dataset
+        dst: Destination GDAL dataset
+    """
+    metadata_domains = src.GetMetadataDomainList()
+    if not metadata_domains:
+        metadata = src.GetMetadata()
+        if metadata:
+            safe_call(dst.SetMetadata, metadata)
+    else:
+        for domain in metadata_domains:
+            metadata = src.GetMetadata(domain)
+            if metadata:
+                safe_call(dst.SetMetadata, metadata, domain)
+
+    description = src.GetDescription()
+    if description:
+        safe_call(dst.SetDescription, description)
+
+    gcps = src.GetGCPs()
+    if gcps:
+        safe_call(dst.SetGCPs, gcps, src.GetGCPProjection())
+

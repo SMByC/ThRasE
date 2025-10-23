@@ -39,7 +39,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
 from ThRasE.core.registry import Registry
-from ThRasE.utils.others_utils import get_xml_style
+from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
 from ThRasE.utils.qgis_utils import get_file_path_of_layer, apply_symbology
 from ThRasE.utils.system_utils import wait_process, block_signals_to
 
@@ -391,78 +391,6 @@ class LayerToEdit(object):
             if edited_pixels_count:
                 old_values = data_array[row_indices, col_indices]
                 new_values_changed = new_data_array[row_indices, col_indices]
-
-            def safe_call(method, *args):
-                try:
-                    method(*args)
-                except Exception:
-                    pass
-
-            def copy_band_metadata(src, dst):
-                nodata = src.GetNoDataValue()
-                if nodata is not None:
-                    safe_call(dst.SetNoDataValue, nodata)
-
-                color_table = src.GetRasterColorTable()
-                if color_table is not None:
-                    safe_call(dst.SetRasterColorTable, color_table.Clone())
-
-                category_names = src.GetCategoryNames()
-                if category_names:
-                    safe_call(dst.SetCategoryNames, category_names)
-
-                rat = src.GetDefaultRAT()
-                if rat is not None:
-                    safe_call(dst.SetDefaultRAT, rat.Clone())
-
-                metadata_domains = src.GetMetadataDomainList()
-                if not metadata_domains:
-                    metadata = src.GetMetadata()
-                    if metadata:
-                        safe_call(dst.SetMetadata, metadata)
-                else:
-                    for domain in metadata_domains:
-                        metadata = src.GetMetadata(domain)
-                        if metadata:
-                            safe_call(dst.SetMetadata, metadata, domain)
-
-                unit = src.GetUnitType()
-                if unit:
-                    safe_call(dst.SetUnitType, unit)
-
-                scale = src.GetScale()
-                if scale is not None:
-                    safe_call(dst.SetScale, scale)
-
-                offset = src.GetOffset()
-                if offset is not None:
-                    safe_call(dst.SetOffset, offset)
-
-                description = src.GetDescription()
-                if description:
-                    safe_call(dst.SetDescription, description)
-
-                safe_call(dst.SetColorInterpretation, src.GetColorInterpretation())
-
-            def copy_dataset_metadata(src, dst):
-                metadata_domains = src.GetMetadataDomainList()
-                if not metadata_domains:
-                    metadata = src.GetMetadata()
-                    if metadata:
-                        safe_call(dst.SetMetadata, metadata)
-                else:
-                    for domain in metadata_domains:
-                        metadata = src.GetMetadata(domain)
-                        if metadata:
-                            safe_call(dst.SetMetadata, metadata, domain)
-
-                description = src.GetDescription()
-                if description:
-                    safe_call(dst.SetDescription, description)
-
-                gcps = src.GetGCPs()
-                if gcps:
-                    safe_call(dst.SetGCPs, gcps, src.GetGCPProjection())
 
             # create file
             fn, ext = os.path.splitext(self.file_path)
