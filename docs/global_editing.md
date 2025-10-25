@@ -15,7 +15,7 @@ This option applies the changes defined in the pixel recoding table to the entir
 This operation cannot be undone, so use with caution.
 ```
 
-## Apply from Thematic Classes
+## Apply Within Selected Classes
 
 ```{image} images/global_editing_classes.webp
 :width: 60%
@@ -23,7 +23,7 @@ This operation cannot be undone, so use with caution.
 ```
 <br>
 
-ThRasE enables you to apply recode pixel table changes selectively within areas defined by classes from another categorical raster file. This capability is crucial when corrections need to respect existing spatial boundaries or land management units. For example, you might need to reclassify forest types only within protected areas, correct agricultural classes exclusively in irrigated zones, or refine land cover classifications within specific administrative boundaries. This feature applies more precise and contextually appropriate post-classification corrections to the entire thematic raster.
+ThRasE enables you to apply recode pixel table changes selectively within areas defined by selected classes from another categorical raster file. This capability is crucial when corrections need to respect existing spatial boundaries or land management units. For example, you might need to reclassify forest types only within protected areas, correct agricultural classes exclusively in irrigated zones, or refine land cover classifications within specific administrative boundaries. This feature applies more precise and contextually appropriate post-classification corrections to the entire thematic raster.
 
 ```{warning}
 The categorical raster file used to define constraint areas must have the same projection, pixel size, and extent as your thematic map

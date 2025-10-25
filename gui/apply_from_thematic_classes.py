@@ -278,7 +278,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
     @wait_process
     def apply(self):
-        """Apply changes to the entire thematic map using a different thematic classes map"""
+        """Apply changes within selected classes from another thematic raster"""
 
         from ThRasE.thrase import ThRasE
 
@@ -476,7 +476,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             ThRasE.dialog.registry_widget.update_registry()
 
         self.MsgBar.pushMessage(
-            "DONE: Changes were successfully applied using the selected thematic classes",
+            "DONE: Changes were successfully applied within selected classes",
             level=Qgis.Success, duration=10)
 
         # finish the edition

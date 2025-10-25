@@ -1246,7 +1246,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.apply_from_thematic_classes.setup_gui()
         if self.apply_from_thematic_classes.exec_():
             self.MsgBar.pushMessage(
-                "DONE: Changes in recode pixels table were successfully applied using thematic file classes",
+                "DONE: Changes in recode pixels table were successfully applied within selected classes",
                 level=Qgis.Success, duration=10)
 
     @pyqtSlot()
