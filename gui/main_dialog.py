@@ -197,7 +197,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.autofill_dialog = AutoFill()
         self.QPBtn_AutoFill.clicked.connect(self.open_autofill_dialog)
         self.QGBox_GlobalEditTools.setHidden(True)
-        self.QPBtn_ApplyWholeImage.clicked.connect(self.apply_whole_image)
+        self.QPBtn_ApplyToEntireThematicRaster.clicked.connect(self.apply_to_entire_thematic_raster)
         self.apply_from_thematic_classes = ApplyFromThematicClasses()
         self.QPBtn_ApplyFromThematicClasses.clicked.connect(self.apply_from_thematic_classes_dialog)
         self.SaveConfig.clicked.connect(self.file_dialog_save_thrase_config)
@@ -1187,17 +1187,17 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.autofill_dialog.show()
 
     @pyqtSlot()
-    def apply_whole_image(self):
+    def apply_to_entire_thematic_raster(self):
         # first prompt
         quit_msg = (
-            "This action applies the changes defined in the pixel recoding table to the entire image. "
+            "This action applies the changes defined in the pixel recoding table to the entire thematic raster. "
             "This operation cannot be undone.\n\n"
             'Target file: "{}"\n'.format(LayerToEdit.current.file_path)
         )
 
         msg_box = QMessageBox(self)
         msg_box.setIcon(QMessageBox.Question)
-        msg_box.setWindowTitle('Applying changes to the entire image')
+        msg_box.setWindowTitle('Applying changes to entire thematic raster')
         msg_box.setText(quit_msg)
         msg_box.setStandardButtons(QMessageBox.Apply | QMessageBox.Cancel)
         msg_box.setDefaultButton(QMessageBox.Cancel)
@@ -1210,7 +1210,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # Set tooltip based on registry status
         tooltip_base = (
             "<p>Add the changes that will be applied here to the ThRasE registry.</p>" +
-            "<p>Note: Be aware of the image size and number of pixels that will change.</p>"
+            "<p>Note: Be aware of the raster size and number of pixels that will change.</p>"
         )
         if registry_enabled:
             tooltip = f"<html><head/><body>{tooltip_base}</body></html>"
@@ -1224,10 +1224,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         record_in_registry = record_checkbox.isChecked() and registry_enabled
 
         if reply == QMessageBox.Apply:
-            status = LayerToEdit.current.edit_whole_image(record_in_registry=record_in_registry)
+            status = LayerToEdit.current.edit_to_entire_thematic_raster(record_in_registry=record_in_registry)
             if status is not False and status > 0:
                 self.MsgBar.pushMessage(
-                    "DONE: Changes in the recoded pixels table were successfully applied to the entire thematic file.",
+                    "DONE: Changes in the recoded pixels table were successfully applied to the entire thematic raster.",
                     level=Qgis.Success, duration=10)
             elif status is not False and status == 0:
                 self.MsgBar.pushMessage(

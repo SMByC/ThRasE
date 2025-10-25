@@ -185,7 +185,7 @@ class TestEditingTools:
         # Finally, compare the two rasters by reading band arrays with GDAL
         _assert_rasters_equal(saved_test_data, layer_data_to_edit, band=1)
 
-    def test_whole_image_edit(self, tmp_path, load_yaml_mapping):
+    def test_entire_thematic_raster_edit(self, tmp_path, load_yaml_mapping):
         # original source tif
         src = pytest.tests_data_dir / "test_data.tif"
 
@@ -199,13 +199,13 @@ class TestEditingTools:
         # saved_path.write_bytes(src.read_bytes())
         # layer_saved = load_layer(str(saved_path), name="test_data_whole_image")
         # assert layer_saved is not None and layer_saved.isValid()
-        # # Setup LayerToEdit for the layer and apply edit to the whole image
+        # # Setup LayerToEdit for the layer and apply edit to entire thematic raster
         # lte_saved = LayerToEdit(layer_saved, band=1)
         # lte_saved.setup_pixel_table()
         # lte_saved.old_new_value = mapping
         # LayerToEdit.current = lte_saved
-        # # Apply whole image edit
-        # LayerToEdit.current.edit_whole_image()
+        # # Apply to entire thematic raster edit
+        # LayerToEdit.current.edit_to_entire_thematic_raster()
         ### load test_data_whole_image.tif
         saved_path = pytest.tests_data_dir / "test_data_whole_image.tif"
         saved_test_data = load_layer(str(saved_path), name="test_data_whole_image")
@@ -223,8 +223,8 @@ class TestEditingTools:
         lte_to_test.old_new_value = mapping
         LayerToEdit.current = lte_to_test
 
-        # Apply the whole image edit (processes all pixels at once using GDAL)
-        LayerToEdit.current.edit_whole_image()
+        # Apply to entire thematic raster edit (processes all pixels at once using GDAL)
+        LayerToEdit.current.edit_to_entire_thematic_raster()
 
         # Reload the layer to ensure we're reading the updated file
         layer_data_to_edit.reload()

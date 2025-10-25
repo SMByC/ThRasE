@@ -363,8 +363,8 @@ class LayerToEdit(object):
             return pixels_and_values
 
     @wait_process
-    def edit_whole_image(self, record_in_registry=False):
-        """Edit the whole image with the new values using gdal"""
+    def edit_to_entire_thematic_raster(self, record_in_registry=False):
+        """Edit the entire thematic raster with the new values using gdal"""
         from ThRasE.thrase import ThRasE
 
         edited_pixels_count = 0

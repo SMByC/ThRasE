@@ -1251,15 +1251,15 @@ Note: For better performance, close the registry during active editing</string>
              <number>3</number>
             </property>
             <item row="0" column="0">
-             <widget class="QToolButton" name="QPBtn_ApplyWholeImage">
+             <widget class="QToolButton" name="QPBtn_ApplyToEntireThematicRaster">
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply all recode pixel table changes to the entire image&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply all recode pixel table changes to the entire thematic raster&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Apply to the whole image</string>
+               <string>Apply to entire thematic raster</string>
               </property>
               <property name="icon">
                <iconset>
