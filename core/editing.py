@@ -369,7 +369,7 @@ class LayerToEdit(object):
 
         edited_pixels_count = 0
         row_indices = col_indices = None
-        old_values = new_values_changed = None
+        old_values = new_values = None
 
         try:
             # read
@@ -390,7 +390,7 @@ class LayerToEdit(object):
             edited_pixels_count = int(row_indices.size)
             if edited_pixels_count:
                 old_values = data_array[row_indices, col_indices]
-                new_values_changed = new_data_array[row_indices, col_indices]
+                new_values = new_data_array[row_indices, col_indices]
 
             # create file
             fn, ext = os.path.splitext(self.file_path)
@@ -434,23 +434,19 @@ class LayerToEdit(object):
 
             # record the changes in ThRasE registry
             if record_in_registry and edited_pixels_count:
-                # enable the registry if not enabled
-                if not LayerToEdit.current.registry.enabled:
-                    ThRasE.dialog.registry_widget.EnableRegistry.setChecked(True)
-
                 ps_x = self.qgs_layer.rasterUnitsPerPixelX()
                 ps_y = self.qgs_layer.rasterUnitsPerPixelY()
                 xmin, ymin, xmax, ymax = self.bounds
 
                 group_id = uuid.uuid4()
-                for row_idx, col_idx, old_val, new_val in zip(row_indices, col_indices, old_values, new_values_changed):
+                for row_idx, col_idx, old_val, new_val in zip(row_indices, col_indices, old_values, new_values):
                     x_coord = xmin + (float(col_idx) + 0.5) * ps_x
                     y_coord = ymax - (float(row_idx) + 0.5) * ps_y
                     PixelLog(Pixel(x=x_coord, y=y_coord), int(old_val), int(new_val), group_id, store=True)
 
             del new_data_array, data_array
             if old_values is not None:
-                del old_values, new_values_changed
+                del old_values, new_values
             if row_indices is not None:
                 del row_indices, col_indices
         except Exception as e:

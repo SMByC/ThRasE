@@ -1202,16 +1202,26 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         msg_box.setStandardButtons(QMessageBox.Apply | QMessageBox.Cancel)
         msg_box.setDefaultButton(QMessageBox.Cancel)
 
+        # registry
+        registry_enabled = LayerToEdit.current.registry.enabled if LayerToEdit.current else False
         record_checkbox = QCheckBox("Record the changes in the registry")
         record_checkbox.setChecked(False)
-        record_checkbox.setToolTip(
-            "<html><head/><body><p>Add the changes that will be applied here to the ThRasE registry."
-            "</p><p>Note: Be aware of the image size and number of pixels that will change.</p></body></html>"
+        record_checkbox.setEnabled(registry_enabled)
+        # Set tooltip based on registry status
+        tooltip_base = (
+            "<p>Add the changes that will be applied here to the ThRasE registry.</p>" +
+            "<p>Note: Be aware of the image size and number of pixels that will change.</p>"
         )
+        if registry_enabled:
+            tooltip = f"<html><head/><body>{tooltip_base}</body></html>"
+        else:
+            tooltip_notice = "<p><b>Registry is disabled:</b> enable it in the main dialog to store these edits.</p>"
+            tooltip = f"<html><head/><body>{tooltip_base}{tooltip_notice}</body></html>"
+        record_checkbox.setToolTip(tooltip)
         msg_box.setCheckBox(record_checkbox)
 
         reply = msg_box.exec_()
-        record_in_registry = record_checkbox.isChecked()
+        record_in_registry = record_checkbox.isChecked() and registry_enabled
 
         if reply == QMessageBox.Apply:
             status = LayerToEdit.current.edit_whole_image(record_in_registry=record_in_registry)
