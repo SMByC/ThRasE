@@ -1279,7 +1279,7 @@ Note: For better performance, close the registry during active editing</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Applies the changes from the recode pixels table only to areas within all selected classes from another thematic file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply the changes from the recode pixels table only to areas within the selected classes from a different thematic map&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>From thematic file classes</string>

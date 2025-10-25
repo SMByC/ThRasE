@@ -23,18 +23,19 @@ import os
 import uuid
 from copy import deepcopy
 from pathlib import Path
+from shutil import move
 import numpy as np
 from osgeo import gdal
 
-from qgis.core import QgsMapLayerProxyModel, Qgis, QgsPointXY
+from qgis.core import QgsMapLayerProxyModel, Qgis
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QDialogButtonBox
 from qgis.PyQt.QtCore import pyqtSlot, Qt
 
-from ThRasE.core.editing import Pixel, LayerToEdit, edit_layer
-from ThRasE.utils.others_utils import get_xml_style
+from ThRasE.core.editing import Pixel, PixelLog, LayerToEdit
+from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, apply_symbology, get_file_path_of_layer
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
@@ -183,10 +184,10 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
                 value = xml_item.get("value")
                 color = xml_item.get("color")
                 alpha = xml_item.get("alpha")
-                
+
                 if value is None or color is None or alpha is None:
                     continue  # Skip items with missing attributes
-                
+
                 pixel = {"value": int(value), "color": {}, "select": False}
                 item_color = color.lstrip('#')
                 item_color = tuple(int(item_color[i:i + 2], 16) for i in (0, 2, 4))
@@ -198,7 +199,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             except (ValueError, AttributeError, TypeError):
                 # Skip items with invalid data
                 continue
-        
+
         self.pixel_classes_backup = deepcopy(self.pixel_classes)
 
         self.set_pixel_table()
@@ -276,8 +277,11 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             apply_symbology(self.thematic_file_classes, band, symbology)
 
     @wait_process
-    @edit_layer
     def apply(self):
+        """Apply changes to the entire thematic map using a different thematic classes map"""
+
+        from ThRasE.thrase import ThRasE
+
         pixel_table = self.PixelTable
         if pixel_table.rowCount() == 0:
             self.MsgBar.pushMessage("Error: pixel table for class selection is empty", level=Qgis.Warning, duration=10)
@@ -290,47 +294,190 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             return
 
         extent_intercepted = LayerToEdit.current.qgs_layer.extent().intersect(self.thematic_file_classes.extent())
-
-        ps_x = self.thematic_file_classes.rasterUnitsPerPixelX()  # pixel size in x
-        ps_y = self.thematic_file_classes.rasterUnitsPerPixelY()  # pixel size in y
-
-        # locate the pixel centroid in x and y for the pixel in min/max in the extent
-        y_min = extent_intercepted.yMinimum() + (ps_y / 2.0)
-        y_max = extent_intercepted.yMaximum() - (ps_y / 2.0)
-        x_min = extent_intercepted.xMinimum() + (ps_x / 2.0)
-        x_max = extent_intercepted.xMaximum() - (ps_x / 2.0)
-        # index for extent intercepted start in the corner left-top respect to thematic file classes
-        idx_x = int((x_min - self.thematic_file_classes.extent().xMinimum()) / ps_x)
-        idx_y = int((self.thematic_file_classes.extent().yMaximum() - y_max) / ps_y)
-
-        thematic_classes_band = int(self.QCBox_band_ThematicFile.currentText())
-
-        # data array for the extent intercepted using the thematic file classes values
-        ds_in = gdal.Open(get_file_path_of_layer(self.thematic_file_classes))
-        da_intercepted = ds_in.GetRasterBand(thematic_classes_band).ReadAsArray(
-            idx_x, idx_y, int(round((x_max-x_min)/ps_x + 1)), int(round((y_max-y_min)/ps_y + 1))).astype(int)
-        del ds_in
-
-        pixels_to_process = \
-            [Pixel(x=x, y=y)
-             for n_y, y in enumerate(np.arange(y_min, y_max + ps_y/2.0, ps_y)[::-1])
-             for n_x, x in enumerate(np.arange(x_min, x_max + ps_x/2.0, ps_x))
-             if da_intercepted[n_y][n_x] in classes_selected]
-        del da_intercepted
-
-        # edit all pixels inside the classes selected based on the recode pixel table
-        group_id = uuid.uuid4()
-        record_changes = self.RecordChangesInRegistry.isChecked()
-        edit_status = [LayerToEdit.current.edit_pixel(pixel, group_id=group_id, store=record_changes) for pixel in pixels_to_process]
-        if edit_status:
-            if hasattr(LayerToEdit.current.qgs_layer, 'setCacheImage'):
-                LayerToEdit.current.qgs_layer.setCacheImage(None)
-            LayerToEdit.current.qgs_layer.reload()
-            LayerToEdit.current.qgs_layer.triggerRepaint()
-        else:
-            self.MsgBar.pushMessage("No pixels were edited because the selected classes do not overlap the areas of the"
-                                    "classes to modify", level=Qgis.Info, duration=10)
+        if extent_intercepted.isEmpty():
+            self.MsgBar.pushMessage("No overlap was found between the thematic file and the layer to edit",
+                                    level=Qgis.Info, duration=10)
             return
+
+        record_changes = self.RecordChangesInRegistry.isChecked() and LayerToEdit.current.registry.enabled
+        edited_pixels_count = 0
+        row_indices = col_indices = None
+        old_values = new_values = None
+
+        try:
+            # Read the layer to edit using GDAL
+            layer_to_edit_path = LayerToEdit.current.file_path
+            ds_in = gdal.Open(layer_to_edit_path, gdal.GA_ReadOnly)
+            if ds_in is None:
+                raise RuntimeError(f"Unable to open raster {layer_to_edit_path}")
+
+            num_bands = ds_in.RasterCount
+            src_band = ds_in.GetRasterBand(LayerToEdit.current.band)
+            data_array = src_band.ReadAsArray().astype(int)
+            new_data_array = deepcopy(data_array)
+
+            # Read the thematic classes file
+            thematic_classes_band = int(self.QCBox_band_ThematicFile.currentText())
+            classes_ds = gdal.Open(get_file_path_of_layer(self.thematic_file_classes), gdal.GA_ReadOnly)
+            if classes_ds is None:
+                raise RuntimeError("Unable to open the thematic classes file")
+
+            # Get georeferencing information
+            layer_gt = ds_in.GetGeoTransform()
+            classes_gt = classes_ds.GetGeoTransform()
+
+            ps_x = layer_gt[1]  # pixel size in x
+            ps_y = abs(layer_gt[5])  # pixel size in y (absolute value)
+
+            # Calculate pixel indices in both rasters for the overlap extent
+            x_min = extent_intercepted.xMinimum()
+            x_max = extent_intercepted.xMaximum()
+            y_min = extent_intercepted.yMinimum()
+            y_max = extent_intercepted.yMaximum()
+
+            # Indices in layer to edit
+            layer_idx_x = int(round((x_min - layer_gt[0]) / ps_x))
+            layer_idx_y = int(round((layer_gt[3] - y_max) / ps_y))
+
+            # Indices in thematic classes
+            classes_idx_x = int(round((x_min - classes_gt[0]) / ps_x))
+            classes_idx_y = int(round((classes_gt[3] - y_max) / ps_y))
+
+            # Calculate the number of pixels to process
+            cols = int(round((x_max - x_min) / ps_x))
+            rows = int(round((y_max - y_min) / ps_y))
+
+            if cols <= 0 or rows <= 0:
+                self.MsgBar.pushMessage("No pixels were identified within the overlap extent",
+                                        level=Qgis.Info, duration=10)
+                del ds_in, classes_ds
+                return
+
+            # Clamp to valid bounds for layer to edit
+            layer_idx_x = max(0, layer_idx_x)
+            layer_idx_y = max(0, layer_idx_y)
+            cols = min(cols, ds_in.RasterXSize - layer_idx_x)
+            rows = min(rows, ds_in.RasterYSize - layer_idx_y)
+
+            # Clamp to valid bounds for classes
+            classes_idx_x = max(0, classes_idx_x)
+            classes_idx_y = max(0, classes_idx_y)
+            cols = min(cols, classes_ds.RasterXSize - classes_idx_x)
+            rows = min(rows, classes_ds.RasterYSize - classes_idx_y)
+
+            if cols <= 0 or rows <= 0:
+                self.MsgBar.pushMessage("No pixels to read within valid raster bounds",
+                                        level=Qgis.Info, duration=10)
+                del ds_in, classes_ds
+                return
+
+            # Read the class array from the overlap region
+            class_array = classes_ds.GetRasterBand(thematic_classes_band).ReadAsArray(
+                classes_idx_x, classes_idx_y, cols, rows).astype(int)
+            del classes_ds
+
+            # Create mask for selected classes
+            mask_classes = np.isin(class_array, classes_selected)
+            if not mask_classes.any():
+                self.MsgBar.pushMessage("No pixels match the selected classes in the overlap area",
+                                        level=Qgis.Info, duration=10)
+                del ds_in
+                return
+
+            # Extract the corresponding region from the layer to edit
+            overlap_data = data_array[layer_idx_y:layer_idx_y + rows, layer_idx_x:layer_idx_x + cols]
+
+            # Apply the recode table only where classes match
+            for old_value, new_value in LayerToEdit.current.old_new_value.items():
+                # Apply only where the class matches AND the pixel value equals old_value
+                change_mask = mask_classes & (overlap_data == old_value)
+                new_data_array[layer_idx_y:layer_idx_y + rows, layer_idx_x:layer_idx_x + cols][change_mask] = new_value
+
+            # Compute which pixels actually changed
+            row_indices, col_indices = np.nonzero(new_data_array != data_array)
+            edited_pixels_count = int(row_indices.size)
+
+            if edited_pixels_count == 0:
+                self.MsgBar.pushMessage("No pixels were edited (selected classes may not require changes in the target layer)",
+                                        level=Qgis.Info, duration=10)
+                del ds_in
+                return
+
+            if record_changes:
+                old_values = data_array[row_indices, col_indices]
+                new_values = new_data_array[row_indices, col_indices]
+
+            # Create temporary output file
+            fn, ext = os.path.splitext(layer_to_edit_path)
+            fn_out = fn + "_tmp" + ext
+            driver_name = ds_in.GetDriver().ShortName
+            driver = gdal.GetDriverByName(driver_name)
+            if driver is None:
+                raise RuntimeError(f"GDAL driver '{driver_name}' is not available")
+
+            (x, y) = new_data_array.shape
+            ds_out = None
+            create_copy_used = False
+            if driver.GetMetadataItem("DCAP_CREATECOPY") == "YES":
+                ds_out = driver.CreateCopy(fn_out, ds_in)
+                if ds_out is not None:
+                    create_copy_used = True
+
+            if ds_out is None:
+                ds_out = driver.Create(fn_out, y, x, num_bands, src_band.DataType)
+                if ds_out is None:
+                    raise RuntimeError(f"Failed to create output raster {fn_out}")
+
+            src_band_i = dst_band_i = None
+            for band_index in range(1, num_bands + 1):
+                src_band_i = ds_in.GetRasterBand(band_index)
+                dst_band_i = ds_out.GetRasterBand(band_index)
+                if band_index == LayerToEdit.current.band:
+                    dst_band_i.WriteArray(new_data_array)
+                elif not create_copy_used:
+                    dst_band_i.WriteArray(src_band_i.ReadAsArray())
+                copy_band_metadata(src_band_i, dst_band_i)
+            del src_band_i, dst_band_i
+
+            ds_out.SetGeoTransform(ds_in.GetGeoTransform())
+            ds_out.SetProjection(ds_in.GetProjection())
+            copy_dataset_metadata(ds_in, ds_out)
+
+            ds_out.FlushCache()
+            del ds_out, driver, src_band, ds_in
+            move(fn_out, layer_to_edit_path)
+
+            # Record the changes in ThRasE registry
+            if record_changes and edited_pixels_count:
+                xmin, ymin, xmax, ymax = LayerToEdit.current.bounds
+                group_id = uuid.uuid4()
+                for row_idx, col_idx, old_val, new_val in zip(row_indices, col_indices, old_values, new_values):
+                    x_coord = xmin + (float(col_idx) + 0.5) * ps_x
+                    y_coord = ymax - (float(row_idx) + 0.5) * ps_y
+                    PixelLog(Pixel(x=x_coord, y=y_coord), int(old_val), int(new_val), group_id, store=True)
+
+            del new_data_array, data_array, class_array, mask_classes
+            if old_values is not None:
+                del old_values, new_values
+            if row_indices is not None:
+                del row_indices, col_indices
+
+        except Exception as e:
+            self.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.Critical, duration=20)
+            return
+
+        if hasattr(LayerToEdit.current.qgs_layer, 'setCacheImage'):
+            LayerToEdit.current.qgs_layer.setCacheImage(None)
+        LayerToEdit.current.qgs_layer.reload()
+        LayerToEdit.current.qgs_layer.triggerRepaint()
+
+        ThRasE.dialog.editing_status.setText(f"{edited_pixels_count} pixels edited!")
+        if record_changes and edited_pixels_count:
+            ThRasE.dialog.registry_widget.update_registry()
+
+        self.MsgBar.pushMessage(
+            "DONE: Changes were successfully applied using the selected thematic classes",
+            level=Qgis.Success, duration=10)
 
         # finish the edition
         self.restore_symbology()

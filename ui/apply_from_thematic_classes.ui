@@ -54,7 +54,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>This tool applies the changes set in recode pixels table (to the current thematic layer to edit in the main dialog) only in the areas inside the all picked classes from another thematic file selected here.</string>
+         <string>This tool applies the changes set in the recode pixels table to the current thematic layer being edited in the main dialog, but only in the areas within all the selected classes from another thematic map chosen here.</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -243,7 +243,7 @@
          <item>
           <widget class="QCheckBox" name="RecordChangesInRegistry">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the changes that will be applied here to the ThRasE registry (for tracking, inspection, or export).&lt;/p&gt;&lt;p&gt;Note: This may slightly increase processing time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the changes that will be applied here to the ThRasE registry.&lt;/p&gt;&lt;p&gt;Note: Be aware of the image size and number of pixels that will change.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Record the changes in the registry</string>
