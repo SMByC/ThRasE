@@ -54,10 +54,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.TilesColor.clicked.connect(self.change_tiles_color)
         self.previousTileGroup.clicked.connect(self.go_previous_group)
         self.nextTileGroup.clicked.connect(self.go_next_group)
-        self.PixelLogGroups_Slider.valueChanged.connect(self.slider_changed)
         # show tiles while dragging the slider, not only on release
-        self.PixelLogGroups_Slider.sliderMoved.connect(self.change_group_from_slider)
-        self.PixelLogGroups_Slider.sliderReleased.connect(lambda: self.change_group_from_slider(self.PixelLogGroups_Slider.value()))
+        self.PixelLogGroups_Slider.valueChanged.connect(self.change_group_from_slider)
+        self.PixelLogGroups_Slider.sliderMoved.connect(self.slider_manual_changed)
         # auto center button
         self.autoCenter.clicked.connect(self.center_to_current_group)
         # show all button
@@ -72,14 +71,19 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.EnableRegistry.toggled.connect(self.toggle_registry_enabled)
 
     def update_registry(self, go_to_last=True):
-        # only process when the widget is visible and enabled
-        if not self.isVisible() or not LayerToEdit.current.registry.enabled:
-            return
         if not LayerToEdit.current:
             self.set_empty_state()
             return
+        if not LayerToEdit.current.registry.enabled:
+            return
+            
         status = LayerToEdit.current.registry.update()
         total_groups = len(LayerToEdit.current.registry.groups)
+
+        if not self.isVisible():
+            self.last_slider_position = total_groups
+            return
+        
         # compute total modified pixels once to avoid repeated sums during slider moves
         self.total_pixels_modified = sum(len(g.tiles) for g in LayerToEdit.current.registry.groups)
         # toggle registry export button
@@ -144,20 +148,15 @@ class RegistryWidget(QWidget, FORM_CLASS):
             LayerToEdit.current.registry.tiles_color = color
             self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
 
-            # update color for all existing groups without rebuilding
-            for group in LayerToEdit.current.registry.groups:
-                group.tile_color = color
-
-            # update color of current group without rebuilding geometry
-            LayerToEdit.current.registry.update_current_group_color()
-            # recolor show-all overlays if visible
-            LayerToEdit.current.registry.update_show_all_color()
+            # update renderer with new color
+            LayerToEdit.current.registry.update_color()
 
     @pyqtSlot(int)
     def change_group_from_slider(self, idx_group):
         if not LayerToEdit.current or not LayerToEdit.current.registry.groups:
             self.set_empty_state()
             return
+
         registry = LayerToEdit.current.registry
         registry.set_current_group(idx_group)
         total_groups = len(registry.groups)
@@ -171,9 +170,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.previousTileGroup.setEnabled(idx_group > 1)
         self.nextTileGroup.setEnabled(idx_group < total_groups)
 
-    def slider_changed(self, idx_group):
-        total_groups = len(LayerToEdit.current.registry.groups) if LayerToEdit.current else 0
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group {} of {}".format(idx_group, total_groups))
+    def slider_manual_changed(self):
+        # disable show all registry when manually changing the slider value
+        self.showAll.setChecked(False)
 
     @pyqtSlot()
     def go_previous_group(self):
@@ -183,7 +182,8 @@ class RegistryWidget(QWidget, FORM_CLASS):
         if idx_group <= 1:
             return
         self.PixelLogGroups_Slider.setValue(idx_group - 1)
-        self.change_group_from_slider(idx_group - 1)
+        # disable show all registry when going to previous group
+        self.showAll.setChecked(False)
 
     @pyqtSlot()
     def go_next_group(self):
@@ -194,7 +194,8 @@ class RegistryWidget(QWidget, FORM_CLASS):
         if idx_group >= total:
             return
         self.PixelLogGroups_Slider.setValue(idx_group + 1)
-        self.change_group_from_slider(idx_group + 1)
+        # disable show all registry when going to next group
+        self.showAll.setChecked(False)
 
     @pyqtSlot()
     def center_to_current_group(self):

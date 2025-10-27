@@ -59,8 +59,6 @@ def edit_layer(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         from ThRasE.thrase import ThRasE
-        # pre-edit cleanup: clear rubber bands of show all pixel changes for performance reasons
-        ThRasE.dialog.registry_widget.showAll.setChecked(False)
         # set layer for edit
         if not LayerToEdit.current.data_provider.isEditable():
             if not LayerToEdit.current.data_provider.setEditable(True):

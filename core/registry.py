@@ -32,15 +32,18 @@ from qgis.core import (
     QgsFeature,
     QgsVectorFileWriter,
     QgsCoordinateTransformContext,
+    QgsVectorLayer,
+    QgsSingleSymbolRenderer,
+    QgsFillSymbol,
 )
-from qgis.gui import QgsRubberBand
 
 from ThRasE.utils.system_utils import wait_process
 
 
 class RegistryTile:
-    def __init__(self, idx, center_x, center_y, px_size_x, px_size_y):
+    def __init__(self, idx, group_idx, center_x, center_y, px_size_x, px_size_y, memory_layer):
         self.idx = idx
+        self.group_idx = group_idx
         self.center_x = center_x
         self.center_y = center_y
         self.px_size_x = px_size_x
@@ -53,20 +56,26 @@ class RegistryTile:
 
         self.extent = QgsRectangle(xmin, ymin, xmax, ymax)
 
-        # use fast rectangle geometry; polygon corners will be implicit
-        self.geometry = QgsGeometry.fromRect(self.extent)
+        # create feature in memory layer
+        geom = QgsGeometry.fromRect(self.extent)
+        feature = QgsFeature(memory_layer.fields())
+        feature.setGeometry(geom)
+        feature.setAttributes([self.idx, self.group_idx, center_x, center_y])
+        
+        # add feature to memory layer
+        memory_layer.dataProvider().addFeature(feature)
+        self.feature_id = feature.id()
 
 
 class RegistryTileGroup:
-    def __init__(self, idx, group_id, edit_date, tiles, tile_color):
+    def __init__(self, idx, group_id, edit_date, tiles, memory_layer, registry):
         self.idx = idx
         self.group_id = group_id
         self.edit_date = edit_date
         self.tiles = tiles
-        self.tile_color = tile_color
+        self.memory_layer = memory_layer
+        self.registry = registry
         self.extent = None
-        self.union_geom = None
-        self.rubber_bands = []  # rubber bands for group outline
 
     def tiles_extent(self):
         if self.extent is None:
@@ -76,57 +85,22 @@ class RegistryTileGroup:
             self.extent = extent
         return self.extent
 
-    @wait_process
     def show(self):
-        # draw only the border outline of the group as a single polygon
-        from ThRasE.gui.main_dialog import ThRasEDialog
+        # display tile borders without fill by applying filter to memory layer
         if not self.tiles:
             return
         
-        # compute union geometry once and cache it
-        if self.union_geom is None:
-            if len(self.tiles) == 1:
-                self.union_geom = self.tiles[0].geometry
-            else:
-                geoms = [tile.geometry for tile in self.tiles]
-                self.union_geom = QgsGeometry.unaryUnion(geoms)
-        union_geom = self.union_geom
-        if union_geom is None or union_geom.isEmpty():
-            return
-        
-        # avoid duplicate rubber bands if show() is called again
-        if self.rubber_bands:
-            self.clear()
-
-        # draw the outline in all active view widgets
-        for view_widget in ThRasEDialog.view_widgets:
-            if not view_widget.is_active:
-                continue
-            # create rubber band for the group outline
-            rb = QgsRubberBand(view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
-            rb.setToGeometry(union_geom, None)
-            rb.setStrokeColor(self.tile_color)
-            rb.setFillColor(QColor(0, 0, 0, 0))  # transparent fill
-            rb.setWidth(3)
-            rb.show()
-            self.rubber_bands.append(rb)
-            view_widget.render_widget.canvas.clearCache()
-            view_widget.render_widget.canvas.refresh()
+        # set filter to show only tiles from this group
+        filter_expr = f'"group_idx" = {self.idx}'
+        self.memory_layer.setSubsetString(filter_expr)
+        self.memory_layer.triggerRepaint()
+        self.registry.refresh_all_canvases()
 
     def clear(self):
-        [rb.reset(QgsWkbTypes.PolygonGeometry) for rb in self.rubber_bands]
-        self.rubber_bands = []
-
-    def update_color(self, color=None):
-        # update stroke color of existing rubber bands without rebuilding geometry
-        if color is not None:
-            self.tile_color = color
-        if not self.rubber_bands:
-            return
-        for rb in self.rubber_bands:
-            rb.setStrokeColor(self.tile_color)
-            rb.setFillColor(QColor(0, 0, 0, 0))
-            rb.setWidth(3)
+        # hide tiles by setting a filter that matches nothing
+        self.memory_layer.setSubsetString("FALSE")
+        self.memory_layer.triggerRepaint()
+        self.registry.refresh_all_canvases()
 
     def center(self):
         # center the view on the group without changing zoom level
@@ -161,90 +135,158 @@ class Registry:
         self.current_group = None
         self.tiles_color = QColor("#ff00ff")
         self.enabled = True
-        # cache for show-all pixels modified geoms
-        self.all_union_geom = None
-        self.show_all_rubber_bands = []
+        
+        # create memory vector layer for tiles
+        self.memory_layer = None
+        self.create_memory_layer()
+        
+        # single renderer for both display modes
+        self.renderer = None
+        self.setup_renderer()
+
+    def create_memory_layer(self):
+        """Create memory vector layer to store tile geometries."""
+        crs = self.layer_to_edit.qgs_layer.crs()
+        self.memory_layer = QgsVectorLayer(
+            f"Polygon?crs={crs.authid()}", 
+            "ThRasE Registry", 
+            "memory"
+        )
+        
+        # add fields
+        provider = self.memory_layer.dataProvider()
+        provider.addAttributes([
+            QgsField("tile_idx", QVariant.Int),
+            QgsField("group_idx", QVariant.Int),
+            QgsField("center_x", QVariant.Double),
+            QgsField("center_y", QVariant.Double),
+        ])
+        self.memory_layer.updateFields()
+        
+        # set initial state (hidden by default)
+        self.memory_layer.setSubsetString("FALSE")  # hide all initially
+
+    def setup_renderer(self, color=None):
+        """Setup single renderer for draw the registry tiles.
+        
+        Args:
+            color: QColor to use for border. If None, uses the default color
+        """
+        if color is None:
+            color = self.tiles_color
+        
+        # Simple border renderer - no fill, 0.3 border width
+        border_symbol = QgsFillSymbol.createSimple({
+            'color': 'transparent',
+            'style': 'no',
+            'outline_color': color.name(),
+            'outline_width': '0.3',
+            'outline_style': 'solid'
+        })
+        self.renderer = QgsSingleSymbolRenderer(border_symbol)
+    
+    def add_registry_layer_to_canvases(self):
+        """Add memory layer to all active view widget canvases."""
+        from ThRasE.gui.main_dialog import ThRasEDialog
+        for view_widget in ThRasEDialog.view_widgets:
+            if view_widget.is_active:
+                layers = view_widget.render_widget.canvas.layers()
+                if self.memory_layer not in layers:
+                    # add as top layer
+                    view_widget.render_widget.canvas.setLayers([self.memory_layer] + layers)
+    
+    def remove_registry_layer_from_canvases(self):
+        """Remove memory layer from all view widget canvases."""
+        from ThRasE.gui.main_dialog import ThRasEDialog
+        for view_widget in ThRasEDialog.view_widgets:
+            if view_widget.is_active:
+                layers = view_widget.render_widget.canvas.layers()
+                if self.memory_layer in layers:
+                    layers.remove(self.memory_layer)
+                    view_widget.render_widget.canvas.setLayers(layers)
 
     def delete(self):
         self.clear()
-        self.clear_show_all()
         self.groups = []
         self.current_group = None
-        self.all_union_geom = None
+        
+        # clear memory layer
+        if self.memory_layer:
+            self.memory_layer.dataProvider().truncate()
+            self.remove_registry_layer_from_canvases()
 
     def clear(self):
-        for group in self.groups:
-            group.clear()
-
-    @wait_process
-    def show_all(self):
-        # draw all groups
+        # hide all features by setting a filter that matches nothing
+        if self.memory_layer:
+            self.memory_layer.setSubsetString("FALSE")
+            self.memory_layer.triggerRepaint()
+    
+    def refresh_all_canvases(self):
+        """Refresh all active view widget canvases."""
         from ThRasE.gui.main_dialog import ThRasEDialog
-        if not self.groups:
-            return
-        # avoid duplicates
-        self.clear_show_all()
-        # compute cached union of all groups if needed
-        if self.all_union_geom is None:
-            geoms = []
-            for group in self.groups:
-                # ensure each group's union geometry is computed once
-                if group.union_geom is None:
-                    if not group.tiles:
-                        continue
-                    if len(group.tiles) == 1:
-                        group.union_geom = group.tiles[0].geometry
-                    else:
-                        gms = [t.geometry for t in group.tiles]
-                        group.union_geom = QgsGeometry.unaryUnion(gms)
-                if group.union_geom and not group.union_geom.isEmpty():
-                    geoms.append(group.union_geom)
-            if not geoms:
-                return
-            self.all_union_geom = QgsGeometry.unaryUnion(geoms)
-        if self.all_union_geom is None or self.all_union_geom.isEmpty():
-            return
-
-        # draw all pixels groups modified as a single geometry per active view
-        fill = QColor(self.tiles_color)
-        fill.setAlpha(140)  # 55% transparent
         for view_widget in ThRasEDialog.view_widgets:
-            if not view_widget.is_active:
-                continue
-            rb = QgsRubberBand(view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
-            rb.setToGeometry(self.all_union_geom, None)
-            rb.setFillColor(fill)
-            rb.setStrokeColor(QColor(0, 0, 0, 0))
-            rb.setWidth(0)
-            rb.show()
-            self.show_all_rubber_bands.append(rb)
-            view_widget.render_widget.canvas.clearCache()
-            view_widget.render_widget.canvas.refresh()
+            if view_widget.is_active:
+                view_widget.render_widget.canvas.refresh()
+
+    def show_all(self):
+        """Display all tiles with border."""
+        if not self.groups or not self.memory_layer:
+            return
+        
+        # ensure layer is in canvases
+        self.add_registry_layer_to_canvases()
+        
+        # apply renderer
+        self.memory_layer.setRenderer(self.renderer.clone())
+        
+        # show all features (remove filter)
+        self.memory_layer.setSubsetString("")
+        self.memory_layer.triggerRepaint()
+        self.refresh_all_canvases()
 
     def clear_show_all(self):
-        [rb.reset(QgsWkbTypes.PolygonGeometry) for rb in self.show_all_rubber_bands]
-        self.show_all_rubber_bands = []
-
-    def update_show_all_color(self):
-        # update the color of overlays without rebuilding geometry
-        if not self.show_all_rubber_bands:
+        """Clear the show all display and restore current group if registry is active."""
+        if not self.memory_layer:
             return
-        fill = QColor(self.tiles_color)
-        fill.setAlpha(140)  # 55% transparent
-        for rb in self.show_all_rubber_bands:
-            rb.setFillColor(fill)
-            rb.setStrokeColor(QColor(0, 0, 0, 0))
-            rb.setWidth(0)
 
-    def update_current_group_color(self):
-        # update the color of the current group's outline without rebuilding geometry
-        if not self.current_group:
-            return
-        self.current_group.update_color(self.tiles_color)
+        # check if registry widget is visible and enabled, and if we have a current group
+        from ThRasE.thrase import ThRasE
+        registry_visible = (ThRasE.dialog and 
+                           ThRasE.dialog.registry_widget and 
+                           ThRasE.dialog.registry_widget.isVisible() and 
+                           self.enabled and 
+                           self.current_group)
+        
+        if registry_visible:
+            # restore current group display
+            self.memory_layer.setRenderer(self.renderer.clone())
+            filter_expr = f'"group_idx" = {self.current_group.idx}'
+            self.memory_layer.setSubsetString(filter_expr)
+        else:
+            # hide all features
+            self.memory_layer.setSubsetString("FALSE")
+        
+        self.memory_layer.triggerRepaint()
+        self.refresh_all_canvases()
+
+    def update_color(self):
+        """Update the border color for current display."""
+        # recreate renderer with current color
+        self.setup_renderer(self.tiles_color)
+        
+        # if currently displaying something, update renderer
+        if self.memory_layer and self.memory_layer.subsetString() != "FALSE":
+            self.memory_layer.setRenderer(self.renderer.clone())
+            self.memory_layer.triggerRepaint()
+            self.refresh_all_canvases()
 
     def update(self):
         # clear previous
         self.delete()
+        
+        # recreate memory layer
+        self.create_memory_layer()
+        self.setup_renderer()
 
         # group PixelLogs by group_id
         group_id_to_logs = {}
@@ -271,15 +313,22 @@ class Registry:
         psx = self.layer_to_edit.qgs_layer.rasterUnitsPerPixelX()
         psy = self.layer_to_edit.qgs_layer.rasterUnitsPerPixelY()
 
+        # start editing mode for batch feature addition
+        self.memory_layer.startEditing()
+
         idx_group = 1
         for gid, fdate, logs_sorted in grouped:
             tiles = []
             for idx, pl in enumerate(logs_sorted, start=1):
                 cx = pl.pixel.x()
                 cy = pl.pixel.y()
-                tiles.append(RegistryTile(idx, cx, cy, psx, psy))
-            self.groups.append(RegistryTileGroup(idx_group, gid, fdate, tiles, self.tiles_color))
+                tiles.append(RegistryTile(idx, idx_group, cx, cy, psx, psy, self.memory_layer))
+            self.groups.append(RegistryTileGroup(idx_group, gid, fdate, tiles, self.memory_layer, self))
             idx_group += 1
+
+        # commit changes to memory layer
+        self.memory_layer.commitChanges()
+        self.memory_layer.updateExtents()
 
         # init current group
         self.current_group = self.groups[0] if self.groups else None
@@ -290,10 +339,18 @@ class Registry:
 
     def set_current_group(self, idx_group):
         from ThRasE.thrase import ThRasE
-        self.clear()
+        
         self.current_group = next((g for g in self.groups if g.idx == idx_group), None)
         if not self.current_group:
             return
+        
+        # ensure layer is in canvases
+        self.add_registry_layer_to_canvases()
+        
+        # apply renderer for current group
+        if self.memory_layer:
+            self.memory_layer.setRenderer(self.renderer.clone())
+        
         if ThRasE.dialog.registry_widget.autoCenter.isChecked():
             self.current_group.center()
         self.current_group.show()
