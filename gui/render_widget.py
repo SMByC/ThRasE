@@ -62,6 +62,7 @@ class RenderWidget(QWidget):
 
     def update_render_layers(self):
         with block_signals_to(self):
+            from ThRasE.core.editing import LayerToEdit
             # set the CRS of the canvas view
             if self.crs:
                 # use the crs of thematic layer to edit
@@ -77,8 +78,14 @@ class RenderWidget(QWidget):
                 self.canvas.setLayers([])
                 self.refresh()
                 return
-            # set to canvas
-            self.canvas.setLayers(valid_layers)
+            # include registry memory layer if active
+            if LayerToEdit.current and LayerToEdit.current.registry.memory_layer:
+                memory_layer = LayerToEdit.current.registry.memory_layer
+                # add registry layer on top of other layers
+                self.canvas.setLayers([memory_layer] + valid_layers)
+            else:
+                # set to canvas without registry layer
+                self.canvas.setLayers(valid_layers)
             # set init extent from other view if any is activated else set layer extent
             from ThRasE.gui.main_dialog import ThRasEDialog
             others_extents = [view_widget.render_widget.canvas.extent() for view_widget in ThRasEDialog.view_widgets

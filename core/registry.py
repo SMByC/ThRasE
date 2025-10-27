@@ -185,25 +185,12 @@ class Registry:
         })
         self.renderer = QgsSingleSymbolRenderer(border_symbol)
     
-    def add_registry_layer_to_canvases(self):
-        """Add memory layer to all active view widget canvases."""
+    def update_registry_layer_in_canvases(self):
+        """Refresh render layers in all active canvases to update registry layer visibility."""
         from ThRasE.gui.main_dialog import ThRasEDialog
         for view_widget in ThRasEDialog.view_widgets:
             if view_widget.is_active:
-                layers = view_widget.render_widget.canvas.layers()
-                if self.memory_layer not in layers:
-                    # add as top layer
-                    view_widget.render_widget.canvas.setLayers([self.memory_layer] + layers)
-    
-    def remove_registry_layer_from_canvases(self):
-        """Remove memory layer from all view widget canvases."""
-        from ThRasE.gui.main_dialog import ThRasEDialog
-        for view_widget in ThRasEDialog.view_widgets:
-            if view_widget.is_active:
-                layers = view_widget.render_widget.canvas.layers()
-                if self.memory_layer in layers:
-                    layers.remove(self.memory_layer)
-                    view_widget.render_widget.canvas.setLayers(layers)
+                view_widget.render_widget.update_render_layers()
 
     def delete(self):
         self.clear()
@@ -213,7 +200,7 @@ class Registry:
         # clear memory layer
         if self.memory_layer:
             self.memory_layer.dataProvider().truncate()
-            self.remove_registry_layer_from_canvases()
+            self.update_registry_layer_in_canvases()
 
     def clear(self):
         # hide all features by setting a filter that matches nothing
@@ -234,7 +221,7 @@ class Registry:
             return
         
         # ensure layer is in canvases
-        self.add_registry_layer_to_canvases()
+        self.update_registry_layer_in_canvases()
         
         # apply renderer
         self.memory_layer.setRenderer(self.renderer.clone())
@@ -345,7 +332,7 @@ class Registry:
             return
         
         # ensure layer is in canvases
-        self.add_registry_layer_to_canvases()
+        self.update_registry_layer_in_canvases()
         
         # apply renderer for current group
         if self.memory_layer:
