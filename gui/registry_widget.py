@@ -63,7 +63,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.showAll.setChecked(False)
         self.showAll.toggled.connect(self.toggle_show_all)
         # export registry
-        self.QPBtn_ExportRegistry.clicked.connect(self.export_registry)
+        self.QPBtn_ExportRegistry.clicked.connect(self.export_registry_dialog)
         self.QPBtn_ExportRegistry.setEnabled(False)
         # delete registry
         self.DeleteRegistry.clicked.connect(self.delete_registry)
@@ -240,7 +240,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.PixelLogGroup_DetailText.setEnabled(enabled)
 
     @pyqtSlot()
-    def export_registry(self):
+    def export_registry_dialog(self):
         from ThRasE.thrase import ThRasE
         if not LayerToEdit.current:
             return
@@ -248,7 +248,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         layer_path = LayerToEdit.current.file_path or ""
         base_dir = os.path.dirname(layer_path) if os.path.isdir(os.path.dirname(layer_path)) else os.path.expanduser("~")
         base_name = os.path.splitext(os.path.basename(layer_path))[0] or "thrase"
-        suggested = os.path.join(base_dir, f"{base_name}_pixel_registry.gpkg")
+        suggested = os.path.join(base_dir, f"{base_name}_registry.gpkg")
 
         output_file, _ = QFileDialog.getSaveFileName(
             self,
@@ -259,7 +259,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         if not output_file:
             return
 
-        ok, msg, count = LayerToEdit.current.registry.export_pixel_logs(output_file)
+        ok, msg, count = LayerToEdit.current.registry.export_registry(output_file)
 
         if ok:
             ThRasE.dialog.MsgBar.pushMessage(self.tr(f"DONE: Registry exported with {count} edited pixels to {output_file}"), level=Qgis.Success, duration=10)
