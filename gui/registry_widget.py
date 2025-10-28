@@ -76,14 +76,14 @@ class RegistryWidget(QWidget, FORM_CLASS):
             return
         if not LayerToEdit.current.registry.enabled:
             return
-            
+
         status = LayerToEdit.current.registry.update()
         total_groups = len(LayerToEdit.current.registry.groups)
 
         if not self.isVisible():
             self.last_slider_position = total_groups
             return
-        
+
         # compute total modified pixels once to avoid repeated sums during slider moves
         self.total_pixels_modified = sum(len(g.tiles) for g in LayerToEdit.current.registry.groups)
         # toggle registry export button
@@ -163,8 +163,8 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group {} of {}".format(idx_group, total_groups))
         group = registry.current_group
         self.PixelLogGroup_DetailText.setText(
-            "{} pixels modified at {} | Total: {} pixels modified".format(
-                len(group.tiles), group.edit_date.strftime('%I:%M %p, %d-%m-%Y'), self.total_pixels_modified)
+            "{} pixels modified: {} | Total: {} pixels modified".format(
+                len(group.tiles), group.edit_date.strftime("%d %b %Y, %H:%M:%S"), self.total_pixels_modified)
         )
         # enable/disable nav buttons
         self.previousTileGroup.setEnabled(idx_group > 1)
