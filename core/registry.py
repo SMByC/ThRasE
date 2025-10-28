@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-
+import itertools
 import os
 
 from qgis.PyQt.QtGui import QColor
@@ -61,7 +61,7 @@ class RegistryTile:
         feature = QgsFeature(memory_layer.fields())
         feature.setGeometry(geom)
         feature.setAttributes([self.idx, self.group_idx, center_x, center_y])
-        
+
         # add feature to memory layer
         memory_layer.dataProvider().addFeature(feature)
         self.feature_id = feature.id()
@@ -89,7 +89,7 @@ class RegistryTileGroup:
         # display tile borders without fill by applying filter to memory layer
         if not self.tiles:
             return
-        
+
         # set filter to show only tiles from this group
         filter_expr = f'"group_idx" = {self.idx}'
         self.memory_layer.setSubsetString(filter_expr)
@@ -108,11 +108,11 @@ class RegistryTileGroup:
         tiles_extent = self.tiles_extent()
         if tiles_extent.isEmpty():
             return
-        
+
         # get the center point of the group
         center_x = tiles_extent.center().x()
         center_y = tiles_extent.center().y()
-        
+
         # center all active views on this point without changing scale
         for view_widget in ThRasEDialog.view_widgets:
             if not view_widget.is_active:
@@ -135,11 +135,11 @@ class Registry:
         self.current_group = None
         self.tiles_color = QColor("#ff00ff")
         self.enabled = True
-        
+
         # create memory vector layer for tiles
         self.memory_layer = None
         self.create_memory_layer()
-        
+
         # single renderer for both display modes
         self.renderer = None
         self.setup_renderer()
@@ -148,11 +148,11 @@ class Registry:
         """Create memory vector layer to store tile geometries."""
         crs = self.layer_to_edit.qgs_layer.crs()
         self.memory_layer = QgsVectorLayer(
-            f"Polygon?crs={crs.authid()}", 
-            "ThRasE Registry", 
+            f"Polygon?crs={crs.authid()}",
+            "ThRasE Registry",
             "memory"
         )
-        
+
         # add fields
         provider = self.memory_layer.dataProvider()
         provider.addAttributes([
@@ -162,19 +162,19 @@ class Registry:
             QgsField("center_y", QVariant.Double),
         ])
         self.memory_layer.updateFields()
-        
+
         # set initial state (hidden by default)
         self.memory_layer.setSubsetString("FALSE")  # hide all initially
 
     def setup_renderer(self, color=None):
         """Setup single renderer for draw the registry tiles.
-        
+
         Args:
             color: QColor to use for border. If None, uses the default color
         """
         if color is None:
             color = self.tiles_color
-        
+
         # Simple border renderer - no fill, 0.3 border width
         border_symbol = QgsFillSymbol.createSimple({
             'color': 'transparent',
@@ -184,7 +184,7 @@ class Registry:
             'outline_style': 'solid'
         })
         self.renderer = QgsSingleSymbolRenderer(border_symbol)
-    
+
     def update_registry_layer_in_canvases(self):
         """Refresh render layers in all active canvases to update registry layer visibility."""
         from ThRasE.gui.main_dialog import ThRasEDialog
@@ -196,7 +196,7 @@ class Registry:
         self.clear()
         self.groups = []
         self.current_group = None
-        
+
         # clear memory layer
         if self.memory_layer:
             self.memory_layer.dataProvider().truncate()
@@ -207,7 +207,7 @@ class Registry:
         if self.memory_layer:
             self.memory_layer.setSubsetString("FALSE")
             self.memory_layer.triggerRepaint()
-    
+
     def refresh_all_canvases(self):
         """Refresh all active view widget canvases."""
         from ThRasE.gui.main_dialog import ThRasEDialog
@@ -219,13 +219,13 @@ class Registry:
         """Display all tiles with border."""
         if not self.groups or not self.memory_layer:
             return
-        
+
         # ensure layer is in canvases
         self.update_registry_layer_in_canvases()
-        
+
         # apply renderer
         self.memory_layer.setRenderer(self.renderer.clone())
-        
+
         # show all features (remove filter)
         self.memory_layer.setSubsetString("")
         self.memory_layer.triggerRepaint()
@@ -238,12 +238,12 @@ class Registry:
 
         # check if registry widget is visible and enabled, and if we have a current group
         from ThRasE.thrase import ThRasE
-        registry_visible = (ThRasE.dialog and 
-                           ThRasE.dialog.registry_widget and 
-                           ThRasE.dialog.registry_widget.isVisible() and 
-                           self.enabled and 
+        registry_visible = (ThRasE.dialog and
+                           ThRasE.dialog.registry_widget and
+                           ThRasE.dialog.registry_widget.isVisible() and
+                           self.enabled and
                            self.current_group)
-        
+
         if registry_visible:
             # restore current group display
             self.memory_layer.setRenderer(self.renderer.clone())
@@ -252,7 +252,7 @@ class Registry:
         else:
             # hide all features
             self.memory_layer.setSubsetString("FALSE")
-        
+
         self.memory_layer.triggerRepaint()
         self.refresh_all_canvases()
 
@@ -260,84 +260,170 @@ class Registry:
         """Update the border color for current display."""
         # recreate renderer with current color
         self.setup_renderer(self.tiles_color)
-        
+
         # if currently displaying something, update renderer
         if self.memory_layer and self.memory_layer.subsetString() != "FALSE":
             self.memory_layer.setRenderer(self.renderer.clone())
             self.memory_layer.triggerRepaint()
             self.refresh_all_canvases()
 
-    def update(self):
-        # clear previous
-        self.delete()
-        
-        # recreate memory layer
-        self.create_memory_layer()
-        self.setup_renderer()
+    def update(self, force_rebuild=False):
+        """Update registry state after pixel edits."""
+        grouped_logs = {gid: list(logs) for gid, logs
+            in itertools.groupby((pl for pl in self.layer_to_edit.pixel_log_store.values()
+            if pl.group_id is not None), key=lambda pl: pl.group_id)}
 
-        # group PixelLogs by group_id
-        group_id_to_logs = {}
-        for pixel_log in self.layer_to_edit.pixel_log_store.values():
-            if pixel_log.group_id is None:
-                # skip logs without group id
-                continue
-            group_id_to_logs.setdefault(pixel_log.group_id, []).append(pixel_log)
-
-        if not group_id_to_logs:
+        if not grouped_logs:
+            if self.groups:
+                self.delete()
             return False
 
-        # sort groups by edit_date
-        grouped = []
-        for gid, logs in group_id_to_logs.items():
-            # sort pixels inside by edit_date
+        if force_rebuild:
+            return self.add_registry_groups(grouped_logs, reset=True)
+
+        existing_ids = {group.group_id for group in self.groups}
+        current_ids = set(grouped_logs.keys())
+
+        removed_ids = existing_ids - current_ids
+        new_ids = current_ids - existing_ids
+
+        changed = False
+
+        if removed_ids and self.remove_registry_groups(removed_ids):
+            changed = True
+
+        if new_ids and self.add_registry_groups(grouped_logs, group_ids=new_ids, reset=False):
+            changed = True
+
+        return changed or bool(self.groups)
+
+    def remove_registry_groups(self, group_ids):
+        """Remove registry groups to the memory layer."""
+        if not self.memory_layer or not self.groups or not group_ids:
+            return False
+
+        target_ids = set(group_ids)
+        to_remove = [group for group in self.groups if group.group_id in target_ids]
+        if not to_remove:
+            return False
+
+        provider = self.memory_layer.dataProvider()
+        feature_ids = []
+        for group in to_remove:
+            feature_ids.extend(tile.feature_id for tile in group.tiles)
+
+        remaining_groups = [group for group in self.groups if group.group_id not in target_ids]
+        previous_current_id = self.current_group.group_id if self.current_group else None
+        subset_before = self.memory_layer.subsetString()
+
+        self.memory_layer.startEditing()
+        if feature_ids:
+            provider.deleteFeatures(feature_ids)
+
+        attr_updates = {}
+        group_idx_field = self.memory_layer.fields().indexOf("group_idx")
+        for new_idx, group in enumerate(remaining_groups, start=1):
+            if group.idx == new_idx:
+                continue
+            group.idx = new_idx
+            for tile in group.tiles:
+                tile.group_idx = new_idx
+                if group_idx_field >= 0:
+                    attr_updates.setdefault(tile.feature_id, {})[group_idx_field] = new_idx
+
+        if attr_updates:
+            provider.changeAttributeValues(attr_updates)
+
+        self.memory_layer.commitChanges()
+        self.memory_layer.updateExtents()
+
+        self.groups = remaining_groups
+
+        if previous_current_id and previous_current_id not in target_ids:
+            self.current_group = next((g for g in remaining_groups if g.group_id == previous_current_id), None)
+        elif remaining_groups:
+            self.current_group = remaining_groups[0]
+        else:
+            self.current_group = None
+
+        subset_after = subset_before
+        if subset_before.startswith('"group_idx"'):
+            if self.current_group:
+                subset_after = f'"group_idx" = {self.current_group.idx}'
+            else:
+                subset_after = "FALSE"
+        elif subset_before == "" and not self.groups:
+            subset_after = "FALSE"
+
+        self.memory_layer.setSubsetString(subset_after)
+        self.memory_layer.triggerRepaint()
+        self.refresh_all_canvases()
+
+        return True
+
+    def add_registry_groups(self, group_id_to_logs, group_ids=None, reset=False):
+        """Add registry tile groups to the registry memory layer."""
+        if reset:
+            self.delete()
+            self.create_memory_layer()
+            self.setup_renderer()
+            next_idx = 1
+        else:
+            next_idx = len(self.groups) + 1
+
+        entries = []
+        iterable = (
+            ((gid, group_id_to_logs.get(gid)) for gid in group_ids)
+            if group_ids is not None else group_id_to_logs.items()
+        )
+        for gid, logs in iterable:
+            if not logs:
+                continue
             logs_sorted = sorted(logs, key=lambda pl: pl.edit_date)
             first_date = logs_sorted[0].edit_date
-            grouped.append((gid, first_date, logs_sorted))
+            entries.append((gid, first_date, logs_sorted))
 
-        grouped.sort(key=lambda item: item[1])
+        if not entries:
+            return False
 
-        # build RegistryTileGroup list
+        entries.sort(key=lambda item: item[1])
+
         psx = self.layer_to_edit.qgs_layer.rasterUnitsPerPixelX()
         psy = self.layer_to_edit.qgs_layer.rasterUnitsPerPixelY()
 
-        # start editing mode for batch feature addition
         self.memory_layer.startEditing()
 
-        idx_group = 1
-        for gid, fdate, logs_sorted in grouped:
+        for gid, fdate, logs_sorted in entries:
             tiles = []
             for idx, pl in enumerate(logs_sorted, start=1):
                 cx = pl.pixel.x()
                 cy = pl.pixel.y()
-                tiles.append(RegistryTile(idx, idx_group, cx, cy, psx, psy, self.memory_layer))
-            self.groups.append(RegistryTileGroup(idx_group, gid, fdate, tiles, self.memory_layer, self))
-            idx_group += 1
+                tiles.append(RegistryTile(idx, next_idx, cx, cy, psx, psy, self.memory_layer))
+            self.groups.append(RegistryTileGroup(next_idx, gid, fdate, tiles, self.memory_layer, self))
+            next_idx += 1
 
-        # commit changes to memory layer
         self.memory_layer.commitChanges()
         self.memory_layer.updateExtents()
 
-        # init current group
-        self.current_group = self.groups[0] if self.groups else None
-        if self.current_group is None:
-            return False
+        if reset:
+            self.current_group = self.groups[0] if self.groups else None
 
         return True
 
     def set_current_group(self, idx_group):
         from ThRasE.thrase import ThRasE
-        
+
         self.current_group = next((g for g in self.groups if g.idx == idx_group), None)
         if not self.current_group:
             return
-        
+
         # ensure layer is in canvases
         self.update_registry_layer_in_canvases()
-        
+
         # apply renderer for current group
         if self.memory_layer:
             self.memory_layer.setRenderer(self.renderer.clone())
-        
+
         if ThRasE.dialog.registry_widget.autoCenter.isChecked():
             self.current_group.center()
         self.current_group.show()
@@ -359,7 +445,7 @@ class Registry:
         if ext not in [".gpkg", ".shp", ".geojson"]:
             output_file_path = path + ".gpkg"
             ext = ".gpkg"
-        
+
         driver_name = {".gpkg": "GPKG", ".shp": "ESRI Shapefile", ".geojson": "GeoJSON"}.get(ext, "GPKG")
 
         # create mapping from UUID group_id
@@ -383,7 +469,7 @@ class Registry:
         for pl in self.layer_to_edit.pixel_log_store.values():
             cx = pl.pixel.x()
             cy = pl.pixel.y()
-            
+
             # create geometry
             rect = QgsRectangle(cx - half_psx, cy - half_psy, cx + half_psx, cy + half_psy)
             geom = QgsGeometry.fromRect(rect)
