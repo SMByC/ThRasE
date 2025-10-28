@@ -243,7 +243,7 @@
          <item>
           <widget class="QCheckBox" name="RecordChangesInRegistry">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the changes that will be applied here to the ThRasE registry.&lt;/p&gt;&lt;p&gt;Note: Be aware of the image size and number of pixels that will change.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the changes that will be applied here to the ThRasE registry.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Record the changes in the registry</string>

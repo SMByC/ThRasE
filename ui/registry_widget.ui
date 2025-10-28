@@ -88,7 +88,7 @@ QToolButton
       <cursorShape>PointingHandCursor</cursorShape>
      </property>
      <property name="toolTip">
-      <string>Export all registered modified pixels to a vector file</string>
+      <string>Export the current ThRasE registry to a vector file</string>
      </property>
      <property name="text">
       <string/>
@@ -184,9 +184,7 @@ QToolButton
       <bool>true</bool>
      </property>
      <property name="toolTip">
-      <string>Show all pixel changes
-
-Note: For performance reasons, this will be disabled by any editing action</string>
+      <string>Show the entire registry (all pixels modified over time)</string>
      </property>
      <property name="text">
       <string/>

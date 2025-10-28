@@ -714,9 +714,7 @@ can be displayed and overlaid per view</string>
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Open the registry tool to review pixel changes over time
-
-Note: For better performance, close the registry during active editing</string>
+                        <string>Open the registry tool to review pixel changes over time</string>
                        </property>
                        <property name="text">
                         <string>Registry</string>
@@ -825,7 +823,7 @@ Note: For better performance, close the registry during active editing</string>
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Open the Continuous Change Detection widget</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open the Continuous Change Detection (CCD) widget&lt;/p&gt;&lt;p&gt;CCD helps to analyze the trends and breakpoints over multi-year time series&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string/>

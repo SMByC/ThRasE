@@ -1208,10 +1208,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         record_checkbox.setChecked(False)
         record_checkbox.setEnabled(registry_enabled)
         # Set tooltip based on registry status
-        tooltip_base = (
-            "<p>Add the changes that will be applied here to the ThRasE registry.</p>" +
-            "<p>Note: Be aware of the raster size and number of pixels that will change.</p>"
-        )
+        tooltip_base = ("<p>Add the changes that will be applied here to the ThRasE registry.</p>")
         if registry_enabled:
             tooltip = f"<html><head/><body>{tooltip_base}</body></html>"
         else:

@@ -90,10 +90,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         self.RecordChangesInRegistry.setChecked(False)
         self.RecordChangesInRegistry.setEnabled(registry_enabled)
         # Set tooltip based on registry status
-        tooltip_base = (
-            "<p>Add the changes that will be applied here to the ThRasE registry.</p>" +
-            "<p>Note: Be aware of the image size and number of pixels that will change.</p>"
-        )
+        tooltip_base = ("<p>Add the changes that will be applied here to the ThRasE registry.</p>")
         if registry_enabled:
             tooltip = f"<html><head/><body>{tooltip_base}</body></html>"
         else:
