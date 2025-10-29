@@ -37,7 +37,7 @@ Issues = "https://github.com/SMByC/ThRasE/issues"
 "QGIS Plugin" = "https://plugins.qgis.org/plugins/ThRasE/"
 
 [tool.pyright]
-extraPaths = [".."]  # include project folder
+extraPaths = ["..", "/usr/lib/python3.13/site-packages/"]  # include project folder and system Python path
 venv = ".venv"
 reportUnknownVariableType = "none"
 reportUnknownParameterType = "none"
