@@ -661,16 +661,17 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 button_box.button(QDialogButtonBox.Close).setText(self.tr("Close"))
                 button_box.button(QDialogButtonBox.Cancel).setText(self.tr("Cancel"))
 
-            reply = msg_box.exec_()
+            if layer_to_edit is not None:
+                reply = msg_box.exec_()
 
-            if reply == QMessageBox.Cancel:
-                event.ignore()
-                return
-
-            if reply == QMessageBox.Save:
-                if not self.save_thrase_config():
+                if reply == QMessageBox.Cancel:
                     event.ignore()
                     return
+
+                if reply == QMessageBox.Save:
+                    if not self.save_thrase_config():
+                        event.ignore()
+                        return
 
         # disconnect signals for combo boxes
         try:
@@ -1299,7 +1300,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             QApplication.restoreOverrideCursor()
             QApplication.processEvents()
 
-        QTimer.singleShot(2000, restore_save_feedback)
+        QTimer.singleShot(1000, restore_save_feedback)
         layer_to_edit.save_config(output_file)
         self.update_save_buttons_state()
         return True
