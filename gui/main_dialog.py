@@ -25,6 +25,7 @@ import tempfile
 from datetime import datetime
 from copy import deepcopy
 from pathlib import Path
+from html import escape
 import yaml
 try:
     from yaml import CSafeLoader as SafeLoader
@@ -34,7 +35,7 @@ except ImportError:
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer, QEvent
 from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog, QWidget, QLabel, \
-    QComboBox, QDialog, QDockWidget, QFrame, QCheckBox
+    QComboBox, QDialog, QDockWidget, QFrame, QCheckBox, QApplication, QDialogButtonBox
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
     QgsCoordinateTransform, QgsProject
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
@@ -200,7 +201,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QPBtn_ApplyToEntireThematicRaster.clicked.connect(self.apply_to_entire_thematic_raster)
         self.apply_from_thematic_classes = ApplyFromThematicClasses()
         self.QPBtn_ApplyFromThematicClasses.clicked.connect(self.apply_from_thematic_classes_dialog)
-        self.SaveConfig.clicked.connect(self.file_dialog_save_thrase_config)
+        self.SaveConfig.clicked.connect(self.save_thrase_config)
+        self.SaveAsConfig.clicked.connect(self.file_dialog_save_thrase_config)
+        self.update_save_buttons_state()
 
         # ######### CCD plugin widget ######### #
         # set up the Continuous Change Detection widget
@@ -370,6 +373,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 self.QCBox_band_LayerToEdit.setCurrentIndex(yaml_config["thematic_file_to_edit"]["band"] - 1)
         # file config
         LayerToEdit.current.config_file = yaml_config["config_file"]
+        self.update_save_buttons_state()
         # symbology and pixel table
         if "symbology" in yaml_config:
             LayerToEdit.current.symbology = yaml_config["symbology"]
@@ -628,15 +632,45 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             super(ThRasEDialog, self).keyPressEvent(event)
 
     def closeEvent(self, event):
-        # first prompt if dialog is opened
         if self.isVisible():
-            quit_msg = "Are you sure you want close the ThRasE plugin?"
-            reply = QMessageBox.question(None, 'Closing the ThRasE plugin',
-                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
-            if reply == QMessageBox.No:
-                # don't close
+            msg_box = QMessageBox(self)
+            msg_box.setIcon(QMessageBox.Question)
+            msg_box.setWindowTitle(self.tr("Close ThRasE"))
+            msg_box.setTextFormat(Qt.RichText)
+            msg_box.setText("<p>{}</p>".format(
+                self.tr("Do you want to save the current configuration before exiting ThRasE?")
+            ))
+
+            layer_to_edit = LayerToEdit.current
+            if layer_to_edit and layer_to_edit.config_file:
+                config_path = layer_to_edit.config_file
+                try:
+                    if os.path.exists(config_path):
+                        saved_at = datetime.fromtimestamp(os.path.getmtime(config_path))
+                        config_path += " ({})".format(saved_at.strftime("%d %b %Y, %H:%M:%S"))
+                except OSError:
+                    pass
+                msg_box.setInformativeText(self.tr("<b>Current config file:</b> {0}").format(escape(config_path)))
+
+            msg_box.setStandardButtons(QMessageBox.Save | QMessageBox.Close | QMessageBox.Cancel)
+            msg_box.setDefaultButton(QMessageBox.Save)
+            msg_box.setEscapeButton(QMessageBox.Cancel)
+            button_box = msg_box.findChild(QDialogButtonBox)
+            if button_box:
+                button_box.button(QDialogButtonBox.Save).setText(self.tr("Save and close"))
+                button_box.button(QDialogButtonBox.Close).setText(self.tr("Close"))
+                button_box.button(QDialogButtonBox.Cancel).setText(self.tr("Cancel"))
+
+            reply = msg_box.exec_()
+
+            if reply == QMessageBox.Cancel:
                 event.ignore()
                 return
+
+            if reply == QMessageBox.Save:
+                if not self.save_thrase_config():
+                    event.ignore()
+                    return
 
         # disconnect signals for combo boxes
         try:
@@ -817,10 +851,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QPBtn_AutoFill.setDisabled(True)
         self.Widget_GlobalEditingTools.setDisabled(True)
         self.QCBox_LayerToEdit.setCurrentIndex(-1)
-        self.SaveConfig.setDisabled(True)
         with block_signals_to(self.QCBox_band_LayerToEdit):
             self.QCBox_band_LayerToEdit.clear()
         LayerToEdit.current = None
+        self.update_save_buttons_state()
         [view_widget.widget_EditingToolbar.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
         # registry
         self.QPBtn_Registry.setDisabled(True)
@@ -959,7 +993,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
         self.QPBtn_AutoFill.setEnabled(True)
         self.Widget_GlobalEditingTools.setEnabled(True)
-        self.SaveConfig.setEnabled(True)
+        self.update_save_buttons_state()
         # registry
         self.QPBtn_Registry.setEnabled(True)
         if self.registry_widget.isVisible():
@@ -1247,11 +1281,66 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 level=Qgis.Success, duration=10)
 
     @pyqtSlot()
-    def file_dialog_save_thrase_config(self):
-        if LayerToEdit.current.config_file:
-            suggested_filename = LayerToEdit.current.config_file
+    def save_thrase_config(self):
+        layer_to_edit = LayerToEdit.current
+        if not layer_to_edit:
+            return True
+
+        if not layer_to_edit.config_file:
+            return self.file_dialog_save_thrase_config()
+
+        output_file = layer_to_edit.config_file
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        self.SaveConfig.setDown(True)
+        QApplication.processEvents()
+
+        def restore_save_feedback():
+            self.SaveConfig.setDown(False)
+            QApplication.restoreOverrideCursor()
+            QApplication.processEvents()
+
+        QTimer.singleShot(2000, restore_save_feedback)
+        layer_to_edit.save_config(output_file)
+        self.update_save_buttons_state()
+        return True
+
+    def update_save_buttons_state(self):
+        layer_to_edit = LayerToEdit.current
+        has_layer = bool(layer_to_edit)
+        self.SaveConfig.setEnabled(has_layer)
+        self.SaveAsConfig.setEnabled(bool(layer_to_edit and layer_to_edit.config_file))
+        if layer_to_edit and layer_to_edit.config_file:
+            config_path = layer_to_edit.config_file
+            saved_suffix = ""
+            try:
+                if os.path.exists(config_path):
+                    saved_at = datetime.fromtimestamp(os.path.getmtime(config_path))
+                    saved_suffix = " ({})".format(saved_at.strftime("%d %b %Y, %H:%M:%S"))
+            except OSError:
+                pass
+            tooltip = (
+                "<html><head/><body><p><span style='font-weight:600;'>Overwrite config file</span><br/>"
+                "Save the current ThRasE configuration to a YAML file for later restoration."
+                "</p><p><b>Current config file:</b> {}{}"
+                "</p></body></html>"
+            ).format(escape(config_path), escape(saved_suffix))
         else:
-            path, filename = os.path.split(LayerToEdit.current.file_path)
+            tooltip = (
+                "<html><head/><body><p><span style='font-weight:600;'>Set up the config file</span><br/>"
+                "Save the current ThRasE configuration to a YAML file for later restoration."
+                "</p></body></html>"
+            )
+        self.SaveConfig.setToolTip(tooltip)
+
+    def file_dialog_save_thrase_config(self):
+        layer_to_edit = LayerToEdit.current
+        if not layer_to_edit:
+            return False
+
+        if layer_to_edit.config_file:
+            suggested_filename = layer_to_edit.config_file
+        else:
+            path, filename = os.path.split(layer_to_edit.file_path)
             suggested_filename = os.path.splitext(os.path.join(path, filename))[0] + "_thrase.yaml"
 
         output_file, _ = QFileDialog.getSaveFileName(self, self.tr("Save the current configuration of the ThRasE plugin"),
@@ -1259,14 +1348,16 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                                                   self.tr("YAML files (*.yaml *.yml);;All files (*.*)"))
 
         if output_file is None or output_file == '':
-            return
+            return False
 
         if not output_file.endswith(('.yaml', '.yml')):
             output_file += ".yaml"
 
-        LayerToEdit.current.save_config(output_file)
+        layer_to_edit.save_config(output_file)
         self.MsgBar.pushMessage("DONE: Configuration file saved successfully in '{}'".format(output_file),
                                 level=Qgis.Success, duration=10)
+        self.update_save_buttons_state()
+        return True
 
     @pyqtSlot(bool)
     def toggle_ccd_plugin_widget(self, checked):
