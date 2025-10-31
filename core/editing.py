@@ -169,6 +169,8 @@ class LayerToEdit(object):
     def highlight_value_in_recode_pixel_table(self, value_to_select):
         """Highlight the current pixel value from mouse pointer on canvas"""
         from ThRasE.thrase import ThRasE
+        if self.pixels is None:
+            return
         if value_to_select is None:
             ThRasE.dialog.recodePixelTable.clearSelection()
             with block_signals_to(ThRasE.dialog.recodePixelTable):

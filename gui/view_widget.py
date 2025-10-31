@@ -60,8 +60,12 @@ class ViewWidget(QWidget):
             "polygon": EditLog("polygon"),
             "freehand": EditLog("polygon")
         }
-        # unselect items in recode pixel table
+        # mouse pixel value tracking in recode pixel table
+        self.mouse_pixel_value_tracking = False
         self.mousePixelValue2Table.clicked.connect(self.unhighlight_cells_in_recode_pixel_table)
+        self.mousePixelValue2Table.toggled.connect(self.toggle_mouse_pixel_value_tracking)
+        if self.mousePixelValue2Table.isChecked():
+            self.toggle_mouse_pixel_value_tracking(True)
 
         # picker pixel tool edit
         self.widget_EditingToolbar.setEnabled(False)
@@ -105,7 +109,7 @@ class ViewWidget(QWidget):
 
     def trigger_auto_clear(self, picker_type="all"):
         """Trigger auto-clear after edit if enabled with a delay
-        
+
         Args:
             picker_type: Type of picker tool - "line", "polygon", "freehand", or "all"
         """
@@ -121,7 +125,7 @@ class ViewWidget(QWidget):
                 self.clear_all_freehand_drawn()
             self.render_widget.canvas.clearCache()
             self.render_widget.refresh()
-        
+
         QTimer.singleShot(500, auto_clear)
 
     @staticmethod
@@ -131,6 +135,43 @@ class ViewWidget(QWidget):
         with block_signals_to(ThRasE.dialog.recodePixelTable):
             [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white)
              for idx in range(len(LayerToEdit.current.pixels))]
+
+    def toggle_mouse_pixel_value_tracking(self, enabled):
+        """Connect or disconnect canvas tracking for pixel-value highlighting."""
+        if enabled and not self.mouse_pixel_value_tracking:
+            self.render_widget.canvas.xyCoordinates.connect(self.update_pixel_value_highlight)
+            self.mouse_pixel_value_tracking = True
+            return
+
+        if not enabled and self.mouse_pixel_value_tracking:
+            try:
+                self.render_widget.canvas.xyCoordinates.disconnect(self.update_pixel_value_highlight)
+            except TypeError:
+                pass
+            self.mouse_pixel_value_tracking = False
+            layer = LayerToEdit.current
+            if layer and layer.pixels:
+                layer.highlight_value_in_recode_pixel_table(None)
+
+    def update_pixel_value_highlight(self, point):
+        """Highlight the table row matching the pixel under the mouse pointer."""
+        if not self.mousePixelValue2Table.isChecked():
+            return
+
+        layer = LayerToEdit.current
+        if layer is None or not layer.pixels:
+            return
+
+        pixel_value = None
+        if layer.check_point_inside_layer(point):
+            try:
+                identify_result = layer.data_provider.identify(point, QgsRaster.IdentifyFormatValue)
+                if identify_result.isValid():
+                    pixel_value = identify_result.results().get(layer.band)
+            except Exception:
+                pixel_value = None
+
+        layer.highlight_value_in_recode_pixel_table(pixel_value)
 
     def update(self):
         valid_layers = [layer_toolbar.layer for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
@@ -540,13 +581,6 @@ class PickerPixelTool(QgsMapTool):
         ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
             map_coordinate.x(), map_coordinate.y(), crs))
 
-        # highlight the current pixel value from mouse picker
-        if self.view_widget.mousePixelValue2Table.isChecked():
-            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-            pixel_value_to_select = \
-                LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
-            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
-
     def canvasPressEvent(self, event):
         # edit the pixel over pointer mouse on left-click
         if event.button() == Qt.LeftButton:
@@ -641,13 +675,6 @@ class PickerLineTool(QgsMapTool):
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
         ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
             map_coordinate.x(), map_coordinate.y(), crs))
-
-        # highlight the current pixel value from mouse picker
-        if self.view_widget.mousePixelValue2Table.isChecked():
-            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-            pixel_value_to_select = \
-                LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
-            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
         # draw the auxiliary line
         if self.aux_line is None:
             return
@@ -762,13 +789,6 @@ class PickerPolygonTool(QgsMapTool):
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
         ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
             map_coordinate.x(), map_coordinate.y(), crs))
-
-        # highlight the current pixel value from mouse picker
-        if self.view_widget.mousePixelValue2Table.isChecked():
-            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-            pixel_value_to_select = \
-                LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
-            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
         # draw the auxiliary rubber band
         if self.aux_rubber_band is None:
             return
@@ -883,13 +903,6 @@ class PickerFreehandTool(QgsMapTool):
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
         ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
             map_coordinate.x(), map_coordinate.y(), crs))
-
-        # highlight the current pixel value from mouse picker
-        if self.view_widget.mousePixelValue2Table.isChecked():
-            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
-            pixel_value_to_select = \
-                LayerToEdit.current.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[LayerToEdit.current.band]
-            LayerToEdit.current.highlight_value_in_recode_pixel_table(pixel_value_to_select)
         # draw the auxiliary rubber band
         if not self.drawing or not self.rubber_band:
             return
