@@ -1,7 +1,7 @@
 [project]
 name = "thrase"
-version = "25.8"
-description = "Open-source QGIS plugin for rigorous editing and quality assurance of thematic rasters."
+version = "25.11"
+description = "Open-source QGIS plugin for rigorous thematic raster editing with synchronized multi-panel views, recode pixel tables, modification tracking, tile navigation, and session persistence."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "GPL-3.0-only"
