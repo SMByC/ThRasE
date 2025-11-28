@@ -545,6 +545,8 @@ class PickerPixelTool(QgsMapTool):
         self.view_widget = view_widget
         # status rec icon and focus
         self.view_widget.render_widget.canvas.setFocus()
+        self.drawing = False
+        self.last_pixel = None  # track last edited pixel to avoid duplicates
 
     def finish(self):
         self.view_widget.PixelsPicker.setChecked(False)
@@ -562,6 +564,10 @@ class PickerPixelTool(QgsMapTool):
         y = event.pos().y()
         point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
         pixel = Pixel(point=get_pixel_centroid(x=point.x(), y=point.y()))
+        # avoid editing the same pixel multiple times while drawing
+        if self.last_pixel is not None and pixel.qgs_point == self.last_pixel.qgs_point:
+            return
+        self.last_pixel = pixel
         pixel_value = LayerToEdit.current.edit_from_pixel_picker(pixel)
         if pixel_value is not None:
             # store per-view edit history
@@ -578,11 +584,20 @@ class PickerPixelTool(QgsMapTool):
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
         ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
             map_coordinate.x(), map_coordinate.y(), crs))
+        # edit pixels while drawing (mouse button pressed)
+        if self.drawing:
+            self.edit(event)
 
     def canvasPressEvent(self, event):
         # edit the pixel over pointer mouse on left-click
         if event.button() == Qt.LeftButton:
+            self.drawing = True
+            self.last_pixel = None  # reset last pixel on new press
             self.edit(event)
+
+    def canvasReleaseEvent(self, event):
+        self.drawing = False
+        self.last_pixel = None
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:

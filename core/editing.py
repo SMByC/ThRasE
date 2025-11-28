@@ -211,7 +211,6 @@ class LayerToEdit(object):
         if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
             return PixelLog(pixel, old_value, new_value, group_id, store=self.registry.enabled if store is None else store)
 
-    @wait_process
     @edit_layer
     def edit_from_pixel_picker(self, pixel):
         group_id = uuid.uuid4()
