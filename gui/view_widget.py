@@ -234,8 +234,6 @@ class ViewWidget(QWidget):
             if isinstance(maptool_instance, PickerLineTool):
                 if maptool_instance.line:
                     maptool_instance.line.reset(QgsWkbTypes.LineGeometry)
-                if maptool_instance.aux_line:
-                    maptool_instance.aux_line.reset(QgsWkbTypes.LineGeometry)
                 maptool_instance.start_new_line()
 
     @pyqtSlot()
@@ -603,23 +601,17 @@ class PickerLineTool(QgsMapTool):
     def start_new_line(self):
         # set rubber band style
         color = self.view_widget.lines_color
-        color.setAlpha(70)
+        color.setAlpha(140)
         # create the main line
         self.line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.LineGeometry)
         self.line.setColor(color)
         self.line.setWidth(4)
-        # create the mouse/tmp line, this is main line + current mouse position
-        self.aux_line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.LineGeometry)
-        self.aux_line.setColor(color)
-        self.aux_line.setWidth(4)
+        self.drawing = False
 
     def finish(self):
         if self.line:
             self.line.reset(QgsWkbTypes.LineGeometry)
-        if self.aux_line:
-            self.aux_line.reset(QgsWkbTypes.LineGeometry)
         self.line = None
-        self.aux_line = None
         self.view_widget.LinesPicker.setChecked(False)
         self.view_widget.unhighlight_cells_in_recode_pixel_table()
         # restart point tool
@@ -631,14 +623,6 @@ class PickerLineTool(QgsMapTool):
         ThRasE.dialog.map_coordinate.setText("")
 
     def define_line(self):
-        # clean the aux line
-        self.aux_line.reset(QgsWkbTypes.LineGeometry)
-        self.aux_line = None
-        # adjust the color
-        color = self.view_widget.lines_color
-        color.setAlpha(140)
-        self.line.setColor(color)
-        self.line.setWidth(4)
         # save
         new_feature = QgsFeature()
         new_feature.setGeometry(self.line.asGeometry())
@@ -675,51 +659,45 @@ class PickerLineTool(QgsMapTool):
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
         ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
             map_coordinate.x(), map_coordinate.y(), crs))
-        # draw the auxiliary line
-        if self.aux_line is None:
+        # draw the line while mouse button is pressed
+        if not self.drawing or not self.line:
             return
-        if self.aux_line and self.aux_line.numberOfVertices():
-            x = event.pos().x()
-            y = event.pos().y()
-            point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
-            self.aux_line.removeLastPoint()
-            self.aux_line.addPoint(point)
+        self.line.addPoint(self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos()))
 
     def canvasPressEvent(self, event):
-        if self.line is None:
-            self.finish()
+        if self.drawing:
             return
-        # new point on line
+
+        # start new line draw
         if event.button() == Qt.LeftButton:
+            self.drawing = True
             x = event.pos().x()
             y = event.pos().y()
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
             self.line.addPoint(point)
-            self.aux_line.addPoint(point)
-        # edit
-        if event.button() == Qt.RightButton:
-            if self.line and self.line.numberOfVertices():
-                if self.line.numberOfVertices() < 2:
-                    return
-                # save line and edit
-                self.define_line()
+
+    def canvasReleaseEvent(self, event):
+        self.drawing = False
+
+        if not self.line:
+            return
+
+        if self.line.numberOfVertices() > 1:
+            # save line and edit
+            self.define_line()
+        else:
+            # not enough points, reset and start over
+            self.line.reset(QgsWkbTypes.LineGeometry)
+            self.start_new_line()
 
     def keyPressEvent(self, event):
-        # edit
-        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
-            if self.line and self.line.numberOfVertices():
-                if self.line.numberOfVertices() < 2:
-                    return
-                # save line and edit
-                self.define_line()
-        # delete last point
-        if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
-            self.line.removeLastPoint()
-            self.aux_line.removeLastPoint()
+        # remove/ignore current line
+        if self.drawing and (event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete):
+            self.line.reset(QgsWkbTypes.LineGeometry)
+            self.start_new_line()
         # delete and finish
         if event.key() == Qt.Key_Escape:
             self.line.reset(QgsWkbTypes.LineGeometry)
-            self.aux_line.reset(QgsWkbTypes.LineGeometry)
             self.finish()
 
 
