@@ -238,6 +238,10 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.DeleteRegistry.setEnabled(enabled)
         self.QPBtn_ExportRegistry.setEnabled(enabled and self.total_pixels_modified > 0)
         self.PixelLogGroup_DetailText.setEnabled(enabled)
+        # update registry button tooltip
+        from ThRasE.thrase import ThRasE
+        status = "ThRasE Registry is ENABLED." if enabled else "ThRasE Registry is DISABLED."
+        ThRasE.dialog.QPBtn_Registry.setToolTip(f"{status}\n\nOpen the registry tool to review pixel changes over time.")
 
     @pyqtSlot()
     def export_registry_dialog(self):

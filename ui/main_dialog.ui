@@ -714,7 +714,9 @@ can be displayed and overlaid per view</string>
                         <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="toolTip">
-                        <string>Open the registry tool to review pixel changes over time</string>
+                        <string>ThRasE Registry is ENABLED.
+
+Open the registry tool to review pixel changes over time.</string>
                        </property>
                        <property name="text">
                         <string>Registry</string>
