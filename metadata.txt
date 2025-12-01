@@ -3,7 +3,7 @@ name=ThRasE
 description=Open-source QGIS plugin for rigorous thematic raster editing with synchronized multi-panel views, recode pixel tables, modification tracking, tile navigation, and session persistence.
 about=ThRasE is an open-source QGIS plugin that provides rigorous editing for systematic post-classification correction and quality assurance of thematic rasters. It offers synchronized multi-panel views for side-by-side and overlap comparisons with reference data. It utilizes a recode pixel table to modify multiple classes simultaneously in one operation with various editing tool options. An integrated modification tracking system automatically records all changes, providing spatial feedback, transparency, and reproducibility. Systematic tile-based navigation ensures complete spatial coverage during inspection, while session persistence enables seamless multi-day workflows.
 
-version=25.11
+version=25.12
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 
@@ -15,39 +15,10 @@ tracker=https://github.com/SMByC/ThRasE/issues
 repository=https://github.com/SMByC/ThRasE
 
 changelog=
-    25.11:
-    - Improve the handling of saving configuration with two buttons: one as the default for overwriting the current config file and another for selecting a new config file. Also, make improvements to the exit dialog with an option to save and exit.
-    - Refactor registry management and performance using a memory layer functionality for tile geometries, improving group display handling. Others adjusted behavior in the registry.
-    - Refactoring the global editing tool applying changes using selected classes from another file using gdal improving performance and functionality
-    - Enhance some functionality in ApplyFromThematicClasses dialog with registry status tooltip and improved pixel processing
-    - Refactor YAML loading and dumping to support legacy formats and improve the default format for storing configuration
-    - Add the option to record the changes in ThRasE registry in dialog for appling the changes to the entire image tool
-    - Adjustments in enable/disable some components when there is or not a later to edit already set
-    - Fix undo/redo actions for the registry memory layer. Overall, improve performance when adding and removing groups in the registry during large editing sessions
-    - Allow using the mouse pixel value tracking tool in the recode pixel table without needing to activate an editing tool
-    - If Thrase is open and Qgis is going to close, not block it and clossing together with Qgis
-    - Adjust the datetime for pixels modified label
-    - Update tooltips for the registry items and tools related
-    - Fix registry layer redering when others layers changes in the render widget
-    - Add group_id in the exported registry vector data
-    - Update/renaming "Apply Within Selected Classes" in global editing
-    - Rename from "edit whole image" to "edit entire thematic raster"
-    - Enhance registry checkbox and tooltip in edit the whole image dialog
-    - Moving Gdal copy metadata common functions to others_utils
-    - Preserve all metadata of the original file when is using the global editing tool function to apply to the whole image with gdal
-    - Add GitHub Actions workflow for building documentation
-    - Add the new documentation for ThRasE
-    - Fix an issue that occurs when layers are removed or changed in QGIS
-    - Improving navigation dialog initialization
-    - Remove pre-initialization of extra_deps not needed
-    - Trying to fix double free or corruption in tests
-    - Revert "Trying to fix double free or corruption in tests"
-    - Trying to fix double free or corruption in tests
-    - Pre-stub Qt resources module
-    - Some fixes for Github actions
-    - Implement the Github actions for the tests
-    - Implement tests to ensure quality control for all ThRasE editing tools using manually reviewed data
-    - Update documentation with the new registry feature
+    25.12:
+    - Update the PickerPixelTool to support continuous editing while the left mouse button is pressed (like drawing)
+    - Update the PickerLineTool to work as a freehand drawing, the line will be drawn while the left mouse button is pressed, instead of by individual clicks
+    - Update registry button tooltip when it is enabled/disabled
     - All commits in: https://github.com/SMByC/ThRasE/commits
 
 tags=raster,thematic,categorical,edit,editing,reclassification,navigation,inspection,quality
