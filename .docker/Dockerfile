@@ -2,7 +2,9 @@ ARG QGIS_TEST_VERSION=latest
 FROM qgis/qgis:${QGIS_TEST_VERSION}
 
 # Install system dependencies
-RUN apt-get update -o Acquire::Retries=3 && \
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get update -o Acquire::Retries=3 && \
     apt-get install -y --no-install-recommends \
         python3-pip \
         xvfb \
