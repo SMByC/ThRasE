@@ -19,7 +19,9 @@ ThRasE includes a modification tracking system that automatically records all ed
 ```
 <br>
 
-> This comprehensive record supports workflows where transparency and reproducibility are critical, allowing you to verify corrections, trace your decisions, and export change logs for documentation or review purposes.
+```{note} 
+This comprehensive record supports workflows where transparency and reproducibility are critical, allowing you to verify corrections, trace your decisions, and export change logs for documentation or review purposes.
+```
 
 ```{tip}
 Enable the highlight feature to visualize your editing progress across the map. This helps ensure you haven't accidentally skipped areas or concentrated edits in one region while neglecting others.
