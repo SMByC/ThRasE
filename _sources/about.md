@@ -8,5 +8,5 @@ ThRasE is an official component of our Digital Image Processing Protocol for Qua
 
 ThRasE has been adopted by research teams, monitoring programs, and mapping projects worldwide for diverse applications including manual post-processing to correct land-use/land-cover misclassifications via photo-interpretation of satellite image mosaics {cite}`vallet:2024,rayner:2022`; knowledge-based manual correction of misclassifications and residual errors {cite}`rayner:2021effects,senterre:2023,bladh:2024`; manual classification/reclassification of pixels for land-cover reconstruction to reconcile multi-date imagery {cite}`gunawan:2023`; annotation of historical aerial imagery for model calibration and fine-tuning {cite}`eyster:2024`; as a validation/visual QA step {cite}`hariyanto:2024`; refinement of agricultural maps {cite}`gandharum:2025,rayner:2021historical`; among other applications {cite}`hariyanto:2022,dupuy:2024,queiroga:2020,nunes:2024`.
 
-Author and developer: *Xavier C. Llano* *<xavier.corredor.llano@gmail.com>*
+Author and developer: *Xavier C. Llano* *<xavier.corredor.llano@gmail.com>*  
 Theoretical support, testing, and product verification: SMByC-PDI group
