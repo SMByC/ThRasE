@@ -164,7 +164,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit the clicked pixel, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: change the pixel clicked&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit the clicked pixel, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse (simple clicks or click and hold): to change the pixel clicked on/hovered over&lt;/p&gt;&lt;p&gt;- Click the button again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>pixels</string>
@@ -334,7 +334,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels around lines using buffer value, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the line&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current line&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels around lines using buffer value, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse (click and hold): to start and draw a line&lt;/p&gt;&lt;p&gt;- Release for finish the current line&lt;/p&gt;&lt;p&gt;- Click the button again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>lines</string>
@@ -627,7 +627,7 @@ QToolButton
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels inside the polygon, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the polygon&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current polygon&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels inside the polygon, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse: a new point of the polygon&lt;/p&gt;&lt;p&gt;- Backspace or Del: for delete the last point&lt;/p&gt;&lt;p&gt;- Right mouse or Enter: for finish the current polygon&lt;/p&gt;&lt;p&gt;- Click the button again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>polygons</string>
@@ -846,7 +846,7 @@ QToolButton
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels inside the freehand drawn region, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse (click and hold): to start and draw a freehand region&lt;/p&gt;&lt;p&gt;- Release for finish the current freehand region&lt;/p&gt;&lt;p&gt;- Click again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit all pixels inside the freehand drawn region, the pixel will change according to the values of the recode pixel table.&lt;/p&gt;&lt;p&gt;Controls:&lt;/p&gt;&lt;p&gt;- Left mouse (click and hold): to start and draw a freehand region&lt;/p&gt;&lt;p&gt;- Release for finish the current freehand region&lt;/p&gt;&lt;p&gt;- Click the button again or Esc: exit of edit mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>freehand</string>

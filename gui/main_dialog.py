@@ -1316,7 +1316,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             tooltip = (
                 "<html><head/><body><p><span style='font-weight:600;'>Overwrite config file</span><br/>"
                 "Save the current ThRasE configuration to a YAML file for later restoration."
-                "</p><p><b>Current config file:</b> {}{}"
+                "</p><p><b>Current file:</b> {}{}"
                 "</p></body></html>"
             ).format(escape(config_path), escape(saved_suffix))
         else:
