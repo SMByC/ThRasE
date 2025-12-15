@@ -1,5 +1,5 @@
 ---
-title: 'ThRasE: An Open-Source QGIS Plugin for Manual Post-Classification Correction and Quality Assurance of Thematic Maps'
+title: 'ThRasE: A QGIS Plugin for Manual Post-Classification Correction and Quality Assurance of Thematic Maps'
 tags:
   - Python
   - QGIS
