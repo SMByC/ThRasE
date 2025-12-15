@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        docker_tags: [ ltr, latest ]
+        docker_tags: [ ltr, stable ]
       fail-fast: false
     env:
       QGIS_TEST_VERSION: ${{ matrix.docker_tags }}
@@ -21,10 +21,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Pull QGIS Docker image
         run: docker pull qgis/qgis:${QGIS_TEST_VERSION}
-        
+
       - name: Run tests with Docker
         run: docker compose -f .docker/docker-compose.gh.yml run qgis /usr/src/ThRasE/.docker/run-docker-tests.sh
-
