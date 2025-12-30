@@ -2,7 +2,7 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
         copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
@@ -24,8 +24,9 @@ import xml.etree.ElementTree as ET
 from random import randrange
 from osgeo import gdal
 
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QMessageBox, QProgressDialog, QApplication
 from qgis.core import QgsPalettedRasterRenderer
 
 from ThRasE.utils.qgis_utils import get_file_path_of_layer
@@ -51,14 +52,52 @@ def mask(input_list, boolean_mask):
 # symbology utils
 
 
-@wait_process
+def get_unique_values(layer, band, chunk_size=1000):
+    """Get unique values in a raster band using chunked GDAL reading"""
+    gdal_file = gdal.Open(get_file_path_of_layer(layer), gdal.GA_ReadOnly)
+    raster_band = gdal_file.GetRasterBand(band)
+
+    # Calculate total chunks for progress
+    x_chunks = (gdal_file.RasterXSize + chunk_size - 1) // chunk_size
+    y_chunks = (gdal_file.RasterYSize + chunk_size - 1) // chunk_size
+    total_chunks = x_chunks * y_chunks
+
+    # Create progress dialog
+    progress = QProgressDialog("Analyzing raster unique values...", "Cancel", 0, total_chunks)
+    progress.setWindowTitle("Processing")
+    progress.setWindowModality(Qt.WindowModal)
+    progress.setMinimumDuration(0)
+
+    unique_values = set()
+    chunk_count = 0
+
+    # Read in chunks to avoid loading entire raster into memory
+    for y in range(0, gdal_file.RasterYSize, chunk_size):
+        ysize = min(chunk_size, gdal_file.RasterYSize - y)
+        for x in range(0, gdal_file.RasterXSize, chunk_size):
+            if progress.wasCanceled():
+                gdal_file = None
+                return []
+
+            xsize = min(chunk_size, gdal_file.RasterXSize - x)
+            chunk = raster_band.ReadAsArray(x, y, xsize, ysize)
+            unique_values.update(np.unique(chunk).tolist())
+
+            chunk_count += 1
+            progress.setValue(chunk_count)
+            QApplication.processEvents()
+
+    progress.close()
+    gdal_file = None  # Close the file
+    return sorted(unique_values)
+
+
 def auto_symbology_classification_render(layer, band):
     # get the unique values in the band
-    rows = layer.height()
-    cols = layer.width()
-    provider = layer.dataProvider()
-    bl = provider.block(band, provider.extent(), cols, rows)
-    unique_values = list(set([bl.value(r, c) for r in range(rows) for c in range(cols)]))
+    unique_values = get_unique_values(layer, band)
+
+    if not unique_values:
+        return
 
     # fill categories
     categories = []
@@ -172,7 +211,7 @@ def safe_call(method, *args):
 
 def copy_band_metadata(src, dst):
     """Copy all metadata from source band to destination band
-    
+
     Args:
         src: Source GDAL raster band
         dst: Destination GDAL raster band
@@ -225,7 +264,7 @@ def copy_band_metadata(src, dst):
 
 def copy_dataset_metadata(src, dst):
     """Copy all metadata from source dataset to destination dataset
-    
+
     Args:
         src: Source GDAL dataset
         dst: Destination GDAL dataset
@@ -248,4 +287,3 @@ def copy_dataset_metadata(src, dst):
     gcps = src.GetGCPs()
     if gcps:
         safe_call(dst.SetGCPs, gcps, src.GetGCPProjection())
-
