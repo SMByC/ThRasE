@@ -2,28 +2,39 @@ name: Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        docker_tags: [ ltr, stable ]
+        qgis_version: [ltr, stable]
       fail-fast: false
+
     env:
-      QGIS_TEST_VERSION: ${{ matrix.docker_tags }}
+      QGIS_TEST_VERSION: ${{ matrix.qgis_version }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          lfs: true
 
-      - name: Pull QGIS Docker image
-        run: docker pull qgis/qgis:${QGIS_TEST_VERSION}
+      - name: Set up Git LFS
+        run: |
+          git lfs install
+          git lfs pull
 
-      - name: Run tests with Docker
-        run: docker compose -f .docker/docker-compose.gh.yml run qgis /usr/src/ThRasE/.docker/run-docker-tests.sh
+      - name: Build Docker image
+        run: docker compose -f .docker/docker-compose.gh.yml build
+
+      - name: Run tests
+        run: docker compose -f .docker/docker-compose.gh.yml run --rm qgis /usr/src/ThRasE/.docker/run-docker-tests.sh
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f .docker/docker-compose.gh.yml down --rmi local

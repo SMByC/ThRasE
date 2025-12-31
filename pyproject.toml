@@ -1,9 +1,13 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "thrase"
-version = "25.11"
-description = "Open-source QGIS plugin for rigorous thematic raster editing with synchronized multi-panel views, recode pixel tables, modification tracking, tile navigation, and session persistence."
+version = "0.0"
+description = "ThRasE is an open-source QGIS plugin that provides rigorous editing for systematic post-classification correction and quality assurance of thematic rasters."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "GPL-3.0-only"
 authors = [{ name = "Xavier C. Llano", email = "xavier.corredor.llano@gmail.com" }]
 keywords = ["qgis", "raster", "thematic", "categorical", "editing", "reclassification", "navigation", "quality"]
@@ -17,10 +21,17 @@ dependencies = [
   "PyYAML",
 ]
 
+[project.urls]
+Homepage = "https://smbyc.github.io/ThRasE"
+Documentation = "https://smbyc.github.io/ThRasE"
+Repository = "https://github.com/SMByC/ThRasE"
+Issues = "https://github.com/SMByC/ThRasE/issues"
+"QGIS Plugin" = "https://plugins.qgis.org/plugins/ThRasE/"
+
 [project.optional-dependencies]
 # uv pip sync pyproject.toml --extra docs
 docs = [
-  "jupyter-book",
+  "jupyter-book<2",
   "jupytext",
 ]
 # uv pip sync pyproject.toml --extra test
@@ -29,15 +40,22 @@ test = [
   "pytest-qgis",
 ]
 
-[project.urls]
-Homepage = "https://smbyc.github.io/ThRasE"
-Documentation = "https://smbyc.github.io/ThRasE"
-Repository = "https://github.com/SMByC/ThRasE"
-Issues = "https://github.com/SMByC/ThRasE/issues"
-"QGIS Plugin" = "https://plugins.qgis.org/plugins/ThRasE/"
+[tool.hatch.build.targets.wheel]
+packages = ["ThRasE"]
+
+[tool.qgis-plugin-ci]
+plugin_path = "ThRasE"
+github_organization_slug = "SMByC"
+project_slug = "ThRasE"
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+qgis = { path = "/usr/lib/python3.13/site-packages" }
 
 [tool.pyright]
-extraPaths = ["..", "/usr/lib/python3.13/site-packages/"]  # include project folder and system Python path
+extraPaths = ["/usr/lib/python3.13/site-packages/"]
 venv = ".venv"
 reportUnknownVariableType = "none"
 reportUnknownParameterType = "none"
