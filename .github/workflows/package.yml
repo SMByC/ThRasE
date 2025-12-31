@@ -1,0 +1,44 @@
+name: Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Set up Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install qgis-plugin-ci
+        run: pip install qgis-plugin-ci
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          LATEST_TAG=$(git tag --sort=-creatordate | head -1)
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Build package
+        run: qgis-plugin-ci package ${{ steps.get_tag.outputs.tag }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThRasE-${{ steps.get_tag.outputs.tag }}
+          path: ThRasE.${{ steps.get_tag.outputs.tag }}.zip
