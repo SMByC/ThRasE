@@ -3,7 +3,7 @@ name=ThRasE
 description=Open-source QGIS plugin for rigorous thematic raster editing with synchronized multi-panel views, recode pixel tables, modification tracking, tile navigation, and session persistence.
 about=ThRasE is an open-source QGIS plugin that provides rigorous editing for systematic post-classification correction and quality assurance of thematic rasters. It offers synchronized multi-panel views for side-by-side and overlap comparisons with reference data. It utilizes a recode pixel table to modify multiple classes simultaneously in one operation with various editing tool options. An integrated modification tracking system automatically records all changes, providing spatial feedback, transparency, and reproducibility. Systematic tile-based navigation ensures complete spatial coverage during inspection, while session persistence enables seamless multi-day workflows.
 
-version=25.12
+version=dev
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 
@@ -15,15 +15,9 @@ tracker=https://github.com/SMByC/ThRasE/issues
 repository=https://github.com/SMByC/ThRasE
 
 changelog=
-    25.12:
-    - Update the PickerPixelTool to support continuous editing while the left mouse button is pressed (like drawing)
-    - Update the PickerLineTool to work as a freehand drawing, the line will be drawn while the left mouse button is pressed, instead of by individual clicks
-    - Update registry button tooltip when it is enabled/disabled
-    - All commits in: https://github.com/SMByC/ThRasE/commits
+    Check out the complete changelog on: https://github.com/SMByC/ThRasE/releases
 
 tags=raster,thematic,categorical,edit,editing,reclassification,navigation,inspection,quality
-
-external_deps=
 
 category=Plugins
 icon=icons/thrase.svg
