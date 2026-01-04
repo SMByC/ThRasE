@@ -1,4 +1,4 @@
-# ThRasE - Introduction
+# ThRasE
 
 ```{image} images/overview.webp
 :width: 90%
