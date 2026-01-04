@@ -1,8 +1,9 @@
 format: jb-book
 root: introduction
 parts:
-  - caption: ''
+  - caption: 'Getting Started'
     chapters:
+      - file: install_and_example
       - file: thematic_requirements
   - caption: 'Core Features'
     chapters:
@@ -20,5 +21,4 @@ parts:
       - file: about
       # - url: https://smbyc.github.io/ThRasE/paper.pdf
       #   title: Paper pdf
-      - file: example
       - file: references

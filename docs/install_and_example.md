@@ -1,4 +1,14 @@
-# Example
+# Installation and Example
+
+## Installation
+
+ThRasE is available from the official QGIS Plugin Repository. To install it:
+
+1. Open QGIS and go to `Plugins` → `Manage and Install Plugins…`.
+2. In the search bar, type `ThRasE` and click `Install Plugin`.
+3. Once installed, activate the plugin via the `Plugins` menu or `Plugins toolbar`.
+
+## Example
 
 ```{image} images/tinigua.webp
 :width: 30%
@@ -19,5 +29,5 @@ The example also includes mean composite maps for each year as a reference data.
 Unzip the file and load the ThRasE session file (`.yaml`) in the init ThRasE dialog.
 
 ```{important}
-All files in this example are for demonstration purposes only and do not represent official/real data.
+All files in this example are for demonstration purposes only and do not represent official data.
 ```
