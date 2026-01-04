@@ -1,20 +1,13 @@
-# ThRasE - Thematic Raster Editor
+# ThRasE - Introduction
 
 ```{image} images/overview.webp
 :width: 90%
 :align: center
 ```
+
 ## Overview
 
 ThRasE is an open-source QGIS plugin designed for manual post-classification correction and quality assurance of thematic maps. It provides a comprehensive workspace for editing raster classifications through synchronized multi-view panel configurations that enable blending multiple layers for visual comparison. The plugin features a recode pixel table for modifying multiple classes simultaneously through precise editing tools for pixel-level corrections. An integrated modification tracking system records every change with timestamps and original values, enabling traceability and visual highlighting of edited areas. Systematic tile-based navigation ensures complete spatial coverage during inspection, while session persistence enables seamless multi-day workflows by preserving workspace configuration and review progress.
-
-## Install
-
-ThRasE is available from the official QGIS Plugin Repository. To install it:
-
-1. Open QGIS and go to `Plugins` → `Manage and Install Plugins…`.
-2. In the search bar, type `ThRasE` and click `Install Plugin`.
-3. Once installed, activate the plugin via the `Plugins` menu or `Plugins toolbar`.
 
 ## When and Why Use ThRasE?
 

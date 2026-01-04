@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Example &#8212; ThRasE - Thematic Raster Editor</title>
+    <title>Installation and Example &#8212; ThRasE - Thematic Raster Editor</title>
   
   
   
@@ -57,13 +57,13 @@
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'example';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'install_and_example';</script>
     <link rel="icon" href="_static/thrase.svg"/>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="References" href="references.html" />
-    <link rel="prev" title="About Us" href="about.html" />
+    <link rel="next" title="Thematic Raster Requirements" href="thematic_requirements.html" />
+    <link rel="prev" title="ThRasE - Introduction" href="introduction.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -177,11 +177,13 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="introduction.html">
-                    ThRasE - Thematic Raster Editor
+                    ThRasE - Introduction
                 </a>
             </li>
         </ul>
-        <ul class="nav bd-sidenav">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Installation and Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="thematic_requirements.html">Thematic Raster Requirements</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Core Features</span></p>
@@ -198,9 +200,8 @@
 <li class="toctree-l1"><a class="reference internal" href="ccd_integration.html">CCD Plugin Integration</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">About</span></p>
-<ul class="current nav bd-sidenav">
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="about.html">About Us</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -273,7 +274,7 @@
       
       
       
-      <li><a href="https://github.com/SMByC/ThRasE/edit/main/docs/example.md" target="_blank"
+      <li><a href="https://github.com/SMByC/ThRasE/edit/main/docs/install_and_example.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -310,7 +311,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -321,11 +324,20 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Example</h1>
+    <h1>Installation and Example</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example">Example</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -335,8 +347,19 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="example">
-<h1>Example<a class="headerlink" href="#example" title="Link to this heading">#</a></h1>
+  <section id="installation-and-example">
+<h1>Installation and Example<a class="headerlink" href="#installation-and-example" title="Link to this heading">#</a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
+<p>ThRasE is available from the official QGIS Plugin Repository. To install it:</p>
+<ol class="arabic simple">
+<li><p>Open QGIS and go to <code class="docutils literal notranslate"><span class="pre">Plugins</span></code> → <code class="docutils literal notranslate"><span class="pre">Manage</span> <span class="pre">and</span> <span class="pre">Install</span> <span class="pre">Plugins…</span></code>.</p></li>
+<li><p>In the search bar, type <code class="docutils literal notranslate"><span class="pre">ThRasE</span></code> and click <code class="docutils literal notranslate"><span class="pre">Install</span> <span class="pre">Plugin</span></code>.</p></li>
+<li><p>Once installed, activate the plugin via the <code class="docutils literal notranslate"><span class="pre">Plugins</span></code> menu or <code class="docutils literal notranslate"><span class="pre">Plugins</span> <span class="pre">toolbar</span></code>.</p></li>
+</ol>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading">#</a></h2>
 <a class="reference internal image-reference" href="_images/tinigua.webp"><img alt="_images/tinigua.webp" class="align-center" src="_images/tinigua.webp" style="width: 30%;" />
 </a>
 <p>This example provides a sample dataset to demonstrate the capabilities of ThRasE using a demo of a scenario. The data covers the Tinigua National Natural Park in Colombia, an area with a high rate of deforestation, and showcases forest land change between 2019 and 2020.</p>
@@ -351,8 +374,9 @@ document.write(`
 <p>Unzip the file and load the ThRasE session file (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>) in the init ThRasE dialog.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
-<p>All files in this example are for demonstration purposes only and do not represent official/real data.</p>
+<p>All files in this example are for demonstration purposes only and do not represent official data.</p>
 </div>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -386,20 +410,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="about.html"
+       href="introduction.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">About Us</p>
+        <p class="prev-next-title">ThRasE - Introduction</p>
       </div>
     </a>
     <a class="right-next"
-       href="references.html"
+       href="thematic_requirements.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">References</p>
+        <p class="prev-next-title">Thematic Raster Requirements</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
