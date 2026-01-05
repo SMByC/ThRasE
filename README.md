@@ -33,3 +33,7 @@ ThRasE was developed by the Forest and Carbon Monitoring System (SMByC) at the I
 - [SMByC-PDI team](https://github.com/SMByC) - Development support and testing
 
 This project was fully funded by the SMByC-IDEAM, Colombia.
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md)
