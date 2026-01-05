@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "thrase"
 version = "0.0"
-description = "ThRasE is an open-source QGIS plugin that provides rigorous editing for systematic post-classification correction and quality assurance of thematic rasters."
+description = "ThRasE is an open-source QGIS plugin designed for systematic review, manual correction, and quality assurance of thematic rasters."
 requires-python = ">=3.10"
 license = "GPL-3.0-only"
 authors = [{ name = "Xavier C. Llano", email = "xavier.corredor.llano@gmail.com" }]

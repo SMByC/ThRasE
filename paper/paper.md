@@ -21,6 +21,10 @@ date: 05 September 2025
 bibliography: paper.bib
 ---
 
+# Summary
+
+ThRasE is an open-source QGIS plugin designed for systematic review, manual correction, and quality assurance of thematic rasters. It offers synchronized multi-panel views for side-by-side and overlap comparisons with reference data. It utilizes a recode pixel table to modify multiple classes simultaneously in one operation with various editing tool options. An integrated modification tracking system automatically records all changes, providing spatial feedback, transparency, and reproducibility. Systematic tile-based navigation ensures complete spatial coverage during inspection, while session persistence enables seamless multi-day workflows.
+
 # Statement of need
 
 Thematic maps serve as indispensable analytical tools that simplify complex, continuous spatial data into visually accessible representations for a wide range of disciplines and applications. However, mapping workflows inevitably introduce errors, making quality assurance essential for reliable spatial data and informed decision-making [@foody:2001]. Because maps are models of reality, they inevitably contain errors introduced by projection, compilation, and symbolization [@lightfoot:1987; @maling:2013]. Many issues originate in the production process itself. For example, satellite-based classifications (e.g., supervised or unsupervised workflows) can introduce errors of omission or commission, scale mismatches, or temporal misalignments with ground conditions [@Schowengerdt:2007]. These limitations do not undermine the value of thematic maps; rather, they highlight the importance of rigorous quality assurance. Best practices include conducting formal accuracy assessments [@congalton:2019], transparently reporting error and uncertainty [@maceachren:1992], and, where appropriate, applying targeted post-classification corrections to address misclassifications [@manandhar:2009].
