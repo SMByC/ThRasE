@@ -68,7 +68,7 @@ Thematic map can be edited in any view, even if thematic map is not displayed in
 You can edit the thematic map with the Recode pixel table. The demo configuration (this is just an example and not an official configuration) shows a recode pixel table to change class 2 (Deforestation) to class 1 (Stable Forest) and class 5 (Non-Stable Forest) to class 2 (Deforestation). This means you can change multiple classes at once in a single operation.
 
 ```{image} images/example_step4.webp
-:width: 30%
+:width: 28%
 :align: center
 ```
 
@@ -90,7 +90,7 @@ You can see the entry and the number of pixels edited in the Registry widget and
 
 ### Step 7: Registry
 
-You can see the registry of the edits in the Registry widget. The registry is a list of the edits made to the thematic map. You can highlight the edited areas in the thematic map stored in the registry (1) and navigate through the edits with the slider (2). You can also export the registry to a vector file with all pixel modifications, including original and new pixel values, and timestamps (3).
+You can see the registry of the edits in the Registry widget. The registry is a list of the edits made to the thematic map. You can highlight the edited areas in the thematic map stored in the registry and navigate through the edits with the slider. You can also export the registry to a vector file with all pixel modifications, including original and new pixel values, and timestamps.
 
 ```{image} images/example_step7.webp
 :width: 80%
