@@ -8,8 +8,8 @@ import pytest
 from qgis.testing import start_app
 
 # Pre-stub Qt resources module to avoid heavy import during plugin/module import
-if "ThRasE.resources" not in sys.modules:
-    sys.modules["ThRasE.resources"] = types.ModuleType("ThRasE.resources")
+if "ThRasE.resources_rc" not in sys.modules:
+    sys.modules["ThRasE.resources_rc"] = types.ModuleType("ThRasE.resources_rc")
 
 # Use pytest-qgis to bootstrap a QGIS app and iface
 pytest_plugins = ("pytest_qgis",)
@@ -130,4 +130,3 @@ def load_yaml_mapping():
         return data, mapping
 
     return _loader
-

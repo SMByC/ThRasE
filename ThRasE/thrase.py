@@ -29,7 +29,7 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
-from .resources import *
+from .resources_rc import *
 
 from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.gui.about_dialog import AboutDialog
