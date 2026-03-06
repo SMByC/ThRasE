@@ -49,7 +49,7 @@ from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer, \
-    add_color_value_to_symbology
+    add_color_value_to_symbology, is_integer_data_type
 from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
@@ -887,7 +887,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 return
 
         # check if thematic layer to edit has data type as integer or byte
-        if layer_selected.dataProvider().dataType(1) not in [1, 2, 3, 4, 5]:
+        if not is_integer_data_type(layer_selected, band=1):
             self.MsgBar.pushMessage("Thematic layer to edit must be byte or integer as data type",
                                     level=Qgis.Warning, duration=10)
             self.unset_thematic_layer_to_edit()
