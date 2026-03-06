@@ -2,11 +2,12 @@
 <h1 align="center">ThRasE</h1>
 <p align="center">
 <a href="https://plugins.qgis.org/plugins/ThRasE/"><img src="https://img.shields.io/badge/QGIS%20Plugin-Available-brightgreen.svg" alt="QGIS Plugin"></a>
+<a href="https://doi.org/10.21105/joss.09634"><img src="https://joss.theoj.org/papers/10.21105/joss.09634/status.svg" alt="DOI"></a>
 <a href="https://github.com/SMByC/ThRasE/actions"><img src="https://github.com/SMByC/ThRasE/workflows/Tests/badge.svg" alt="Tests"></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
 <br>
 <b>Documentation:</b> <a href="https://smbyc.github.io/ThRasE">https://smbyc.github.io/ThRasE</a><br>
-<!--<b>Paper:</b> <a href="">soon</a>-->
+<b>Paper:</b> <a href="https://doi.org/10.21105/joss.09634">https://doi.org/10.21105/joss.09634</a><br>
 </p>
 
 ThRasE is an open-source QGIS plugin designed for systematic review, manual correction, and quality assurance of thematic rasters. It offers synchronized multi-panel views for side-by-side and overlap comparisons with reference data. It utilizes a recode pixel table to modify multiple classes simultaneously in one operation with various editing tool options. An integrated modification tracking system automatically records all changes, providing spatial feedback, transparency, and reproducibility. Systematic tile-based navigation ensures complete spatial coverage during inspection, while session persistence enables seamless multi-day workflows.
@@ -24,6 +25,29 @@ ThRasE is available from the official QGIS Plugin Repository. To install it:
 1. Open QGIS and go to `Plugins` → `Manage and Install Plugins…`.
 2. In the search bar, type `ThRasE` and click `Install Plugin`.
 3. Once installed, activate the plugin via the `Plugins` menu or `Plugins toolbar`.
+
+## Citation
+
+Please cite it as:
+
+> Llano, X. C., (2026). ThRasE: A QGIS Plugin for Manual Post-Classification Correction and Quality Assurance of Thematic Maps. Journal of Open Source Software, 11(119), 9634, https://doi.org/10.21105/joss.09634
+
+BibTeX:
+
+```bibtex
+@article{Llano2026,
+  doi = {10.21105/joss.09634},
+  url = {https://doi.org/10.21105/joss.09634},
+  year = {2026},
+  publisher = {The Open Journal},
+  volume = {11},
+  number = {119},
+  pages = {9634},
+  author = {Xavier C. Llano},
+  title = {ThRasE: A QGIS Plugin for Manual Post-Classification Correction and Quality Assurance of Thematic Maps},
+  journal = {Journal of Open Source Software}
+}
+```
 
 ## About Us
 
