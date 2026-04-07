@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -494,12 +494,12 @@ class Registry:
         options.driverName = driver_name
         options.fileEncoding = "UTF-8"
         options.layerName = os.path.splitext(os.path.basename(output_file_path))[0]
-        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
+        options.actionOnExistingFile = QgsVectorFileWriter.ActionOnExistingFile.CreateOrOverwriteFile
 
         writer = QgsVectorFileWriter.create(
-            output_file_path, fields, QgsWkbTypes.Polygon, crs, QgsCoordinateTransformContext(), options
+            output_file_path, fields, QgsWkbTypes.Type.Polygon, crs, QgsCoordinateTransformContext(), options
         )
-        if writer.hasError() != QgsVectorFileWriter.NoError:
+        if writer.hasError() != QgsVectorFileWriter.WriterError.NoError:
             return False, f"Error creating file: {writer.errorMessage()}", 0
 
         try:

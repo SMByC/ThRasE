@@ -126,8 +126,11 @@
         <property name="toolTip">
          <string>Select the band</string>
         </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
         </property>
         <property name="minimumContentsLength">
          <number>1</number>

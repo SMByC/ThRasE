@@ -2,10 +2,10 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -247,12 +247,12 @@ class Navigation(object):
         if rbs_in == "main_dialog":
             for tile in self.tiles:
                 for rubber_band in tile.rbs_in_main_dialog:
-                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                 tile.rbs_in_main_dialog = []
         if rbs_in == "nav_dialog":
             for tile in self.tiles:
                 for rubber_band in tile.rbs_in_nav_dialog:
-                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                 tile.rbs_in_nav_dialog = []
 
     def delete(self):
@@ -262,7 +262,7 @@ class Navigation(object):
         self.clear(rbs_in="main_dialog")
         self.clear(rbs_in="nav_dialog")
         if LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.highlight_tile:
-            LayerToEdit.current.navigation_dialog.highlight_tile.reset(QgsWkbTypes.PolygonGeometry)
+            LayerToEdit.current.navigation_dialog.highlight_tile.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.is_valid = False
         self.current_tile = None
         self.tiles = []

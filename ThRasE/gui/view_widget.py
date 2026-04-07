@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -133,7 +133,7 @@ class ViewWidget(QWidget):
     def unhighlight_cells_in_recode_pixel_table():
         from ThRasE.thrase import ThRasE
         with block_signals_to(ThRasE.dialog.recodePixelTable):
-            [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white)
+            [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white)
              for idx in range(len(LayerToEdit.current.pixels))]
 
     def toggle_mouse_pixel_value_tracking(self, enabled):
@@ -165,7 +165,7 @@ class ViewWidget(QWidget):
         pixel_value = None
         if layer.check_point_inside_layer(point):
             try:
-                identify_result = layer.data_provider.identify(point, QgsRaster.IdentifyFormatValue)
+                identify_result = layer.data_provider.identify(point, QgsRaster.IdentifyFormat.IdentifyFormatValue)
                 if identify_result.isValid():
                     pixel_value = identify_result.results().get(layer.band)
             except Exception:
@@ -233,7 +233,7 @@ class ViewWidget(QWidget):
             maptool_instance = self.render_widget.canvas.mapTool()
             if isinstance(maptool_instance, PickerLineTool):
                 if maptool_instance.line:
-                    maptool_instance.line.reset(QgsWkbTypes.LineGeometry)
+                    maptool_instance.line.reset(QgsWkbTypes.GeometryType.LineGeometry)
                 maptool_instance.start_new_line()
 
     @pyqtSlot()
@@ -247,9 +247,9 @@ class ViewWidget(QWidget):
             maptool_instance = self.render_widget.canvas.mapTool()
             if isinstance(maptool_instance, PickerPolygonTool):
                 if maptool_instance.rubber_band:
-                    maptool_instance.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    maptool_instance.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                 if maptool_instance.aux_rubber_band:
-                    maptool_instance.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    maptool_instance.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                 maptool_instance.start_new_polygon()
 
     @pyqtSlot()
@@ -263,7 +263,7 @@ class ViewWidget(QWidget):
             maptool_instance = self.render_widget.canvas.mapTool()
             if isinstance(maptool_instance, PickerFreehandTool):
                 if maptool_instance.rubber_band:
-                    maptool_instance.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    maptool_instance.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                 maptool_instance.start_new_freehand()
 
     @wait_process
@@ -297,14 +297,14 @@ class ViewWidget(QWidget):
                 rubber_band = next((rb for rb in self.lines_drawn if
                                     rb.asGeometry().equals(line_feature.geometry())), None)
                 if rubber_band:
-                    rubber_band.reset(QgsWkbTypes.LineGeometry)
+                    rubber_band.reset(QgsWkbTypes.GeometryType.LineGeometry)
                     self.lines_drawn.remove(rubber_band)
                 ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixels_and_values)))
             if action == "redo":
                 self.RedoLine.setEnabled(False)
                 line_feature, pixels_and_values = self.edit_logs["line"].redo()
                 # create, repaint and save the rubber band to redo
-                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.LineGeometry)
+                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.GeometryType.LineGeometry)
                 color = self.lines_color
                 color.setAlpha(140)
                 rubber_band.setColor(color)
@@ -330,14 +330,14 @@ class ViewWidget(QWidget):
                 rubber_band = next((rb for rb in self.polygons_drawn if
                                     rb.asGeometry().equals(polygon_feature.geometry())), None)
                 if rubber_band:
-                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                     self.polygons_drawn.remove(rubber_band)
                 ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixels_and_values)))
             if action == "redo":
                 self.RedoPolygon.setEnabled(False)
                 polygon_feature, pixels_and_values = self.edit_logs["polygon"].redo()
                 # create, repaint and save the rubber band to redo
-                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
                 color = self.polygons_color
                 color.setAlpha(140)
                 rubber_band.setColor(color)
@@ -363,14 +363,14 @@ class ViewWidget(QWidget):
                 rubber_band = next((rb for rb in self.freehand_drawn if
                                     rb.asGeometry().equals(freehand_feature.geometry())), None)
                 if rubber_band:
-                    rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                    rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                     self.freehand_drawn.remove(rubber_band)
                 ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixels_and_values)))
             if action == "redo":
                 self.RedoFreehand.setEnabled(False)
                 freehand_feature, pixels_and_values = self.edit_logs["freehand"].redo()
                 # create, repaint and save the rubber band to redo
-                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+                rubber_band = QgsRubberBand(self.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
                 color = self.freehand_color
                 color.setAlpha(140)
                 rubber_band.setColor(color)
@@ -496,7 +496,7 @@ class ViewWidget(QWidget):
     def clear_all_lines_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.lines_drawn:
-            rubber_band.reset(QgsWkbTypes.LineGeometry)
+            rubber_band.reset(QgsWkbTypes.GeometryType.LineGeometry)
         self.lines_drawn = []
         self.ClearAllLines.setEnabled(False)
 
@@ -504,7 +504,7 @@ class ViewWidget(QWidget):
     def clear_all_polygons_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.polygons_drawn:
-            rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.polygons_drawn = []
         self.ClearAllPolygons.setEnabled(False)
 
@@ -512,7 +512,7 @@ class ViewWidget(QWidget):
     def clear_all_freehand_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.freehand_drawn:
-            rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.freehand_drawn = []
         self.ClearAllFreehand.setEnabled(False)
 
@@ -590,7 +590,7 @@ class PickerPixelTool(QgsMapTool):
 
     def canvasPressEvent(self, event):
         # edit the pixel over pointer mouse on left-click
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.drawing = True
             self.last_pixel = None  # reset last pixel on new press
             self.edit(event)
@@ -600,7 +600,7 @@ class PickerPixelTool(QgsMapTool):
         self.last_pixel = None
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
+        if event.key() == Qt.Key.Key_Escape:
             self.finish()
 
 
@@ -618,14 +618,14 @@ class PickerLineTool(QgsMapTool):
         color = self.view_widget.lines_color
         color.setAlpha(140)
         # create the main line
-        self.line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.LineGeometry)
+        self.line = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.LineGeometry)
         self.line.setColor(color)
         self.line.setWidth(4)
         self.drawing = False
 
     def finish(self):
         if self.line:
-            self.line.reset(QgsWkbTypes.LineGeometry)
+            self.line.reset(QgsWkbTypes.GeometryType.LineGeometry)
         self.line = None
         self.view_widget.LinesPicker.setChecked(False)
         self.view_widget.unhighlight_cells_in_recode_pixel_table()
@@ -661,10 +661,10 @@ class PickerLineTool(QgsMapTool):
             # trigger auto-clear if enabled for line drawings
             self.view_widget.trigger_auto_clear("line")
         else:
-            self.line.reset(QgsWkbTypes.LineGeometry)
+            self.line.reset(QgsWkbTypes.GeometryType.LineGeometry)
             rubber_band = self.view_widget.lines_drawn[-1]
             if rubber_band:
-                rubber_band.reset(QgsWkbTypes.LineGeometry)
+                rubber_band.reset(QgsWkbTypes.GeometryType.LineGeometry)
                 self.view_widget.lines_drawn.remove(rubber_band)
 
     def canvasMoveEvent(self, event):
@@ -684,7 +684,7 @@ class PickerLineTool(QgsMapTool):
             return
 
         # start new line draw
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.drawing = True
             x = event.pos().x()
             y = event.pos().y()
@@ -702,17 +702,17 @@ class PickerLineTool(QgsMapTool):
             self.define_line()
         else:
             # not enough points, reset and start over
-            self.line.reset(QgsWkbTypes.LineGeometry)
+            self.line.reset(QgsWkbTypes.GeometryType.LineGeometry)
             self.start_new_line()
 
     def keyPressEvent(self, event):
         # remove/ignore current line
-        if self.drawing and (event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete):
-            self.line.reset(QgsWkbTypes.LineGeometry)
+        if self.drawing and (event.key() == Qt.Key.Key_Backspace or event.key() == Qt.Key.Key_Delete):
+            self.line.reset(QgsWkbTypes.GeometryType.LineGeometry)
             self.start_new_line()
         # delete and finish
-        if event.key() == Qt.Key_Escape:
-            self.line.reset(QgsWkbTypes.LineGeometry)
+        if event.key() == Qt.Key.Key_Escape:
+            self.line.reset(QgsWkbTypes.GeometryType.LineGeometry)
             self.finish()
 
 
@@ -730,17 +730,17 @@ class PickerPolygonTool(QgsMapTool):
         color = self.view_widget.polygons_color
         color.setAlpha(70)
         # create the main polygon rubber band
-        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(4)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
-        self.aux_rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(4)
 
     def define_polygon(self):
         # clean the aux rubber band
-        self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.aux_rubber_band = None
         # adjust the color
         color = self.view_widget.polygons_color
@@ -769,10 +769,10 @@ class PickerPolygonTool(QgsMapTool):
             # trigger auto-clear if enabled for polygon drawings
             self.view_widget.trigger_auto_clear("polygon")
         else:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
             rubber_band = self.view_widget.polygons_drawn[-1]
             if rubber_band:
-                rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                 self.view_widget.polygons_drawn.remove(rubber_band)
 
     def canvasMoveEvent(self, event):
@@ -797,14 +797,14 @@ class PickerPolygonTool(QgsMapTool):
             self.finish()
             return
         # new point on polygon
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             x = event.pos().x()
             y = event.pos().y()
             point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
             self.rubber_band.addPoint(point)
             self.aux_rubber_band.addPoint(point)
         # edit
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             if self.rubber_band and self.rubber_band.numberOfVertices():
                 if self.rubber_band.numberOfVertices() < 3:
                     return
@@ -813,27 +813,27 @@ class PickerPolygonTool(QgsMapTool):
 
     def keyPressEvent(self, event):
         # edit
-        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+        if event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
             if self.rubber_band and self.rubber_band.numberOfVertices():
                 if self.rubber_band.numberOfVertices() < 3:
                     return
                 # save polygon and edit
                 self.define_polygon()
         # delete last point
-        if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
+        if event.key() == Qt.Key.Key_Backspace or event.key() == Qt.Key.Key_Delete:
             self.rubber_band.removeLastPoint()
             self.aux_rubber_band.removeLastPoint()
         # delete and finish
-        if event.key() == Qt.Key_Escape:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
-            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        if event.key() == Qt.Key.Key_Escape:
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
             self.finish()
 
     def finish(self):
         if self.rubber_band:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         if self.aux_rubber_band:
-            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.rubber_band = None
         self.aux_rubber_band = None
         self.view_widget.PolygonsPicker.setChecked(False)
@@ -862,19 +862,19 @@ class PickerFreehandTool(QgsMapTool):
         color = self.view_widget.freehand_color
         color.setAlpha(140)
         # create the main freehand rubber band
-        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(4)
         self.drawing = False
 
     def keyPressEvent(self, event):
         # remove/ignore current freehand
-        if self.drawing and (event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete):
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        if self.drawing and (event.key() == Qt.Key.Key_Backspace or event.key() == Qt.Key.Key_Delete):
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
             self.start_new_freehand()
         # delete and finish
-        if event.key() == Qt.Key_Escape:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        if event.key() == Qt.Key.Key_Escape:
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
             self.finish()
 
     def canvasPressEvent(self, event):
@@ -882,7 +882,7 @@ class PickerFreehandTool(QgsMapTool):
             return
 
         # start new freehand draw
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.drawing = True
             x = event.pos().x()
             y = event.pos().y()
@@ -930,15 +930,15 @@ class PickerFreehandTool(QgsMapTool):
             # trigger auto-clear if enabled for freehand drawings
             self.view_widget.trigger_auto_clear("freehand")
         else:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
             rubber_band = self.view_widget.freehand_drawn[-1]
             if rubber_band:
-                rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+                rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                 self.view_widget.freehand_drawn.remove(rubber_band)
 
     def finish(self):
         if self.rubber_band:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
 
         self.rubber_band = None
         self.view_widget.FreehandPicker.setChecked(False)

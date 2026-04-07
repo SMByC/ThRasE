@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -59,7 +59,7 @@ class AutoFill(QDialog, FORM_CLASS):
             eval(condition_to_evaluate)
             return True
         except Exception:
-            self.MsgBar.pushMessage(condition, "Invalid condition", level=Qgis.Warning, duration=10)
+            self.MsgBar.pushMessage(condition, "Invalid condition", level=Qgis.MessageLevel.Warning, duration=10)
             return False
 
     def check_value(self, value):
@@ -70,7 +70,7 @@ class AutoFill(QDialog, FORM_CLASS):
             eval(value_to_evaluate)
             return True
         except Exception:
-            self.MsgBar.pushMessage(value, "Invalid value", level=Qgis.Warning, duration=10)
+            self.MsgBar.pushMessage(value, "Invalid value", level=Qgis.MessageLevel.Warning, duration=10)
             return False
 
     def apply_autofill(self):

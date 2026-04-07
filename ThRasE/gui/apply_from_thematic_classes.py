@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -68,7 +68,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         self.render_widget.refresh()
         self.QCBox_band_ThematicFile.clear()
         # set properties to QgsMapLayerComboBox
-        self.QCBox_ThematicFile.setFilters(QgsMapLayerProxyModel.RasterLayer)
+        self.QCBox_ThematicFile.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
         # ignore and not show the current thematic
         self.QCBox_ThematicFile.setExceptedLayerList([LayerToEdit.current.qgs_layer])
         # handle connect layer selection with render canvas
@@ -82,9 +82,9 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         # for select the classes
         self.PixelTable.itemClicked.connect(self.table_item_clicked)
         # apply
-        try: self.DialogButtons.button(QDialogButtonBox.Apply).clicked.disconnect()
+        try: self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.disconnect()
         except TypeError: pass
-        self.DialogButtons.button(QDialogButtonBox.Apply).clicked.connect(lambda: self.apply())
+        self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(lambda: self.apply())
         # registry
         registry_enabled = LayerToEdit.current.registry.enabled if LayerToEdit.current else False
         self.RecordChangesInRegistry.setChecked(False)
@@ -136,7 +136,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         if layer.crs() != LayerToEdit.current.qgs_layer.crs():
             self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same coordinate system with respect to "
                                     "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
-                                    level=Qgis.Critical, duration=20)
+                                    level=Qgis.MessageLevel.Critical, duration=20)
             clear()
             return
 
@@ -144,7 +144,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             round(layer.rasterUnitsPerPixelY(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY(), 3)):
             self.MsgBar.pushMessage("The selected file \"{}\" doesn't have the same pixel size with respect to "
                                     "the thematic layer to edit \"{}\"".format(layer.name(), LayerToEdit.current.qgs_layer.name()),
-                                    level=Qgis.Critical, duration=20)
+                                    level=Qgis.MessageLevel.Critical, duration=20)
             clear()
             return
 
@@ -225,28 +225,28 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
                 if header == "":
                     for row_idx, pixel in enumerate(self.pixel_classes):
                         item_table = QTableWidgetItem()
-                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
                         item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
                                                         pixel["color"]["B"], pixel["color"]["A"]))
                         self.PixelTable.setItem(row_idx, col_idx, item_table)
                 if header == "class value":
                     for row_idx, pixel in enumerate(self.pixel_classes):
                         item_table = QTableWidgetItem(str(pixel["value"]))
-                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
-                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsEditable)
-                        item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                        item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
                         self.PixelTable.setItem(row_idx, col_idx, item_table)
                 if header == "select":
                     for row_idx, pixel in enumerate(self.pixel_classes):
                         item_table = QTableWidgetItem()
-                        item_table.setFlags(item_table.flags() | Qt.ItemIsUserCheckable)
-                        item_table.setFlags(item_table.flags() | Qt.ItemIsEnabled)
-                        item_table.setFlags(item_table.flags() & ~Qt.ItemIsSelectable)
-                        item_table.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+                        item_table.setFlags(item_table.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                        item_table.setFlags(item_table.flags() | Qt.ItemFlag.ItemIsEnabled)
+                        item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+                        item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
                         if pixel["select"]:
-                            item_table.setCheckState(Qt.Checked)
+                            item_table.setCheckState(Qt.CheckState.Checked)
                         else:
-                            item_table.setCheckState(Qt.Unchecked)
+                            item_table.setCheckState(Qt.CheckState.Unchecked)
                         self.PixelTable.setItem(row_idx, col_idx, item_table)
 
             # adjust size of Table
@@ -262,9 +262,9 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             band = int(self.QCBox_band_ThematicFile.currentText())
             row_idx = table_item.row()
 
-            if table_item.checkState() == Qt.Unchecked:
+            if table_item.checkState() == Qt.CheckState.Unchecked:
                 self.pixel_classes[row_idx]["color"] = self.pixel_classes_backup[row_idx]["color"]
-            elif table_item.checkState() == Qt.Checked:
+            elif table_item.checkState() == Qt.CheckState.Checked:
                 self.pixel_classes[row_idx]["color"] = {"R": 255, "G": 255, "B": 0, "A": 255}
 
             symbology = \
@@ -281,19 +281,19 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
         pixel_table = self.PixelTable
         if pixel_table.rowCount() == 0:
-            self.MsgBar.pushMessage("Error: pixel table for class selection is empty", level=Qgis.Warning, duration=10)
+            self.MsgBar.pushMessage("Error: pixel table for class selection is empty", level=Qgis.MessageLevel.Warning, duration=10)
             return
         classes_selected = [int(pixel_table.item(row_idx, 1).text()) for row_idx in range(len(self.pixel_classes))
                             if pixel_table.item(row_idx, 2).checkState() == 2]
 
         if not classes_selected:
-            self.MsgBar.pushMessage("Error: no class was selected to apply", level=Qgis.Warning, duration=10)
+            self.MsgBar.pushMessage("Error: no class was selected to apply", level=Qgis.MessageLevel.Warning, duration=10)
             return
 
         extent_intercepted = LayerToEdit.current.qgs_layer.extent().intersect(self.thematic_file_classes.extent())
         if extent_intercepted.isEmpty():
             self.MsgBar.pushMessage("No overlap was found between the thematic file and the layer to edit",
-                                    level=Qgis.Info, duration=10)
+                                    level=Qgis.MessageLevel.Info, duration=10)
             return
 
         record_changes = self.RecordChangesInRegistry.isChecked() and LayerToEdit.current.registry.enabled
@@ -346,7 +346,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
             if cols <= 0 or rows <= 0:
                 self.MsgBar.pushMessage("No pixels were identified within the overlap extent",
-                                        level=Qgis.Info, duration=10)
+                                        level=Qgis.MessageLevel.Info, duration=10)
                 del ds_in, classes_ds
                 return
 
@@ -364,7 +364,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
             if cols <= 0 or rows <= 0:
                 self.MsgBar.pushMessage("No pixels to read within valid raster bounds",
-                                        level=Qgis.Info, duration=10)
+                                        level=Qgis.MessageLevel.Info, duration=10)
                 del ds_in, classes_ds
                 return
 
@@ -377,7 +377,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
             mask_classes = np.isin(class_array, classes_selected)
             if not mask_classes.any():
                 self.MsgBar.pushMessage("No pixels match the selected classes in the overlap area",
-                                        level=Qgis.Info, duration=10)
+                                        level=Qgis.MessageLevel.Info, duration=10)
                 del ds_in
                 return
 
@@ -396,7 +396,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
             if edited_pixels_count == 0:
                 self.MsgBar.pushMessage("No pixels were edited (selected classes may not require changes in the target layer)",
-                                        level=Qgis.Info, duration=10)
+                                        level=Qgis.MessageLevel.Info, duration=10)
                 del ds_in
                 return
 
@@ -460,7 +460,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
                 del row_indices, col_indices
 
         except Exception as e:
-            self.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.Critical, duration=20)
+            self.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.MessageLevel.Critical, duration=20)
             return
 
         if hasattr(LayerToEdit.current.qgs_layer, 'setCacheImage'):
@@ -474,7 +474,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
         self.MsgBar.pushMessage(
             "DONE: Changes were successfully applied within selected classes",
-            level=Qgis.Success, duration=10)
+            level=Qgis.MessageLevel.Success, duration=10)
 
         # finish the edition
         self.restore_symbology()

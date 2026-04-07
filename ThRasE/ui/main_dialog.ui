@@ -180,7 +180,7 @@ can be displayed and overlaid per view</string>
                   <number>3</number>
                  </property>
                  <property name="sizeAdjustPolicy">
-                  <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+                  <enum>QComboBox::AdjustToMinimumContentsLengthWithIcon</enum>
                  </property>
                  <property name="frame">
                   <bool>false</bool>
@@ -965,8 +965,11 @@ Open the registry tool to review pixel changes over time.</string>
               <property name="toolTip">
                <string>Select the band to edit</string>
               </property>
-              <property name="sizeAdjustPolicy">
-               <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+              <property name="maximumSize">
+               <size>
+                <width>50</width>
+                <height>16777215</height>
+               </size>
               </property>
               <property name="minimumContentsLength">
                <number>1</number>

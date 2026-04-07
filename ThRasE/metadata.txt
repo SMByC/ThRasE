@@ -4,8 +4,8 @@ description=Open-source QGIS plugin for rigorous thematic raster editing with sy
 about=ThRasE is an open-source QGIS plugin designed for systematic review, manual correction, and quality assurance of thematic rasters. It offers synchronized multi-panel views for side-by-side and overlap comparisons with reference data. It utilizes a recode pixel table to modify multiple classes simultaneously in one operation with various editing tool options. An integrated modification tracking system automatically records all changes, providing spatial feedback, transparency, and reproducibility. Systematic tile-based navigation ensures complete spatial coverage during inspection, while session persistence enables seamless multi-day workflows.
 
 version=dev
-qgisMinimumVersion=3.0
-qgisMaximumVersion=3.99
+qgisMinimumVersion=3.34
+qgisMaximumVersion=4.99
 
 author=Xavier Corredor Llano, SMByC
 email=xavier.corredor.llano@gmail.com

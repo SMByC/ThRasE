@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -266,9 +266,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
         ok, msg, count = LayerToEdit.current.registry.export_registry(output_file)
 
         if ok:
-            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"DONE: Registry exported with {count} edited pixels to {output_file}"), level=Qgis.Success, duration=10)
+            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"DONE: Registry exported with {count} edited pixels to {output_file}"), level=Qgis.MessageLevel.Success, duration=10)
         else:
-            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Export failed: {msg}"), level=Qgis.Critical, duration=20)
+            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Export failed: {msg}"), level=Qgis.MessageLevel.Critical, duration=20)
 
     @pyqtSlot()
     def delete_registry(self):
@@ -281,13 +281,13 @@ class RegistryWidget(QWidget, FORM_CLASS):
             self.tr("Delete registry"),
             self.tr("Are you sure you want to delete the entire registry for this layer? "
                     "This action does not undo the changes made in the layer."),
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
         )
-        if reply != QMessageBox.Yes:
+        if reply != QMessageBox.StandardButton.Yes:
             return
         # delete all registry entries for the current layer
         LayerToEdit.current.pixel_log_store = {}
         LayerToEdit.current.registry.delete()
         self.set_empty_state()
-        ThRasE.dialog.MsgBar.pushMessage(self.tr("DONE: Registry cleared"), level=Qgis.Success, duration=10)
+        ThRasE.dialog.MsgBar.pushMessage(self.tr("DONE: Registry cleared"), level=Qgis.MessageLevel.Success, duration=10)

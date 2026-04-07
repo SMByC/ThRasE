@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -50,7 +50,7 @@ def check_before_editing():
     if not LayerToEdit.current.old_new_value:
         ThRasE.dialog.MsgBar.pushMessage(
             "There are no changes to apply in the recode pixel table. Please set new pixel values first",
-            level=Qgis.Warning, duration=10)
+            level=Qgis.MessageLevel.Warning, duration=10)
         return False
     return True
 
@@ -64,7 +64,7 @@ def edit_layer(func):
             if not LayerToEdit.current.data_provider.setEditable(True):
                 from ThRasE.thrase import ThRasE
                 ThRasE.dialog.MsgBar.pushMessage("The current thematic raster cannot be edited due to layer restrictions or permission issues",
-                                                 level=Qgis.Critical, duration=20)
+                                                 level=Qgis.MessageLevel.Critical, duration=20)
                 return False
         # do
         obj_returned = func(*args, **kwargs)
@@ -113,10 +113,10 @@ class LayerToEdit(object):
         return self.qgs_layer.extent()
 
     def get_pixel_value_from_xy(self, x, y):
-        return self.data_provider.identify(QgsPointXY(x, y), QgsRaster.IdentifyFormatValue).results()[self.band]
+        return self.data_provider.identify(QgsPointXY(x, y), QgsRaster.IdentifyFormat.IdentifyFormatValue).results()[self.band]
 
     def get_pixel_value_from_pnt(self, point):
-        return self.data_provider.identify(point, QgsRaster.IdentifyFormatValue).results()[self.band]
+        return self.data_provider.identify(point, QgsRaster.IdentifyFormat.IdentifyFormatValue).results()[self.band]
 
     def setup_pixel_table(self, force_update=False, nodata=None):
         if self.pixels is None or force_update is True:
@@ -174,7 +174,7 @@ class LayerToEdit(object):
         if value_to_select is None:
             ThRasE.dialog.recodePixelTable.clearSelection()
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white) for idx in range(len(self.pixels))]
+                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white) for idx in range(len(self.pixels))]
             return
 
         row_idx = next((idx for idx, i in enumerate(self.pixels) if i["value"] == value_to_select), None)
@@ -183,12 +183,12 @@ class LayerToEdit(object):
             ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 2)
             # set background
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white) for idx in range(len(self.pixels))]
-                ThRasE.dialog.recodePixelTable.item(row_idx, 2).setBackground(Qt.yellow)
+                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white) for idx in range(len(self.pixels))]
+                ThRasE.dialog.recodePixelTable.item(row_idx, 2).setBackground(Qt.GlobalColor.yellow)
         else:
             ThRasE.dialog.recodePixelTable.clearSelection()
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.white) for idx in range(len(self.pixels))]
+                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white) for idx in range(len(self.pixels))]
 
     def check_point_inside_layer(self, pixel):
         # check if the pixel is within active raster bounds
@@ -449,7 +449,7 @@ class LayerToEdit(object):
             if row_indices is not None:
                 del row_indices, col_indices
         except Exception as e:
-            ThRasE.dialog.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.Critical, duration=20)
+            ThRasE.dialog.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.MessageLevel.Critical, duration=20)
             return False
 
         if hasattr(self.qgs_layer, 'setCacheImage'):

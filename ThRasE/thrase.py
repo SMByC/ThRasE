@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -132,7 +132,7 @@ class ThRasE:
                 return
             ThRasE.dialog.show()
             # Run the dialog event loop
-            result = ThRasE.dialog.exec_()
+            result = ThRasE.dialog.exec()
             # See if OK was pressed
             if result:
                 # Do something useful here - delete the line containing pass and
@@ -141,7 +141,7 @@ class ThRasE:
         else:
             # an instance of ThRasE is already created
             # brings that instance to front even if it is minimized
-            ThRasE.dialog.setWindowState(ThRasE.dialog.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+            ThRasE.dialog.setWindowState(ThRasE.dialog.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
             ThRasE.dialog.raise_()
             ThRasE.dialog.activateWindow()
 

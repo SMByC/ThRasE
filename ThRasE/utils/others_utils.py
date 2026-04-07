@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -65,7 +65,7 @@ def get_unique_values(layer, band, chunk_size=1000):
     # Create progress dialog
     progress = QProgressDialog("Analyzing raster unique values...", "Cancel", 0, total_chunks)
     progress.setWindowTitle("Processing")
-    progress.setWindowModality(Qt.WindowModal)
+    progress.setWindowModality(Qt.WindowModality.WindowModal)
     progress.setMinimumDuration(0)
 
     unique_values = set()
@@ -131,8 +131,8 @@ def get_xml_style(layer, band):
               "See more</a>.<br/><br/>" \
               "Allow ThRasE apply an automatic classification symbology to this layer{band}?" \
             .format(layer=layer.name(), band=" in the band {}".format(band) if layer.bandCount() > 1 else "")
-        reply = QMessageBox.question(None, 'Reading the symbology layer style...', msg, QMessageBox.Apply, QMessageBox.Cancel)
-        if reply == QMessageBox.Apply:
+        reply = QMessageBox.question(None, 'Reading the symbology layer style...', msg, QMessageBox.StandardButton.Apply, QMessageBox.StandardButton.Cancel)
+        if reply == QMessageBox.StandardButton.Apply:
             auto_symbology_classification_render(layer, band)
             return get_xml_style(layer, band)
         else:

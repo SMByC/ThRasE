@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -59,16 +59,16 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.render_widget.canvas.setMapTool(self.map_tool_pan, clean=True)
 
         # flags
-        self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMinimizeButtonHint)
 
     def setup_gui(self):
         self.NavTiles_widgetFile.setHidden(True)
         self.NavTiles_widgetAOI.setHidden(True)
         self.SliderNavigationBlock.setEnabled(False)
-        self.QCBox_BuildNavType.currentIndexChanged[str].connect(self.set_navigation_type_tool)
+        self.QCBox_BuildNavType.currentTextChanged.connect(self.set_navigation_type_tool)
         # set properties to QgsMapLayerComboBox
         self.QCBox_VectorFile.setCurrentIndex(-1)
-        self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.VectorLayer)
+        self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.VectorLayer)
         # handle connect layer selection with render canvas
         self.QCBox_VectorFile.currentIndexChanged.connect(
             lambda: self.render_over_thematic(self.QCBox_VectorFile.currentLayer()))
@@ -92,42 +92,41 @@ class NavigationDialog(QDialog, FORM_CLASS):
         # #### setup units in tile size
         # set/update the units in tileSize item
         layer_unit = self.layer_to_edit.qgs_layer.crs().mapUnits()
-        if layer_unit == QgsUnitTypes.DistanceUnknownUnit:
-            layer_unit = QgsUnitTypes.DistanceMeters
+        if layer_unit == Qgis.DistanceUnit.Unknown:
+            layer_unit = Qgis.DistanceUnit.Meters
             str_unit = QgsUnitTypes.toString(layer_unit) + \
                        "\nWARNING: The layer does not have a valid map unit, meters will be used as the base unit."
         else:
             str_unit = QgsUnitTypes.toString(layer_unit)
         abbr_unit = QgsUnitTypes.toAbbreviatedString(layer_unit)
-        # Set the properties of the QdoubleSpinBox based on the QgsUnitTypes of the thematic layer
-        # https://qgis.org/api/classQgsUnitTypes.html
+        # Set the properties of the QdoubleSpinBox based on the distance unit of the thematic layer
         self.tileSize.setSuffix(" {}".format(abbr_unit))
         self.tileSize.setToolTip("Defines the side length of the navigation tiles in {}.\n"
                                  "(units based on the current thematic layer to edit)\n"
                                  "(rebuild the navigation to make the changes)".format(str_unit))
-        self.tileSize.setRange(0, 360 if layer_unit == QgsUnitTypes.DistanceDegrees else 10e10)
+        self.tileSize.setRange(0, 360 if layer_unit == Qgis.DistanceUnit.Degrees else 10e10)
         self.tileSize.setDecimals(
-            4 if layer_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
-                                QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
+            4 if layer_unit in [Qgis.DistanceUnit.Kilometers, Qgis.DistanceUnit.NauticalMiles,
+                                Qgis.DistanceUnit.Miles, Qgis.DistanceUnit.Degrees] else 1)
         self.tileSize.setSingleStep(
-            0.0001 if layer_unit in [QgsUnitTypes.DistanceKilometers, QgsUnitTypes.DistanceNauticalMiles,
-                                     QgsUnitTypes.DistanceMiles, QgsUnitTypes.DistanceDegrees] else 1)
-        default_tile_size = {QgsUnitTypes.DistanceMeters: 15000, QgsUnitTypes.DistanceKilometers: 15,
-                             QgsUnitTypes.DistanceFeet: 49125, QgsUnitTypes.DistanceNauticalMiles: 8.125,
-                             QgsUnitTypes.DistanceYards: 16500, QgsUnitTypes.DistanceMiles: 9.375,
-                             QgsUnitTypes.DistanceDegrees: 0.1375, QgsUnitTypes.DistanceCentimeters: 1500000,
-                             QgsUnitTypes.DistanceMillimeters: 15000000}
+            0.0001 if layer_unit in [Qgis.DistanceUnit.Kilometers, Qgis.DistanceUnit.NauticalMiles,
+                                     Qgis.DistanceUnit.Miles, Qgis.DistanceUnit.Degrees] else 1)
+        default_tile_size = {Qgis.DistanceUnit.Meters: 15000, Qgis.DistanceUnit.Kilometers: 15,
+                             Qgis.DistanceUnit.Feet: 49125, Qgis.DistanceUnit.NauticalMiles: 8.125,
+                             Qgis.DistanceUnit.Yards: 16500, Qgis.DistanceUnit.Miles: 9.375,
+                             Qgis.DistanceUnit.Degrees: 0.1375, Qgis.DistanceUnit.Centimeters: 1500000,
+                             Qgis.DistanceUnit.Millimeters: 15000000}
         self.tileSize.setValue(default_tile_size[layer_unit])
 
     @pyqtSlot()
     def build_tools(self):
         if self.QPBtn_BuildNavigationTools.isChecked():
-            self.QPBtn_BuildNavigationTools.setArrowType(Qt.DownArrow)
+            self.QPBtn_BuildNavigationTools.setArrowType(Qt.ArrowType.DownArrow)
             self.build_tools_line.setVisible(True)
             self.NavBuildTypeBlock.setVisible(True)
             self.NavBuildToolsBlock.setVisible(True)
         else:
-            self.QPBtn_BuildNavigationTools.setArrowType(Qt.UpArrow)
+            self.QPBtn_BuildNavigationTools.setArrowType(Qt.ArrowType.UpArrow)
             self.build_tools_line.setHidden(True)
             self.NavBuildTypeBlock.setHidden(True)
             self.NavBuildToolsBlock.setHidden(True)
@@ -199,19 +198,19 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if nav_type == "polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
-            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
             self.QCBox_VectorFile.setToolTip("Select a polygon vector file to use as the\n"
                                              "base for building the navigation tiles")
         if nav_type == "points":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
-            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PointLayer)
+            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PointLayer)
             self.QCBox_VectorFile.setToolTip("Select a point vector file to use as the\n"
                                              "base for building the navigation tiles")
         if nav_type == "centroid of polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
-            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
             self.QCBox_VectorFile.setToolTip("Select a polygon vector file to use as the\n"
                                              "base for building the navigation tiles\n"
                                              "using the centroid of each polygon")
@@ -229,7 +228,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
     def clear_all_aoi_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.aoi_drawn:
-            rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.aoi_drawn = []
         if isinstance(self.render_widget.canvas.mapTool(), AOIPickerTool):
             self.render_widget.canvas.mapTool().finish()
@@ -242,8 +241,8 @@ class NavigationDialog(QDialog, FORM_CLASS):
             quit_msg = "If you build another navigation you will lose the progress " \
                        "(the current tile position).\n\nDo you want to continue?"
             reply = QMessageBox.question(None, 'Building the navigation tiles',
-                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
-            if reply == QMessageBox.No:
+                                         quit_msg, QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.No:
                 return
 
         tile_size = self.tileSize.value()
@@ -256,7 +255,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         if self.QCBox_BuildNavType.currentText() == "AOIs":
             if not self.aoi_drawn:
-                self.MsgBar.pushMessage("Navigation building failed: no polygons were drawn", level=Qgis.Warning, duration=10)
+                self.MsgBar.pushMessage("Navigation building failed: no polygons were drawn", level=Qgis.MessageLevel.Warning, duration=10)
                 return
             aois = [aoi.asGeometry() for aoi in self.aoi_drawn]
             # build navigation
@@ -265,7 +264,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning, duration=10)
+                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.MessageLevel.Warning, duration=10)
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
@@ -279,7 +278,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "points":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.Warning, duration=10)
+                self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.MessageLevel.Warning, duration=10)
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as points
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
@@ -294,7 +293,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "centroid of polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.Warning, duration=10)
+                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.MessageLevel.Warning, duration=10)
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
@@ -329,7 +328,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.layer_to_edit.navigation.is_valid = False
             self.DeleteNavigation.setEnabled(False)
             ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
-            self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.Critical, duration=20)
+            self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.MessageLevel.Critical, duration=20)
 
     @pyqtSlot(int)
     def change_tile_from_slider(self, idx_tile):
@@ -378,7 +377,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         # unhighlight the before tile (rubber band)
         if self.highlight_tile:
-            self.highlight_tile.reset(QgsWkbTypes.PolygonGeometry)
+            self.highlight_tile.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
 
         self.highlight_tile = tile.create(self.render_widget.canvas, line_width=6, rbs_in="highlight")
 
@@ -389,8 +388,8 @@ class NavigationDialog(QDialog, FORM_CLASS):
             quit_msg = "Clear the current navigation you will lose the progress " \
                        "(the current tile position).\n\nDo you want to continue?"
             reply = QMessageBox.question(None, 'Building the navigation tiles',
-                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
-            if reply == QMessageBox.No:
+                                         quit_msg, QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.No:
                 return
 
         self.layer_to_edit.navigation.delete()
@@ -424,19 +423,19 @@ class AOIPickerTool(QgsMapTool):
         color = QColor("red")
         color.setAlpha(40)
         # create the main polygon rubber band
-        self.rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(3)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
-        self.aux_rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(3)
 
     def finish(self):
         if self.rubber_band:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         if self.aux_rubber_band:
-            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.rubber_band = None
         self.aux_rubber_band = None
         self.navigation_dialog.AOI_Picker.setChecked(False)
@@ -447,7 +446,7 @@ class AOIPickerTool(QgsMapTool):
 
     def define_polygon(self):
         # clean the aux rubber band
-        self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
         self.aux_rubber_band = None
         # adjust the color
         color = QColor("red")
@@ -479,14 +478,14 @@ class AOIPickerTool(QgsMapTool):
             self.finish()
             return
         # new point on polygon
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             x = event.pos().x()
             y = event.pos().y()
             point = self.navigation_dialog.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
             self.rubber_band.addPoint(point)
             self.aux_rubber_band.addPoint(point)
         # edit
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             if self.rubber_band and self.rubber_band.numberOfVertices():
                 if self.rubber_band.numberOfVertices() < 3:
                     return
@@ -495,18 +494,18 @@ class AOIPickerTool(QgsMapTool):
 
     def keyPressEvent(self, event):
         # edit
-        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+        if event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
             if self.rubber_band and self.rubber_band.numberOfVertices():
                 if self.rubber_band.numberOfVertices() < 3:
                     return
                 # save polygon
                 self.define_polygon()
         # delete last point
-        if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
+        if event.key() == Qt.Key.Key_Backspace or event.key() == Qt.Key.Key_Delete:
             self.rubber_band.removeLastPoint()
             self.aux_rubber_band.removeLastPoint()
         # delete and finish
-        if event.key() == Qt.Key_Escape:
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
-            self.aux_rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+        if event.key() == Qt.Key.Key_Escape:
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
             self.finish()

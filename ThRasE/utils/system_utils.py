@@ -5,7 +5,7 @@
 
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -61,8 +61,8 @@ def error_handler(func):
                 msgBox.setInformativeText("If you consider this as an error of ThRasE, report it in "
                                           "<a href='https://github.com/SMByC/ThRasE/issues'>issue tracker</a>")
                 msgBox.setDetailedText(more_details)
-                msgBox.setTextFormat(Qt.RichText)
-                msgBox.setStandardButtons(QMessageBox.Ok)
+                msgBox.setTextFormat(Qt.TextFormat.RichText)
+                msgBox.setStandardButtons(QMessageBox.StandardButton.Ok)
                 msgBox.exec()
                 del msgBox
 
@@ -76,7 +76,7 @@ def error_handler(func):
             button.pressed.connect(lambda: details_message_box(error, more_details))
             widget.layout().addWidget(button)
 
-            msg_bar.pushWidget(widget, level=Qgis.Warning, duration=20)
+            msg_bar.pushWidget(widget, level=Qgis.MessageLevel.Warning, duration=20)
 
     return wrapper
 
@@ -86,7 +86,7 @@ def wait_process(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         # mouse wait
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         # do
         obj_returned = func(*args, **kwargs)
         # restore mouse

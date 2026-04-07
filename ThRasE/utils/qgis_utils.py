@@ -2,10 +2,10 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -74,7 +74,7 @@ def get_current_file_path_in(combo_box, show_message=True):
     if os.path.isfile(file_path):
         return file_path
     elif show_message:
-        iface.messageBar().pushMessage("ThRasE", "Error, please select a valid file", level=Qgis.Warning, duration=5)
+        iface.messageBar().pushMessage("ThRasE", "Error, please select a valid file", level=Qgis.MessageLevel.Warning, duration=5)
     return None
 
 
@@ -86,7 +86,7 @@ def load_and_select_filepath_in(combo_box, file_path, layer_name=None, add_to_le
     if not layer:
         load_layer(file_path, name=layer_name, add_to_legend=add_to_legend)
     # select the sampling file in combobox
-    selected_index = combo_box.findText(layer_name, Qt.MatchFixedString)
+    selected_index = combo_box.findText(layer_name, Qt.MatchFlag.MatchFixedString)
     combo_box.setCurrentIndex(selected_index)
 
     return get_layer_by_name(layer_name)
@@ -112,7 +112,7 @@ def load_layer(file_path, name=None, add_to_legend=True):
         add_layer(qgslayer, add_to_legend)
     else:
         iface.messageBar().pushMessage("ThRasE", "Could not to load the layer '{}' no such file {}"
-                                       .format(name, file_path), level=Qgis.Warning, duration=-1)
+                                       .format(name, file_path), level=Qgis.MessageLevel.Warning, duration=-1)
     return qgslayer
 
 
@@ -150,17 +150,17 @@ class StyleEditorDialog(QDialog, FORM_CLASS):
 
         self.setWindowTitle("{} - Style Editor".format(self.layer.name()))
 
-        if self.layer.type() == QgsMapLayer.VectorLayer:
+        if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
             self.StyleEditorWidget = QgsRendererPropertiesDialog(self.layer, QgsStyle(), True, parent)
 
-        if self.layer.type() == QgsMapLayer.RasterLayer:
+        if self.layer.type() == QgsMapLayer.LayerType.RasterLayer:
             self.StyleEditorWidget = QgsRendererRasterPropertiesWidget(self.layer, canvas, parent)
 
         self.scrollArea.setWidget(self.StyleEditorWidget)
 
-        self.DialogButtons.button(QDialogButtonBox.Cancel).clicked.connect(self.reject)
-        self.DialogButtons.button(QDialogButtonBox.Ok).clicked.connect(self.accept)
-        self.DialogButtons.button(QDialogButtonBox.Apply).clicked.connect(self.apply)
+        self.DialogButtons.button(QDialogButtonBox.StandardButton.Cancel).clicked.connect(self.reject)
+        self.DialogButtons.button(QDialogButtonBox.StandardButton.Ok).clicked.connect(self.accept)
+        self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(self.apply)
 
     def apply(self):
         self.StyleEditorWidget.apply()
@@ -184,7 +184,7 @@ def apply_symbology(rlayer, rband, symbology):
          [lt for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets] for lt in lts]
          if layer_toolbar.layer == rlayer), False)
     if layer_toolbar:
-        if rlayer.type() == QgsMapLayer.VectorLayer:
+        if rlayer.type() == QgsMapLayer.LayerType.VectorLayer:
             rlayer.setOpacity(layer_toolbar.opacity / 100.0)
         else:
             rlayer.renderer().setOpacity(layer_toolbar.opacity / 100.0)
@@ -249,7 +249,7 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
         color_ramp_items.sort(key=lambda x: x.value)
         # Create new color ramp shader with Exact Interpolation
         new_color_ramp_shader = QgsColorRampShader()
-        new_color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
+        new_color_ramp_shader.setColorRampType(QgsColorRampShader.Type.Exact)
         new_color_ramp_shader.setColorRampItemList(color_ramp_items)
         # Set Equal Interval mode by defining min/max values
         if color_ramp_items:

@@ -2,10 +2,10 @@
 """
 /***************************************************************************
  ThRasE
- 
+
  A powerful and fast thematic raster editor Qgis plugin
                               -------------------
-        copyright            : (C) 2019-2025 by Xavier Corredor Llano, SMByC
+        copyright            : (C) 2019-2026 by Xavier Corredor Llano, SMByC
         email                : xavier.corredor.llano@gmail.com
  ***************************************************************************/
 
@@ -74,7 +74,7 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         self.ZoomToLayer.clicked.connect(self.zoom_to_layer)
         # handle connect layer opacity
         self.layerOpacity.setDisabled(True)
-        self.layerOpacity.valueChanged[int].connect(self.update_layer_opacity)
+        self.layerOpacity.valueChanged.connect(self.update_layer_opacity)
 
     @pyqtSlot()
     def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
@@ -123,7 +123,7 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
     @pyqtSlot()
     def layer_style_editor(self):
         style_editor_dlg = StyleEditorDialog(self.layer, self.render_widget.canvas, self.parent())
-        if style_editor_dlg.exec_():
+        if style_editor_dlg.exec():
             style_editor_dlg.apply()
 
     def set_render_layer(self, layer):
@@ -137,7 +137,7 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         self.layer = layer
         self.enable()
         self.render_widget.update_render_layers()
-        if self.layer.type() == QgsMapLayer.VectorLayer:
+        if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
             self.layerOpacity.setValue(int(self.layer.opacity()*100))
         else:
             self.layerOpacity.setValue(int(self.layer.renderer().opacity()*100))
@@ -163,7 +163,7 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
             opacity = self.layerOpacity.value()
 
         if self.layer:
-            if self.layer.type() == QgsMapLayer.VectorLayer:
+            if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
                 self.layer.setOpacity(opacity/100.0)
             else:
                 self.layer.renderer().setOpacity(opacity/100.0)

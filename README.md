@@ -26,6 +26,8 @@ ThRasE is available from the official QGIS Plugin Repository. To install it:
 2. In the search bar, type `ThRasE` and click `Install Plugin`.
 3. Once installed, activate the plugin via the `Plugins` menu or `Plugins toolbar`.
 
+**Compatibility:** ThRasE supports QGIS 3.34+ and QGIS 4.x
+
 ## Citation
 
 Please cite it as:
