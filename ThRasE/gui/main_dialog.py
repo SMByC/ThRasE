@@ -1165,7 +1165,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     @error_handler
     def reload_recode_table(self):
         old_pixels = LayerToEdit.current.pixels
-        pixels_backup = LayerToEdit.current.pixels_backup
+        LayerToEdit.current.pixels_backup = None  # reset, set backup to new symbology
         recode_pixel_table_status = LayerToEdit.current.setup_pixel_table(force_update=True)
 
         if recode_pixel_table_status is False:  # wrong style for set the recode pixel table
@@ -1177,8 +1177,6 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             [view_widget.widget_EditingToolbar.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
             self.QGBox_GlobalEditTools.setEnabled(False)
             return
-        # restore backup
-        LayerToEdit.current.pixels_backup = pixels_backup
         # restore new pixel values and visibility
         for new_item in LayerToEdit.current.pixels:
             if new_item["value"] in [i["value"] for i in old_pixels]:
