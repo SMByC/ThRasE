@@ -16,14 +16,20 @@ pytest_plugins = ("pytest_qgis",)
 # Expose tests data dir
 pytest.tests_data_dir = Path(__file__).parent.resolve() / "data"
 
-if os.environ.get("IS_DOCKER_CONTAINER") and os.environ["IS_DOCKER_CONTAINER"].lower()[
-    0
-] in ["t", "y", "1"]:
+_is_docker = (os.environ.get("IS_DOCKER_CONTAINER", "")[:1].lower() in ("t", "y", "1"))
+
+if _is_docker:
     # when running in a docker container, we use the start_app provided by qgis rather
     # than that of pytest-qgis. pytest-qgis does not clean up the application properly
     # and results in a seg-fault
     print("RUNNING IN DOCKER CONTAINER")
     start_app()
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Force-exit after tests complete in Docker to avoid the Qt/OpenGL cleanup segfault."""
+    if _is_docker:
+        os._exit(exitstatus)
 
 class _MsgBar:
     def pushMessage(self, *args, **kwargs):
