@@ -1015,7 +1015,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             try:
                 if new_value == "":
                     pixel["new_value"] = None
-                elif float(new_value) == int(new_value) and int(new_value) != int(self.recodePixelTable.item(row_idx, 2).text()):
+                elif float(new_value) == int(new_value) and int(new_value) != pixel["value"]:
                     pixel["new_value"] = int(new_value)
                     layer_to_edit.old_new_value[pixel["value"]] = pixel["new_value"]
             except:
@@ -1054,7 +1054,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             return
 
         with block_signals_to(self.recodePixelTable):
-            header = ["", "", "Curr Value", "New Value", ""]
+            header = ["", "", "Pixel Value", "New Value", ""]
             row_length = len(layer_to_edit.pixels)
             # init table
             self.recodePixelTable.setRowCount(row_length)
@@ -1090,13 +1090,19 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         else:
                             item_table.setCheckState(Qt.CheckState.Unchecked)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
-                if col_idx == 2:  # Curr Value
+                if col_idx == 2:  # Pixel Value
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
-                        item_table = QTableWidgetItem(str(pixel["value"]))
+                        label = pixel.get("label", "")
+                        if label and label != str(pixel["value"]):
+                            cell_text = "{} ({})".format(label, pixel["value"])
+                            item_table = QTableWidgetItem(cell_text)
+                            item_table.setToolTip(f'Label: {label}\nPixel value: {pixel["value"]}')
+                        else:
+                            item_table = QTableWidgetItem(str(pixel["value"]))
+                            item_table.setToolTip(f'Pixel value: {pixel["value"]}')
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsEditable)
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                        item_table.setToolTip("The current value for this class")
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
@@ -1108,7 +1114,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                        item_table.setToolTip("Set the new value for this class.\n"
+                        item_table.setToolTip("Set the new pixel value for this class.\n"
                                               "WARNING: After each editing operation, the layer is saved on disk!")
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
@@ -1131,6 +1137,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.recodePixelTable.resizeColumnsToContents()
             self.recodePixelTable.resizeRowsToContents()
             self.recodePixelTable.setColumnWidth(0, 45)
+            # cap "Pixel Value" column (col 2) to ~15 characters wide
+            self.recodePixelTable.setColumnWidth(2, min(self.recodePixelTable.columnWidth(2), 180))
             # adjust the editor block based on table content
             table_width = self.recodePixelTable.horizontalHeader().length() + 40
             self.EditSettingsBlock.setMaximumWidth(table_width)

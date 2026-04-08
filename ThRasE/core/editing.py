@@ -88,8 +88,8 @@ class LayerToEdit(object):
         # navigation
         self.navigation = Navigation(self)
         self.navigation_dialog = None  # Created only when navigation is explicitly enabled
-        # store pixels: value, color, new_value, on/off
-        #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool}, ...]
+        # store pixels: value, color, new_value, on/off, label
+        #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool, "label": str}, ...]
         self.pixels_backup = None  # backup for save the original values
         self.pixels = None
         # user personalization of value-color table of class pixels
@@ -130,7 +130,8 @@ class LayerToEdit(object):
                 if nodata is not None and int(xml_item.get("value")) == int(nodata):
                     continue
 
-                pixel = {"value": int(xml_item.get("value")), "color": {}, "new_value": None, "s/h": True}
+                pixel = {"value": int(xml_item.get("value")), "color": {}, "new_value": None, "s/h": True,
+                         "label": xml_item.get("label", "")}
 
                 item_color = xml_item.get("color").lstrip('#')
                 item_color = tuple(int(item_color[i:i + 2], 16) for i in (0, 2, 4))
@@ -155,7 +156,7 @@ class LayerToEdit(object):
     def setup_symbology(self):
         # fill/restart the symbology based on the real pixel-color values from file
         self.symbology = \
-            [(str(pixel["value"]), pixel["value"],
+            [(pixel.get("label") or str(pixel["value"]), pixel["value"],
               (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], 255 if pixel["s/h"] else 0))
              for pixel in self.pixels]
 

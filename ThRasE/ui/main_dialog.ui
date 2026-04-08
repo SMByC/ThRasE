@@ -1106,7 +1106,7 @@ Open the registry tool to review pixel changes over time.</string>
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restores the symbology (colors/values) of the selected thematic layer to its original values from when it was loaded in the plugin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cleans and restores the symbology of the selected thematic layer to its original state when it was loaded into the plugin or reloaded&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Restore</string>
