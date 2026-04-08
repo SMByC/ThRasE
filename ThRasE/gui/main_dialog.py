@@ -49,7 +49,7 @@ from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_and_select_filepath_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer, \
-    add_color_value_to_symbology, is_integer_data_type
+    add_color_value_to_symbology, is_integer_data_type, get_layer_by_name
 from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
@@ -369,6 +369,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 level=Qgis.MessageLevel.Critical, duration=-1)
             return
         if thematic_filepath_to_edit:
+            layer_was_already_loaded = get_layer_by_name(
+                os.path.splitext(os.path.basename(thematic_filepath_to_edit))[0]) is not None
             load_and_select_filepath_in(self.QCBox_LayerToEdit, thematic_filepath_to_edit)
             nodata_action = yaml_config["thematic_file_to_edit"].get("nodata_action")
             self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer(), nodata_action=nodata_action)
@@ -390,7 +392,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         labels_differ = current_labels != saved_labels
 
         use_current_symbology = False
-        if labels_differ:
+        if labels_differ and layer_was_already_loaded:
             msg_box = QMessageBox(self)
             msg_box.setIcon(QMessageBox.Icon.Question)
             msg_box.setWindowTitle("ThRasE - Symbology labels")
