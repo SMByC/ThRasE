@@ -377,13 +377,54 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # file config
         LayerToEdit.current.config_file = yaml_config["config_file"]
         self.update_save_buttons_state()
-        # symbology and pixel table
-        if "symbology" in yaml_config:
-            LayerToEdit.current.symbology = yaml_config["symbology"]
-        LayerToEdit.current.pixels = yaml_config["recode_pixel_table"]
-        LayerToEdit.current.pixels_backup = yaml_config["recode_pixel_table_backup"]
+
+        # Restore symbology and pixel table
+        # Check if the current QGIS symbology has labels that differ from the saved config
+        # This happens when the user has updated labels in the layer symbology
+        current_pixels = LayerToEdit.current.pixels  # from live QGIS symbology (set by select_layer_to_edit)
+        saved_pixels = yaml_config["recode_pixel_table"]
+
+        current_labels = {p["value"]: p.get("label", "") for p in current_pixels}
+        saved_labels = {p["value"]: p.get("label", "") for p in saved_pixels}
+        labels_differ = current_labels != saved_labels
+
+        use_current_symbology = False
+        if labels_differ:
+            msg_box = QMessageBox(self)
+            msg_box.setIcon(QMessageBox.Icon.Question)
+            msg_box.setWindowTitle("ThRasE - Symbology labels")
+            msg_box.setText(
+                "The class labels in the current layer symbology are different "
+                "from those in the saved configuration file.\n\n"
+                "Which symbology do you want to use for the recode pixel table?")
+            btn_from_layer = msg_box.addButton("Use symbology from layer", QMessageBox.ButtonRole.AcceptRole)
+            btn_from_config = msg_box.addButton("Use symbology from config file", QMessageBox.ButtonRole.RejectRole)
+            msg_box.setDefaultButton(btn_from_config)
+            msg_box.exec()
+            use_current_symbology = (msg_box.clickedButton() == btn_from_layer)
+
+        if use_current_symbology:
+            # Keep the current QGIS symbology/labels but restore new_value and s/h from saved config
+            saved_by_value = {p["value"]: p for p in saved_pixels}
+            for pixel in current_pixels:
+                saved = saved_by_value.get(pixel["value"])
+                if saved:
+                    pixel["new_value"] = saved["new_value"]
+                    pixel["s/h"] = saved["s/h"]
+            LayerToEdit.current.pixels = current_pixels
+            LayerToEdit.current.pixels_backup = deepcopy(current_pixels)
+            # reset new_value in the backup
+            for pixel in LayerToEdit.current.pixels_backup:
+                pixel["new_value"] = None
+            LayerToEdit.current.setup_symbology()
+        else:
+            if "symbology" in yaml_config:
+                LayerToEdit.current.symbology = yaml_config["symbology"]
+            LayerToEdit.current.pixels = saved_pixels
+            LayerToEdit.current.pixels_backup = yaml_config["recode_pixel_table_backup"]
         self.set_recode_pixel_table()
         self.update_recode_pixel_table()
+
         # view_widgets, layer and editing toolbars
         if "layer_toolbars_enabled" in yaml_config:
             self.QPBtn_LayerToolbars.setChecked(bool(yaml_config["layer_toolbars_enabled"]))
