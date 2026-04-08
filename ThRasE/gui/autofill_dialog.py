@@ -54,8 +54,12 @@ class AutoFill(QDialog, FORM_CLASS):
             return True
         if condition is None or condition == '':
             return False
+        if "*" in condition:
+            self.MsgBar.pushMessage(condition, "'*' must be used alone as a wildcard",
+                                    level=Qgis.MessageLevel.Warning, duration=10)
+            return False
         try:
-            condition_to_evaluate = condition.replace('c', 'C').replace('C', '1')
+            condition_to_evaluate = condition.replace('v', 'V').replace('V', '1')
             eval(condition_to_evaluate)
             return True
         except Exception:
@@ -66,7 +70,7 @@ class AutoFill(QDialog, FORM_CLASS):
         if value is None or value == '':
             return True
         try:
-            value_to_evaluate = value.replace('c', 'C').replace('C', '1')
+            value_to_evaluate = value.replace('v', 'V').replace('V', '1')
             eval(value_to_evaluate)
             return True
         except Exception:
@@ -94,20 +98,19 @@ class AutoFill(QDialog, FORM_CLASS):
         if not autofill_entries:
             return
 
-        curr_values = [ThRasE.dialog.recodePixelTable.item(row, 2).text()
-                       for row in range(ThRasE.dialog.recodePixelTable.rowCount())]
+        curr_values = [str(pixel["value"]) for pixel in LayerToEdit.current.pixels]
         new_values = [""]*len(curr_values)
 
         # apply the autofill
         for condition, value in autofill_entries:
-            condition = condition.replace('c', 'C').strip()
-            value = value.replace('c', 'C').strip()
+            condition = condition.replace('v', 'V').strip()
+            value = value.replace('v', 'V').strip()
 
             for idx_row, curr_value in enumerate(curr_values):
-                condition_to_evaluate = condition.replace('C', curr_value)
+                condition_to_evaluate = condition.replace('V', curr_value)
 
                 if condition_to_evaluate == '*' or eval(condition_to_evaluate):
-                    new_values[idx_row] = eval(value.replace('C', curr_value)) if value != "" else None
+                    new_values[idx_row] = eval(value.replace('V', curr_value)) if value != "" else None
 
         # update the values in the table
         for idx_row, new_value in enumerate(new_values):

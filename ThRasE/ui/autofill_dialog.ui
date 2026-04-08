@@ -39,11 +39,11 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Autofill the &quot;New Value&quot; column based on conditions, optionally using the &quot;Current Value&quot;. The &quot;Condition&quot; column accepts any valid Python expression (e.g., C &gt; 3 and C &lt;= 8). Rules are applied sequentially, with later rules overwriting earlier ones.
+      <string>Autofill the &quot;New Value&quot; column based on conditions, optionally using the &quot;Pixel Value&quot; (V) in both columns. The &quot;Condition&quot; column accepts any valid Python expression (e.g., "V&gt;3", "V&lt;=8", "and", "or"). Rules are applied sequentially, with later rules overwriting earlier ones.
 
 Special variables:
-      C = current value
-      * (alone) = to match any value in conditions</string>
+      V = pixel value
+      * = to match any value (in Condition)</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignJustify|Qt::AlignVCenter</set>
