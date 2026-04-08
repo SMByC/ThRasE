@@ -104,6 +104,8 @@ class LayerToEdit(object):
         self.pixel_log_store = {}
         # registry of edits
         self.registry = Registry(self)
+        # nodata handling: "unset", "hide", or None (not yet decided)
+        self.nodata_action = None
         # save config file
         self.config_file = None
 
@@ -513,7 +515,8 @@ class LayerToEdit(object):
         # general settings
         data["thematic_file_to_edit"] = \
             {"path": setup_path(self.file_path),
-             "band": self.band}
+             "band": self.band,
+             "nodata_action": self.nodata_action}
         data["grid_view_widgets"] = {"columns": ThRasE.dialog.grid_columns, "rows": ThRasE.dialog.grid_rows}
         data["main_dialog_size"] = (ThRasE.dialog.size().width(), ThRasE.dialog.size().height())
         data["config_file"] = self.config_file

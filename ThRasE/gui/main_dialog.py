@@ -370,7 +370,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             return
         if thematic_filepath_to_edit:
             load_and_select_filepath_in(self.QCBox_LayerToEdit, thematic_filepath_to_edit)
-            self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer())
+            nodata_action = yaml_config["thematic_file_to_edit"].get("nodata_action")
+            self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer(), nodata_action=nodata_action)
             # band number
             if "band" in yaml_config["thematic_file_to_edit"]:
                 self.QCBox_band_LayerToEdit.setCurrentIndex(yaml_config["thematic_file_to_edit"]["band"] - 1)
@@ -906,7 +907,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if self.registry_widget.isVisible():
             self.registry_widget.setDisabled(True)
 
-    def select_layer_to_edit(self, layer_selected):
+    def select_layer_to_edit(self, layer_selected, nodata_action=None):
         # first clear table
         self.recodePixelTable.setRowCount(0)
         self.recodePixelTable.setColumnCount(0)
@@ -942,33 +943,48 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.QCBox_band_LayerToEdit.clear()
             self.QCBox_band_LayerToEdit.addItems([str(x) for x in range(1, layer_selected.bandCount() + 1)])
 
-        self.setup_layer_to_edit()
+        self.setup_layer_to_edit(nodata_action=nodata_action)
 
     @error_handler
-    def setup_layer_to_edit(self):
+    def setup_layer_to_edit(self, nodata_action=None):
         layer = self.QCBox_LayerToEdit.currentLayer()
         band = int(self.QCBox_band_LayerToEdit.currentText())
         nodata = get_nodata_value(layer, band)
 
         # check if nodata is set, to handle it: unset or hide in recode table
         if nodata is not None:
-            msgBox = QMessageBox()
-            msgBox.setTextFormat(Qt.TextFormat.RichText)
-            msgBox.setWindowTitle("ThRasE - How to handle the NoData value")
-            msgBox.setText("The '{}' has {} as NoData. ThRasE cannot edit values assigned as NoData, "
-                           "there are two possible options:".format(layer.name(), int(nodata)))
-            msgBox.setInformativeText("<ol style='list-style-position: inside;'>"
-                                      "<li style='margin-bottom: 8px;'>Unsets the NoData value for the thematic layer. The file will be "
-                                      "modified, but you can edit the NoData value afterward</li>"
-                                      "<li style='margin-bottom: 8px;'>Hides the NoData value in the recode table. The file will not be modified, "
-                                      "but you will not be able to view or edit the NoData value</li></ol>")
-            unset_button = msgBox.addButton("1. Unset NoData", QMessageBox.ButtonRole.NoRole)
-            hide_button = msgBox.addButton("2. Hide NoData", QMessageBox.ButtonRole.NoRole)
-            msgBox.setStandardButtons(QMessageBox.StandardButton.Cancel)
-            msgBox.setDefaultButton(QMessageBox.StandardButton.Cancel)
-            msgBox.exec()
+            # determine the nodata action: from parameter, from existing instance, or ask the user
+            if nodata_action is None and (layer.id(), band) in LayerToEdit.instances:
+                nodata_action = LayerToEdit.instances[(layer.id(), band)].nodata_action
 
-            if msgBox.clickedButton() == unset_button:
+            if nodata_action is None:
+                # ask the user
+                msgBox = QMessageBox()
+                msgBox.setTextFormat(Qt.TextFormat.RichText)
+                msgBox.setWindowTitle("ThRasE - How to handle the NoData value")
+                msgBox.setText("The '{}' has {} as NoData. ThRasE cannot edit values assigned as NoData, "
+                               "there are two possible options:".format(layer.name(), int(nodata)))
+                msgBox.setInformativeText("<ol style='list-style-position: inside;'>"
+                                          "<li style='margin-bottom: 8px;'>Unsets the NoData value for the thematic layer. The file will be "
+                                          "modified, but you can edit the NoData value afterward</li>"
+                                          "<li style='margin-bottom: 8px;'>Hides the NoData value in the recode table. The file will not be modified, "
+                                          "but you will not be able to view or edit the NoData value</li></ol>")
+                unset_button = msgBox.addButton("1. Unset NoData", QMessageBox.ButtonRole.NoRole)
+                hide_button = msgBox.addButton("2. Hide NoData", QMessageBox.ButtonRole.NoRole)
+                msgBox.setStandardButtons(QMessageBox.StandardButton.Cancel)
+                msgBox.setDefaultButton(QMessageBox.StandardButton.Cancel)
+                msgBox.exec()
+
+                if msgBox.clickedButton() == unset_button:
+                    nodata_action = "unset"
+                elif msgBox.clickedButton() == hide_button:
+                    nodata_action = "hide"
+                else:
+                    # cancel action
+                    self.unset_thematic_layer_to_edit()
+                    return
+
+            if nodata_action == "unset":
                 symbology_render = layer.renderer().clone()  # save the symbology before edit
                 if unset_the_nodata_value(layer) == 0:
                     with block_signals_to(self.QCBox_LayerToEdit):
@@ -999,10 +1015,6 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         "It was not possible to unset the NoData value for the thematic layer '{}'".format(layer.name()),
                         level=Qgis.MessageLevel.Critical, duration=20)
                     return
-            elif msgBox.clickedButton() != hide_button:
-                # cancel action
-                self.unset_thematic_layer_to_edit()
-                return
 
         if (layer.id(), band) in LayerToEdit.instances:
             layer_to_edit = LayerToEdit.instances[(layer.id(), band)]
@@ -1017,6 +1029,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 with block_signals_to(self.QCBox_band_LayerToEdit):
                     self.QCBox_band_LayerToEdit.clear()
                 return
+
+        # remember the nodata action for this layer (avoids re-asking on reload)
+        if nodata is not None:
+            layer_to_edit.nodata_action = nodata_action
 
         # Set the new current layer
         LayerToEdit.current = layer_to_edit
