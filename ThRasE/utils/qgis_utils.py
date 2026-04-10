@@ -63,10 +63,12 @@ def valid_file_selected_in(combo_box):
         return False
 
 
-def get_layer_by_name(layer_name):
-    layer = QgsProject.instance().mapLayersByName(layer_name)
-    if layer:
-        return layer[0]
+def get_loaded_layer(layer_path):
+    # return the loaded layer in Qgis that matches the file path
+    # whatever the name of the layer
+    for layer in QgsProject.instance().mapLayers().values():
+        if get_file_path_of_layer(layer) == layer_path:
+            return layer
 
 
 def get_current_file_path_in(combo_box, show_message=True):
@@ -78,18 +80,19 @@ def get_current_file_path_in(combo_box, show_message=True):
     return None
 
 
-def load_and_select_filepath_in(combo_box, file_path, layer_name=None, add_to_legend=True):
+def load_file_and_select_in(combo_box, file_path, layer_name=None, add_to_legend=True):
     if not layer_name:
         layer_name = os.path.splitext(os.path.basename(file_path))[0]
-    layer = get_layer_by_name(layer_name)
-    # load
+    layer = get_loaded_layer(file_path)
+    # load if no layer with this path exists
     if not layer:
-        load_layer(file_path, name=layer_name, add_to_legend=add_to_legend)
-    # select the sampling file in combobox
-    selected_index = combo_box.findText(layer_name, Qt.MatchFlag.MatchFixedString)
-    combo_box.setCurrentIndex(selected_index)
+        layer = load_layer(file_path, name=layer_name, add_to_legend=add_to_legend)
+        if not layer.isValid():
+            return
+    # select the exact layer in combobox
+    combo_box.setLayer(layer)
 
-    return get_layer_by_name(layer_name)
+    return layer
 
 
 def add_layer(layer, add_to_legend=True):

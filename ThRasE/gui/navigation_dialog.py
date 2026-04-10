@@ -30,7 +30,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QColorDialog
 from qgis.PyQt.QtCore import pyqtSlot, Qt, QTimer
 
-from ThRasE.utils.qgis_utils import load_and_select_filepath_in
+from ThRasE.utils.qgis_utils import load_file_and_select_in
 from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
@@ -136,7 +136,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_and_select_filepath_in(combo_box, file_path)
+            load_file_and_select_in(combo_box, file_path)
 
             self.render_over_thematic(combo_box.currentLayer())
 

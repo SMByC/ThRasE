@@ -36,7 +36,7 @@ from qgis.PyQt.QtCore import pyqtSlot, Qt
 
 from ThRasE.core.editing import Pixel, PixelLog, LayerToEdit
 from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
-from ThRasE.utils.qgis_utils import load_and_select_filepath_in, apply_symbology, get_file_path_of_layer
+from ThRasE.utils.qgis_utils import load_file_and_select_in, apply_symbology, get_file_path_of_layer
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
 # plugin path
@@ -103,7 +103,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_and_select_filepath_in(combo_box, file_path, add_to_legend=False)
+            load_file_and_select_in(combo_box, file_path, add_to_legend=False)
 
             self.select_thematic_file_classes(combo_box.currentLayer())
 
