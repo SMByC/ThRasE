@@ -51,10 +51,10 @@ project_slug = "ThRasE"
 package = false
 
 [tool.uv.sources]
-qgis = { path = "/usr/lib/python3.13/site-packages" }
+qgis = { path = "/usr/lib/python3.14/site-packages" }
 
 [tool.pyright]
-extraPaths = ["/usr/lib/python3.13/site-packages/"]
+extraPaths = ["/usr/lib/python3.14/site-packages/"]
 venv = ".venv"
 reportUnknownVariableType = "none"
 reportUnknownParameterType = "none"
