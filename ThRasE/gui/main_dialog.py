@@ -370,7 +370,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             return
         if thematic_filepath_to_edit:
             layer_was_already_loaded = get_loaded_layer(thematic_filepath_to_edit) is not None
-            load_file_and_select_in(self.QCBox_LayerToEdit, thematic_filepath_to_edit)
+            with block_signals_to(self.QCBox_LayerToEdit):
+                load_file_and_select_in(self.QCBox_LayerToEdit, thematic_filepath_to_edit)
             nodata_action = yaml_config["thematic_file_to_edit"].get("nodata_action")
             self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer(), nodata_action=nodata_action)
             # band number
