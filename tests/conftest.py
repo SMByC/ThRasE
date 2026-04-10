@@ -33,7 +33,18 @@ def pytest_sessionfinish(session, exitstatus):
 
 class _MsgBar:
     def pushMessage(self, *args, **kwargs):
-        # no-op in tests
+        pass
+
+    def clearWidgets(self):
+        pass
+
+    def createMessage(self, *args):
+        from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout
+        w = QWidget()
+        QHBoxLayout(w)
+        return w
+
+    def pushWidget(self, *args, **kwargs):
         pass
 
 
@@ -58,6 +69,14 @@ class _RegistryWidget:
         return False
 
 
+class _EnableDisable:
+    def setEnabled(self, *args):
+        pass
+
+    def isChecked(self):
+        return False
+
+
 class DummyDialog:
     """A minimal ThRasE.dialog stub needed by core editing functions during tests."""
     def __init__(self):
@@ -67,6 +86,9 @@ class DummyDialog:
         # Generic placeholders referenced by other code paths (avoid AttributeError)
         self.grid_columns = 1
         self.grid_rows = 1
+        # Navigation stubs
+        self.NavigationBlockWidgetControls = _EnableDisable()
+        self.currentTileKeepVisible = _EnableDisable()
 
 
 @pytest.fixture
