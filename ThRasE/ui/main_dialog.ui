@@ -949,7 +949,7 @@ Open the registry tool to review pixel changes over time.</string>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="allowEmptyLayer">
+              <property name="allowEmptyLayer" stdset="0">
                <bool>true</bool>
               </property>
              </widget>
@@ -962,14 +962,14 @@ Open the registry tool to review pixel changes over time.</string>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="toolTip">
-               <string>Select the band to edit</string>
-              </property>
               <property name="maximumSize">
                <size>
                 <width>50</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Select the band to edit</string>
               </property>
               <property name="minimumContentsLength">
                <number>1</number>
@@ -1076,6 +1076,29 @@ Open the registry tool to review pixel changes over time.</string>
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="QPBtn_LayerStyle">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open the style editor to view or adjust the symbology of the thematic layer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Style</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/plugins/thrase/icons/layer_properties.svg</normaloff>:/plugins/thrase/icons/layer_properties.svg</iconset>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextBesideIcon</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QToolButton" name="QPBtn_ReloadRecodeTable">

@@ -49,7 +49,7 @@ from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
 from ThRasE.utils.qgis_utils import load_file_and_select_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer, \
-    add_color_value_to_symbology, is_integer_data_type, get_loaded_layer
+    add_color_value_to_symbology, is_integer_data_type, get_loaded_layer, StyleEditorDialog
 from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
@@ -94,10 +94,6 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.NavigationBlockWidgetControls.setDisabled(True)
         self.QPBtn_EnableNavigation.clicked.connect(self.enable_navigation_tool)
         self.QPBtn_OpenNavigationDialog.clicked.connect(self.open_navigation_dialog)
-        self.QPBtn_ReloadRecodeTable.setDisabled(True)
-        self.QPBtn_RestoreRecodeTable.setDisabled(True)
-        self.QPBtn_AutoFill.setDisabled(True)
-        self.QGBox_GlobalEditTools.setDisabled(True)
         self.currentTile.clicked.connect(self.go_to_current_tile)
         self.previousTile.clicked.connect(self.go_to_previous_tile)
         self.nextTile.clicked.connect(self.go_to_next_tile)
@@ -177,11 +173,19 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # ######### setup layer to edit ######### #
         self.QCBox_LayerToEdit.setCurrentIndex(-1)
         self.QCBox_LayerToEdit.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
+        # tool buttons
+        self.QPBtn_LayerStyle.setDisabled(True)
+        self.QPBtn_ReloadRecodeTable.setDisabled(True)
+        self.QPBtn_RestoreRecodeTable.setDisabled(True)
+        self.QPBtn_AutoFill.setDisabled(True)
+        self.QGBox_GlobalEditTools.setDisabled(True)
         # handle connect layer selection
         self.QCBox_LayerToEdit.layerChanged.connect(self.select_layer_to_edit)
         self.QCBox_band_LayerToEdit.currentIndexChanged.connect(lambda: self.setup_layer_to_edit())
         # call to browse the render file
         self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
+        # open the layer style editor for the thematic layer
+        self.QPBtn_LayerStyle.clicked.connect(self.open_layer_style_editor)
         # update recode pixel table
         self.recodePixelTable.itemChanged.connect(self.update_recode_pixel_table)
         # for change the class color
@@ -745,6 +749,23 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             layer = load_file_and_select_in(self.QCBox_LayerToEdit, file_path)
             self.select_layer_to_edit(layer)
 
+    @pyqtSlot()
+    def open_layer_style_editor(self):
+        layer = self.QCBox_LayerToEdit.currentLayer()
+        if not layer:
+            self.MsgBar.pushMessage("First select a valid thematic layer to edit",
+                                    level=Qgis.MessageLevel.Warning, duration=10)
+            return
+        style_editor_dlg = StyleEditorDialog(layer, iface.mapCanvas(), self)
+        # reload recode pixel table when Apply is clicked
+        style_editor_dlg.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(
+            lambda: self.reload_recode_table() if LayerToEdit.current else None)
+        # reload recode pixel table when Ok is clicked
+        if style_editor_dlg.exec():
+            style_editor_dlg.apply()
+            if LayerToEdit.current:
+                self.reload_recode_table()
+
     def enable_navigation_tool(self, checked):
         if not LayerToEdit.current:
             self.MsgBar.pushMessage("First select a valid thematic layer to edit", level=Qgis.MessageLevel.Warning, duration=10)
@@ -894,6 +915,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     def unset_thematic_layer_to_edit(self):
         # disable and clear the thematic file
         self.NavigationBlockWidget.setDisabled(True)
+        self.QPBtn_LayerStyle.setDisabled(True)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)
         self.QPBtn_RestoreRecodeTable.setDisabled(True)
         self.QPBtn_AutoFill.setDisabled(True)
@@ -1048,6 +1070,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QCBox_LayerToEdit.setToolTip(layer_to_edit.qgs_layer.name())
         # enable some components
         [view_widget.widget_EditingToolbar.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
+        self.QPBtn_LayerStyle.setEnabled(True)
         self.NavigationBlockWidget.setEnabled(True)
         self.QPBtn_ReloadRecodeTable.setEnabled(True)
         self.QPBtn_RestoreRecodeTable.setEnabled(True)
@@ -1231,7 +1254,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     @pyqtSlot()
     @error_handler
     def reload_recode_table(self):
-        old_pixels = LayerToEdit.current.pixels
+        old_pixels = LayerToEdit.current.pixels or []
         LayerToEdit.current.pixels_backup = None  # reset, set backup to new symbology
         recode_pixel_table_status = LayerToEdit.current.setup_pixel_table(force_update=True)
 
