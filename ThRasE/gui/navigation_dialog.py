@@ -30,7 +30,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QColorDialog
 from qgis.PyQt.QtCore import pyqtSlot, Qt, QTimer
 
-from ThRasE.utils.qgis_utils import load_file_and_select_in
+from ThRasE.utils.qgis_utils import load_and_select_layer_in
 from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
@@ -136,7 +136,12 @@ class NavigationDialog(QDialog, FORM_CLASS):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_file_and_select_in(combo_box, file_path)
+            layer = load_and_select_layer_in(file_path, combo_box)
+            if not layer:
+                self.MsgBar.pushMessage(
+                    "Could not load the vector file: \"{}\"".format(file_path),
+                    level=Qgis.MessageLevel.Warning, duration=10)
+                return
 
             self.render_over_thematic(combo_box.currentLayer())
 

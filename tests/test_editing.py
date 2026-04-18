@@ -333,9 +333,9 @@ def _assert_rasters_equal(layer_a, layer_b, band=1):
     """Compare two rasters by reading the specified band as 2D arrays with GDAL and assert equality.
     Any mismatch causes the test to fail. A concise sample of differences is reported for debugging.
     """
-    from ThRasE.utils.qgis_utils import get_file_path_of_layer
-    path_a = get_file_path_of_layer(layer_a)
-    path_b = get_file_path_of_layer(layer_b)
+    from ThRasE.utils.qgis_utils import get_source_from
+    path_a = get_source_from(layer_a)
+    path_b = get_source_from(layer_b)
     dsa = gdal.Open(path_a)
     dsb = gdal.Open(path_b)
     assert dsa is not None and dsb is not None, f"Failed to open rasters with GDAL: '{path_a}', '{path_b}'"

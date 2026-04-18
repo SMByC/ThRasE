@@ -29,7 +29,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QMessageBox, QProgressDialog, QApplication
 from qgis.core import QgsPalettedRasterRenderer
 
-from ThRasE.utils.qgis_utils import get_file_path_of_layer
+from ThRasE.utils.qgis_utils import get_source_from
 from ThRasE.utils.system_utils import wait_process
 
 # --------------------------------------------------------------------------
@@ -54,7 +54,7 @@ def mask(input_list, boolean_mask):
 
 def get_unique_values(layer, band, chunk_size=1000):
     """Get unique values in a raster band using chunked GDAL reading"""
-    gdal_file = gdal.Open(get_file_path_of_layer(layer), gdal.GA_ReadOnly)
+    gdal_file = gdal.Open(get_source_from(layer), gdal.GA_ReadOnly)
     raster_band = gdal_file.GetRasterBand(band)
 
     # Calculate total chunks for progress
@@ -179,7 +179,7 @@ def get_pixel_count_by_pixel_values(layer, band, pixel_values=None):
         pixel_values = get_pixel_values(layer, band)
 
     # split the image in chunks, the 0,0 is left-upper corner
-    gdal_file = gdal.Open(get_file_path_of_layer(layer), gdal.GA_ReadOnly)
+    gdal_file = gdal.Open(get_source_from(layer), gdal.GA_ReadOnly)
     chunk_size = 1000
     input_data = []
     for y in chunks(range(gdal_file.RasterYSize), chunk_size):
@@ -189,7 +189,7 @@ def get_pixel_count_by_pixel_values(layer, band, pixel_values=None):
             xoff = x[0]
             xsize = len(x)
 
-            input_data.append((get_file_path_of_layer(layer), band, pixel_values, xoff, yoff, xsize, ysize))
+            input_data.append((get_source_from(layer), band, pixel_values, xoff, yoff, xsize, ysize))
 
     # compute and merge all parallel process returns in one result
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:

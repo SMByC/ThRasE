@@ -40,7 +40,7 @@ from qgis.PyQt.QtCore import Qt
 from ThRasE.core.navigation import Navigation
 from ThRasE.core.registry import Registry
 from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
-from ThRasE.utils.qgis_utils import get_file_path_of_layer, apply_symbology
+from ThRasE.utils.qgis_utils import get_source_from, apply_symbology
 from ThRasE.utils.system_utils import wait_process, block_signals_to
 
 
@@ -82,7 +82,7 @@ class LayerToEdit(object):
     def __init__(self, layer, band):
         self.qgs_layer = layer
         self.data_provider = layer.dataProvider()
-        self.file_path = get_file_path_of_layer(layer)
+        self.file_path = get_source_from(layer)
         self.band = band
         self.bounds = layer.extent().toRectF().getCoords()  # (xmin , ymin, xmax, ymax)
         # navigation
@@ -542,7 +542,7 @@ class LayerToEdit(object):
             for layer_toolbar in view_widget.layer_toolbars:
                 layer_toolbars.append({"is_active": layer_toolbar.OnOff_LayerToolbar.isChecked(),
                                       "layer_name": layer_toolbar.layer.name() if layer_toolbar.layer else None,
-                                      "layer_path": setup_path(get_file_path_of_layer(layer_toolbar.layer)),
+                                      "layer_path": setup_path(get_source_from(layer_toolbar.layer)),
                                       "opacity": layer_toolbar.opacity})
             data["view_widgets"].append({"layer_toolbars": layer_toolbars,
                                          "mouse_pixel_value": view_widget.mousePixelValue2Table.isChecked(),
@@ -580,7 +580,7 @@ class LayerToEdit(object):
                                               "points",
                                               "centroid of polygons"]:
                 data["navigation"]["vector_file"] = \
-                    setup_path(get_file_path_of_layer(self.navigation_dialog.QCBox_VectorFile.currentLayer()))
+                    setup_path(get_source_from(self.navigation_dialog.QCBox_VectorFile))
 
         # registry (widget state and pixel logs)
         rw = ThRasE.dialog.registry_widget

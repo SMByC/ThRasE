@@ -36,7 +36,7 @@ from qgis.PyQt.QtCore import pyqtSlot, Qt
 
 from ThRasE.core.editing import Pixel, PixelLog, LayerToEdit
 from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
-from ThRasE.utils.qgis_utils import load_file_and_select_in, apply_symbology, get_file_path_of_layer
+from ThRasE.utils.qgis_utils import load_and_select_layer_in, apply_symbology, get_source_from
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
 # plugin path
@@ -103,7 +103,12 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_file_and_select_in(combo_box, file_path, add_to_legend=False)
+            layer = load_and_select_layer_in(file_path, combo_box, add_to_legend=False)
+            if not layer:
+                self.MsgBar.pushMessage(
+                    "Could not load the thematic raster file: \"{}\"".format(file_path),
+                    level=Qgis.MessageLevel.Warning, duration=10)
+                return
 
             self.select_thematic_file_classes(combo_box.currentLayer())
 
@@ -315,7 +320,7 @@ class ApplyFromThematicClasses(QDialog, FORM_CLASS):
 
             # Read the thematic classes file
             thematic_classes_band = int(self.QCBox_band_ThematicFile.currentText())
-            classes_ds = gdal.Open(get_file_path_of_layer(self.thematic_file_classes), gdal.GA_ReadOnly)
+            classes_ds = gdal.Open(get_source_from(self.thematic_file_classes), gdal.GA_ReadOnly)
             if classes_ds is None:
                 raise RuntimeError("Unable to open the thematic classes file")
 

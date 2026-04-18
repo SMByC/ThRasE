@@ -25,10 +25,11 @@ from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget, QFileDialog
 from qgis.PyQt.QtCore import pyqtSlot
-from qgis.core import QgsMapLayer
+from qgis.core import QgsMapLayer, Qgis
+from qgis.utils import iface
 
 from ThRasE.utils.system_utils import block_signals_to
-from ThRasE.utils.qgis_utils import load_file_and_select_in, StyleEditorDialog
+from ThRasE.utils.qgis_utils import load_and_select_layer_in, StyleEditorDialog
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -81,7 +82,12 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            load_file_and_select_in(combo_box, file_path)
+            layer = load_and_select_layer_in(file_path, combo_box)
+            if not layer:
+                iface.messageBar().pushMessage(
+                    "ThRasE", "Could not load the layer: \"{}\"".format(file_path),
+                    level=Qgis.MessageLevel.Warning, duration=10)
+                return
 
             self.set_render_layer(combo_box.currentLayer())
 

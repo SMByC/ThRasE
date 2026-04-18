@@ -47,8 +47,8 @@ from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
-from ThRasE.utils.qgis_utils import load_file_and_select_in, valid_file_selected_in, apply_symbology, \
-    get_nodata_value, unset_the_nodata_value, get_file_path_of_layer, unload_layer, load_layer, \
+from ThRasE.utils.qgis_utils import load_and_select_layer_in, valid_file_selected_in, apply_symbology, \
+    get_nodata_value, unset_the_nodata_value, get_source_from, unload_layer, load_layer, \
     add_color_value_to_symbology, is_integer_data_type, get_loaded_layer, StyleEditorDialog
 from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, wait_process, open_file
 
@@ -366,21 +366,18 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.resize(*yaml_config["main_dialog_size"])
         # setup the thematic file to edit
         thematic_filepath_to_edit = get_restore_path(yaml_config["thematic_file_to_edit"]["path"])
-        if not os.path.isfile(thematic_filepath_to_edit):
+        with block_signals_to(self.QCBox_LayerToEdit):
+            thematic_layer = load_and_select_layer_in(thematic_filepath_to_edit, self.QCBox_LayerToEdit)
+        if not thematic_layer:
             self.MsgBar.pushMessage(
-                "Could not load the thematic layer '{}' ThRasE need this layer to setup the config, "
-                "check the path in the yaml file".format(thematic_filepath_to_edit),
+                "Could not load the thematic layer to edit: \"{}\"".format(thematic_filepath_to_edit),
                 level=Qgis.MessageLevel.Critical, duration=-1)
             return
-        if thematic_filepath_to_edit:
-            layer_was_already_loaded = get_loaded_layer(thematic_filepath_to_edit) is not None
-            with block_signals_to(self.QCBox_LayerToEdit):
-                load_file_and_select_in(self.QCBox_LayerToEdit, thematic_filepath_to_edit)
-            nodata_action = yaml_config["thematic_file_to_edit"].get("nodata_action")
-            self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer(), nodata_action=nodata_action)
-            # band number
-            if "band" in yaml_config["thematic_file_to_edit"]:
-                self.QCBox_band_LayerToEdit.setCurrentIndex(yaml_config["thematic_file_to_edit"]["band"] - 1)
+        nodata_action = yaml_config["thematic_file_to_edit"].get("nodata_action")
+        self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer(), nodata_action=nodata_action)
+        # band number
+        if "band" in yaml_config["thematic_file_to_edit"]:
+            self.QCBox_band_LayerToEdit.setCurrentIndex(yaml_config["thematic_file_to_edit"]["band"] - 1)
         # file config
         LayerToEdit.current.config_file = yaml_config["config_file"]
         self.update_save_buttons_state()
@@ -396,7 +393,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         labels_differ = current_labels != saved_labels
 
         use_current_symbology = False
-        if labels_differ and layer_was_already_loaded:
+        if labels_differ and thematic_layer:
             msg_box = QMessageBox(self)
             msg_box.setIcon(QMessageBox.Icon.Question)
             msg_box.setWindowTitle("ThRasE - Symbology labels")
@@ -452,28 +449,18 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                     else:
                         yaml_layer_toolbar["layer_name"] = ""
 
-                # check if the file for this layer toolbar if exists and is loaded in Qgis
+                # select the layer for this layer toolbar if exists and is loaded in Qgis
                 layer_name = yaml_layer_toolbar["layer_name"]
-                file_index = layer_toolbar.QCBox_RenderFile.findText(layer_name, Qt.MatchFlag.MatchFixedString)
-
-                # select the layer or load it
-                if file_index > 0:
-                    # select layer if exists in Qgis
-                    layer_toolbar.QCBox_RenderFile.setCurrentIndex(file_index)
-                    layer_toolbar.set_render_layer(layer_toolbar.QCBox_RenderFile.currentLayer())
-                elif yaml_layer_toolbar["layer_path"]:
-                    layer_path = get_restore_path(yaml_layer_toolbar["layer_path"])
-                    if os.path.isfile(layer_path):
-                        layer = load_file_and_select_in(layer_toolbar.QCBox_RenderFile, layer_path, layer_name=layer_name)
-                        layer_toolbar.set_render_layer(layer)
-                    else:
-                        view_name = yaml_view_widget.get("view_name") or view_widget.id
-                        self.MsgBar.pushMessage(
-                                "Could not load the layer \"{layer_name}\" in the view {view_name}: "
-                                "no such file \"{layer_path}\"".format(layer_name=layer_name, view_name=view_name,
-                                                                   layer_path=layer_path),
-                                level=Qgis.MessageLevel.Warning, duration=-1)
-                        continue
+                source_file = get_restore_path(yaml_layer_toolbar["layer_path"])
+                qgslayer = load_and_select_layer_in(source_file, layer_toolbar.QCBox_RenderFile, layer_name=layer_name)
+                if source_file and not qgslayer:
+                    self.MsgBar.pushMessage(
+                            "Could not load the layer \"{layer_name}\" in the view {view_name}: "
+                            "{source_file}".format(layer_name=layer_name, view_name=view_widget.id,
+                                                    source_file=source_file),
+                            level=Qgis.MessageLevel.Warning, duration=-1)
+                    continue
+                layer_toolbar.set_render_layer(qgslayer)
 
                 # opacity
                 layer_toolbar.layerOpacity.setValue(yaml_layer_toolbar["opacity"])
@@ -575,8 +562,13 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                                                      "points",
                                                      "centroid of polygons"]:
                 # recover the vector file
-                load_file_and_select_in(LayerToEdit.current.navigation_dialog.QCBox_VectorFile,
-                                            yaml_config["navigation"]["vector_file"])
+                vector_file = yaml_config["navigation"]["vector_file"]
+                nav_vector_layer = load_and_select_layer_in(
+                    vector_file, LayerToEdit.current.navigation_dialog.QCBox_VectorFile)
+                if not nav_vector_layer:
+                    self.MsgBar.pushMessage(
+                        "Could not load the navigation vector file: \"{}\"".format(vector_file),
+                        level=Qgis.MessageLevel.Warning, duration=-1)
             # build navigation with all settings loaded
             LayerToEdit.current.navigation_dialog.call_to_build_navigation()
             current_tile_id = yaml_config["navigation"]["current_tile_id"]
@@ -589,8 +581,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 LayerToEdit.current.navigation_dialog.resize(*yaml_config["navigation"]["size_dialog"])
             if "extent_dialog" in yaml_config["navigation"] and yaml_config["navigation"]["extent_dialog"]:
                 LayerToEdit.current.navigation_dialog.render_widget.canvas.setExtent(QgsRectangle(*yaml_config["navigation"]["extent_dialog"]))
-            LayerToEdit.current.navigation_dialog.change_tile_from_slider(current_tile_id)
-            LayerToEdit.current.navigation_dialog.change_tile_from_spinbox(current_tile_id)
+            if LayerToEdit.current.navigation.is_valid:
+                LayerToEdit.current.navigation_dialog.change_tile_from_slider(current_tile_id)
+                LayerToEdit.current.navigation_dialog.change_tile_from_spinbox(current_tile_id)
             # navigation block widget
             self.currentTileKeepVisible.setChecked(bool(yaml_config["navigation"]["tile_keep_visible"]))
             self.enable_navigation_tool(True)
@@ -746,7 +739,12 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.tr("Raster files (*.tif *.img);;All files (*.*)"))
         if file_path != '' and os.path.isfile(file_path):
             # load to qgis and update combobox list
-            layer = load_file_and_select_in(self.QCBox_LayerToEdit, file_path)
+            layer = load_and_select_layer_in(file_path, self.QCBox_LayerToEdit)
+            if not layer:
+                self.MsgBar.pushMessage(
+                    "Could not load the thematic layer: \"{}\"".format(file_path),
+                    level=Qgis.MessageLevel.Warning, duration=10)
+                return
             self.select_layer_to_edit(layer)
 
     @pyqtSlot()
@@ -1013,7 +1011,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 if unset_the_nodata_value(layer) == 0:
                     with block_signals_to(self.QCBox_LayerToEdit):
                         layer_name = layer.name()
-                        layer_path = get_file_path_of_layer(layer)
+                        layer_path = get_source_from(layer)
                         self.QCBox_LayerToEdit.setCurrentIndex(-1)
                         unload_layer(layer_path)
                         layer = load_layer(layer_path, name=layer_name)
