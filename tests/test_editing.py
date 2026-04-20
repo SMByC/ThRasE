@@ -26,7 +26,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.editing import LayerToEdit
 from ThRasE.utils.qgis_utils import load_layer
-from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
+from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
 
 
 
@@ -232,7 +232,7 @@ class TestEditingTools:
         # Finally, compare the two rasters by reading band arrays with GDAL
         _assert_rasters_equal(saved_test_data, layer_data_to_edit, band=1)
 
-    def test_apply_from_thematic_classes(self, tmp_path, load_yaml_mapping, qgis_iface, qgis_parent):
+    def test_apply_from_classes_or_mask(self, tmp_path, load_yaml_mapping, qgis_iface, qgis_parent):
         # original source tif
         src = pytest.tests_data_dir / "test_data.tif"
 
@@ -250,7 +250,7 @@ class TestEditingTools:
         # saved_path.write_bytes(src.read_bytes())
         # layer_saved = load_layer(str(saved_path), name="test_data_thematic_classes")
         # assert layer_saved is not None and layer_saved.isValid()
-        # # Setup LayerToEdit for the layer and apply edit using ApplyFromThematicClasses
+        # # Setup LayerToEdit for the layer and apply edit using ApplyFromClassesOrMask
         # lte_saved = LayerToEdit(layer_saved, band=1)
         # lte_saved.setup_pixel_table()
         # lte_saved.old_new_value = mapping
@@ -259,11 +259,11 @@ class TestEditingTools:
         # thematic_classes_layer = load_layer(str(thematic_classes_path), name="test_data_2")
         # assert thematic_classes_layer is not None and thematic_classes_layer.isValid()
         # # Create dialog and apply
-        # dialog = ApplyFromThematicClasses(parent=qgis_parent)
+        # dialog = ApplyFromClassesOrMask(parent=qgis_parent)
         # dialog.MsgBar = lte_saved.qgs_layer  # Mock MsgBar for testing
         # dialog.setup_gui()
-        # dialog.QCBox_ThematicFile.setLayer(thematic_classes_layer)
-        # dialog.QCBox_band_ThematicFile.setCurrentText("1")
+        # dialog.QCBox_LayerForMasking.setLayer(thematic_classes_layer)
+        # dialog.QCBox_LayerForMaskingBand.setCurrentText("1")
         # # Select classes 42 and 46
         # for row_idx in range(dialog.PixelTable.rowCount()):
         #     class_value = int(dialog.PixelTable.item(row_idx, 1).text())
@@ -294,7 +294,7 @@ class TestEditingTools:
         assert thematic_classes_layer is not None and thematic_classes_layer.isValid()
 
         # Create dialog and configure
-        dialog = ApplyFromThematicClasses(parent=qgis_parent)
+        dialog = ApplyFromClassesOrMask(parent=qgis_parent)
 
         # Mock MsgBar for the dialog
         class MockMsgBar:
@@ -305,10 +305,10 @@ class TestEditingTools:
         dialog.setup_gui()
 
         # Set the thematic file
-        dialog.QCBox_ThematicFile.setLayer(thematic_classes_layer)
+        dialog.QCBox_LayerForMasking.setLayer(thematic_classes_layer)
 
         # Set band to 1
-        dialog.QCBox_band_ThematicFile.setCurrentText("1")
+        dialog.QCBox_LayerForMaskingBand.setCurrentText("1")
 
         # Select classes 42 and 46 (checkState: 0=Unchecked, 2=Checked)
         for row_idx in range(dialog.PixelTable.rowCount()):

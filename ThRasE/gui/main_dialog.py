@@ -46,7 +46,7 @@ from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.navigation_dialog import NavigationDialog
-from ThRasE.gui.apply_from_thematic_classes import ApplyFromThematicClasses
+from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
 from ThRasE.utils.qgis_utils import load_and_select_layer_in, valid_file_selected_in, apply_symbology, \
     get_nodata_value, unset_the_nodata_value, get_source_from, unload_layer, load_layer, \
     add_color_value_to_symbology, is_integer_data_type, get_loaded_layer, StyleEditorDialog
@@ -203,8 +203,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QPBtn_AutoFill.clicked.connect(self.open_autofill_dialog)
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyToEntireThematicRaster.clicked.connect(self.apply_to_entire_thematic_raster)
-        self.apply_from_thematic_classes = ApplyFromThematicClasses()
-        self.QPBtn_ApplyFromThematicClasses.clicked.connect(self.apply_from_thematic_classes_dialog)
+        self.apply_from_classes_or_mask = ApplyFromClassesOrMask()
+        self.QPBtn_ApplyFromClassesOrMask.clicked.connect(self.apply_from_classes_or_mask_dialog)
         self.SaveConfig.clicked.connect(self.save_thrase_config)
         self.SaveAsConfig.clicked.connect(self.file_dialog_save_thrase_config)
         self.update_save_buttons_state()
@@ -1350,7 +1350,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                     level=Qgis.MessageLevel.Info, duration=10)
 
     @pyqtSlot()
-    def apply_from_thematic_classes_dialog(self):
+    def apply_from_classes_or_mask_dialog(self):
         # check if the recode pixel table is empty
         if not LayerToEdit.current.old_new_value:
             self.MsgBar.pushMessage(
@@ -1358,10 +1358,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 level=Qgis.MessageLevel.Warning, duration=10)
             return
 
-        self.apply_from_thematic_classes.setup_gui()
-        if self.apply_from_thematic_classes.exec():
+        self.apply_from_classes_or_mask.setup_gui()
+        if self.apply_from_classes_or_mask.exec():
             self.MsgBar.pushMessage(
-                "DONE: Changes in recode pixels table were successfully applied within selected classes",
+                "DONE: Changes in recode pixels table were successfully applied within the selected mask",
                 level=Qgis.MessageLevel.Success, duration=10)
 
     @pyqtSlot()

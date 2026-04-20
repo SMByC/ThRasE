@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ThRasE - Apply within selected classes</string>
+   <string>ThRasE - Apply within classes or mask</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -54,7 +54,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>This tool applies the changes set in the recode pixels table to the current thematic layer being edited in the main dialog, but only in the areas within all the selected classes from another thematic raster chosen here.</string>
+         <string>Applies recode pixel table changes to the current thematic layer, restricted to areas defined by selected raster classes or a vector mask.</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -98,12 +98,12 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Thematic raster to extract the classes:</string>
+         <string>Layer for masking (raster or vector):</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QgsMapLayerComboBox" name="QCBox_ThematicFile">
+       <widget class="QgsMapLayerComboBox" name="QCBox_LayerForMasking">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -116,21 +116,21 @@
           <height>0</height>
          </size>
         </property>
-        <property name="allowEmptyLayer">
+        <property name="allowEmptyLayer" stdset="0">
          <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="QCBox_band_ThematicFile">
-        <property name="toolTip">
-         <string>Select the band</string>
-        </property>
+       <widget class="QComboBox" name="QCBox_LayerForMaskingBand">
         <property name="maximumSize">
          <size>
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Select the band</string>
         </property>
         <property name="minimumContentsLength">
          <number>1</number>
@@ -138,7 +138,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="QPBtn_BrowseThematicFile">
+       <widget class="QToolButton" name="QCBox_BrowseLayerForMasking">
         <property name="text">
          <string>...</string>
         </property>
@@ -223,7 +223,7 @@
          <item>
           <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Select the classes:</string>
+            <string>Classes for masking:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>

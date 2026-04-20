@@ -1300,15 +1300,15 @@ Open the registry tool to review pixel changes over time.</string>
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QToolButton" name="QPBtn_ApplyFromThematicClasses">
+             <widget class="QToolButton" name="QPBtn_ApplyFromClassesOrMask">
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply the changes from the recode pixels table only to areas within the selected classes from a different thematic raster&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply the changes from the recode pixels table only to areas within raster classes or a vector mask&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Apply within selected classes</string>
+               <string>Apply within classes or mask</string>
               </property>
               <property name="icon">
                <iconset>
