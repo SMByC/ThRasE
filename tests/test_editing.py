@@ -232,7 +232,7 @@ class TestEditingTools:
         # Finally, compare the two rasters by reading band arrays with GDAL
         _assert_rasters_equal(saved_test_data, layer_data_to_edit, band=1)
 
-    def test_apply_from_classes_or_mask(self, tmp_path, load_yaml_mapping, qgis_iface, qgis_parent):
+    def test_apply_from_classes(self, tmp_path, load_yaml_mapping, qgis_iface, qgis_parent):
         # original source tif
         src = pytest.tests_data_dir / "test_data.tif"
 
@@ -320,6 +320,96 @@ class TestEditingTools:
         dialog.RecordChangesInRegistry.setChecked(False)
 
         # Apply changes
+        dialog.apply()
+
+        # Reload the layer to ensure we're reading the updated file
+        layer_data_to_edit.reload()
+
+        # Finally, compare the two rasters by reading band arrays with GDAL
+        _assert_rasters_equal(saved_test_data, layer_data_to_edit, band=1)
+
+    def test_apply_from_vector_mask(self, tmp_path, load_yaml_mapping, qgis_iface, qgis_parent):
+        # original source tif
+        src = pytest.tests_data_dir / "test_data.tif"
+
+        # Load YAML mapping
+        yml_path = pytest.tests_data_dir / "test_data_thrase.yaml"
+        _, mapping = load_yaml_mapping(yml_path)
+        assert mapping
+
+        # Vector mask fixture: a polygon layer covering the area where the
+        # recode must be applied (only polygons are supported as vector mask).
+        vector_mask_path = pytest.tests_data_dir / "freehand.gpkg"
+        assert vector_mask_path.exists(), f"Missing freehand.gpkg in {pytest.tests_data_dir}"
+
+        ### create and apply the changes of the original tif to manual review and use for testing
+        # saved_path = pytest.tests_data_dir / "test_data_vector_mask.tif"
+        # saved_path.write_bytes(src.read_bytes())
+        # layer_saved = load_layer(str(saved_path), name="test_data_vector_mask")
+        # assert layer_saved is not None and layer_saved.isValid()
+        # # Setup LayerToEdit for the layer and apply edit using ApplyFromClassesOrMask with a vector mask
+        # lte_saved = LayerToEdit(layer_saved, band=1)
+        # lte_saved.setup_pixel_table()
+        # lte_saved.old_new_value = mapping
+        # LayerToEdit.current = lte_saved
+        # # Load the polygon vector mask
+        # vector_mask_layer = load_layer(str(vector_mask_path), name="freehand")
+        # assert vector_mask_layer is not None and vector_mask_layer.isValid()
+        # # Create dialog and apply
+        # dialog = ApplyFromClassesOrMask(parent=qgis_parent)
+        # class MockMsgBar:
+        #     def pushMessage(self, *args, **kwargs):
+        #         pass
+        # dialog.MsgBar = MockMsgBar()
+        # dialog.setup_gui()
+        # dialog.QCBox_LayerForMasking.setLayer(vector_mask_layer)
+        # dialog.RecordChangesInRegistry.setChecked(False)
+        # dialog.apply()
+        ### load test_data_vector_mask.tif
+        saved_path = pytest.tests_data_dir / "test_data_vector_mask.tif"
+        saved_test_data = load_layer(str(saved_path), name="test_data_vector_mask")
+        assert saved_test_data is not None and saved_test_data.isValid()
+
+        # test data edited for testing
+        test_data_to_edit_path = tmp_path / "test_data_edited.tif"
+        test_data_to_edit_path.write_bytes(src.read_bytes())
+        layer_data_to_edit = load_layer(str(test_data_to_edit_path), name="test_data_edited")
+        assert layer_data_to_edit is not None and layer_data_to_edit.isValid()
+
+        # Setup LayerToEdit for the on-the-fly layer
+        lte_to_test = LayerToEdit(layer_data_to_edit, band=1)
+        lte_to_test.setup_pixel_table()
+        lte_to_test.old_new_value = mapping
+        LayerToEdit.current = lte_to_test
+
+        # Load the polygon vector mask
+        vector_mask_layer = load_layer(str(vector_mask_path), name="freehand")
+        assert vector_mask_layer is not None and vector_mask_layer.isValid()
+
+        # Create dialog and configure
+        dialog = ApplyFromClassesOrMask(parent=qgis_parent)
+
+        # Mock MsgBar for the dialog
+        class MockMsgBar:
+            def pushMessage(self, *args, **kwargs):
+                pass
+        dialog.MsgBar = MockMsgBar()
+
+        dialog.setup_gui()
+
+        # Selecting a polygon vector layer triggers _setup_vector_mask: the band
+        # selector is hidden and the PixelTable is populated with a single,
+        # non-interactive row (no class selection is required in vector mode).
+        dialog.QCBox_LayerForMasking.setLayer(vector_mask_layer)
+        assert dialog.vector_mask_layer is vector_mask_layer, \
+            "Vector layer was not registered as the active mask"
+        assert dialog.raster_mask_layer is None, \
+            "Raster mask state should be empty when a vector mask is selected"
+
+        # Disable recording changes in registry for testing
+        dialog.RecordChangesInRegistry.setChecked(False)
+
+        # Apply changes (mask = rasterized polygons with the pixel-center rule)
         dialog.apply()
 
         # Reload the layer to ensure we're reading the updated file
