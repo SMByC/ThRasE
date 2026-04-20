@@ -187,6 +187,20 @@ def unload_layer(source):
             QgsProject.instance().removeMapLayer(layer_loaded.id())
 
 
+def remove_layers_hidden_from_legend():
+    """Remove from the QGIS project every layer that is not present in the
+    legend (layer tree).
+
+    This is intended to clean up layers that were added with
+    `add_to_legend=False`.
+    """
+    project = QgsProject.instance()
+    tree_root = project.layerTreeRoot()
+    for layer_id in list(project.mapLayers().keys()):
+        if tree_root.findLayer(layer_id) is None:
+            project.removeMapLayer(layer_id)
+
+
 def get_nodata_value(layer, band=1):
     if layer is not None:
         nodata = layer.dataProvider().sourceNoDataValue(band)
