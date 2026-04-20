@@ -32,12 +32,12 @@ from qgis.core import (QgsMapLayerProxyModel, Qgis, QgsMapLayer,
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QDialogButtonBox
+from qgis.PyQt.QtWidgets import QDialog, QTableWidgetItem, QDialogButtonBox
 from qgis.PyQt.QtCore import pyqtSlot, Qt
 
 from ThRasE.core.editing import Pixel, PixelLog, LayerToEdit
 from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
-from ThRasE.utils.qgis_utils import load_and_select_layer_in, apply_symbology, get_source_from, \
+from ThRasE.utils.qgis_utils import browse_dialog_to_load_file, apply_symbology, get_source_from, \
     remove_layers_hidden_from_legend
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
@@ -98,17 +98,19 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         try: self.QCBox_LayerForMaskingBand.currentIndexChanged.disconnect()
         except TypeError: pass
         self.QCBox_LayerForMaskingBand.currentIndexChanged.connect(self.setup_raster_mask_classes)
-        # browse button: open a file dialog to load a mask (raster or polygon vector)
+        # browse button: open a file dialog to load a mask (raster or polygon vector);
+        # the layer is loaded hidden from the legend and removed on dialog close.
         try: self.QCBox_BrowseLayerForMasking.clicked.disconnect()
         except TypeError: pass
-        self.QCBox_BrowseLayerForMasking.clicked.connect(lambda: self.browser_dialog_to_load_file(
-            self.QCBox_LayerForMasking,
+        self.QCBox_BrowseLayerForMasking.clicked.connect(lambda: browse_dialog_to_load_file(
+            self, self.QCBox_LayerForMasking,
             dialog_title=self.tr("Select a raster or polygon vector file for masking"),
             file_filters=self.tr(
                 "Raster or vector files (*.tif *.img *.shp *.gpkg *.geojson *.json *.kml *.gml);;"
                 "Raster files (*.tif *.img);;"
                 "Vector files (*.shp *.gpkg *.geojson *.json *.kml *.gml);;"
-                "All files (*.*)")))
+                "All files (*.*)"),
+            msg_bar=self.MsgBar, add_to_legend=False))
         # toggle raster class selection via the table (raster mode only)
         try: self.PixelTable.itemClicked.disconnect()
         except TypeError: pass
@@ -130,24 +132,6 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         self.RecordChangesInRegistry.setToolTip(tooltip)
         # start with no layer selected
         self._set_mask_mode(None)
-
-    @pyqtSlot()
-    def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
-        """Open a file dialog to load a mask file and select it in the combobox.
-
-        The layer is added to the QGIS project hidden from the legend; it will
-        be removed on dialog close by `remove_layers_hidden_from_legend`.
-        """
-        file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
-        if file_path == '' or not os.path.isfile(file_path):
-            return
-        layer = load_and_select_layer_in(file_path, combo_box, add_to_legend=False)
-        if not layer:
-            self.MsgBar.pushMessage(
-                f"Could not load the mask file: \"{file_path}\"",
-                level=Qgis.MessageLevel.Warning, duration=10)
-            return
-        self.select_mask_layer(combo_box.currentLayer())
 
     def _set_mask_mode(self, mode):
         """Adjust dialog widgets for the current masking mode: 'raster', 'vector' or None.

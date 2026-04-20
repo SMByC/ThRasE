@@ -23,13 +23,12 @@ import os
 from pathlib import Path
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget, QFileDialog
+from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtCore import pyqtSlot
-from qgis.core import QgsMapLayer, Qgis
-from qgis.utils import iface
+from qgis.core import QgsMapLayer
 
 from ThRasE.utils.system_utils import block_signals_to
-from ThRasE.utils.qgis_utils import load_and_select_layer_in, StyleEditorDialog
+from ThRasE.utils.qgis_utils import browse_dialog_to_load_file, StyleEditorDialog
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -60,10 +59,12 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         self.QCBox_RenderFile.layerChanged.connect(self.set_render_layer)
         self.QCBox_RenderFile.setToolTip("{} layer".format({1: "1st", 2: "2nd", 3: "3rd"}[self.id]))
         # call to browse the render file
-        self.QCBox_browseRenderFile.clicked.connect(lambda: self.browser_dialog_to_load_file(
-            self.QCBox_RenderFile,
+        from ThRasE.thrase import ThRasE
+        self.QCBox_browseRenderFile.clicked.connect(lambda: browse_dialog_to_load_file(
+            self, self.QCBox_RenderFile,
             dialog_title=self.tr("Select the {} layer for this view".format({1: "1st", 2: "2nd", 3: "3rd"}[self.id])),
-            file_filters=self.tr("Raster or vector files (*.tif *.img *.gpkg *.shp);;All files (*.*)")))
+            file_filters=self.tr("Raster or vector files (*.tif *.img *.gpkg *.shp);;All files (*.*)"),
+            msg_bar=ThRasE.dialog.MsgBar))
         # edit layer properties
         self.layerStyleEditor.setDisabled(True)
         self.layerStyleEditor.clicked.connect(self.layer_style_editor)
@@ -76,20 +77,6 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         # handle connect layer opacity
         self.layerOpacity.setDisabled(True)
         self.layerOpacity.valueChanged.connect(self.update_layer_opacity)
-
-    @pyqtSlot()
-    def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
-        file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
-        if file_path != '' and os.path.isfile(file_path):
-            # load to qgis and update combobox list
-            layer = load_and_select_layer_in(file_path, combo_box)
-            if not layer:
-                iface.messageBar().pushMessage(
-                    "ThRasE", "Could not load the layer: \"{}\"".format(file_path),
-                    level=Qgis.MessageLevel.Warning, duration=10)
-                return
-
-            self.set_render_layer(combo_box.currentLayer())
 
     def enable(self):
         with block_signals_to(self.render_widget):

@@ -47,9 +47,9 @@ from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
-from ThRasE.utils.qgis_utils import load_and_select_layer_in, valid_file_selected_in, apply_symbology, \
-    get_nodata_value, unset_the_nodata_value, get_source_from, unload_layer, load_layer, \
-    add_color_value_to_symbology, is_integer_data_type, get_loaded_layer, StyleEditorDialog
+from ThRasE.utils.qgis_utils import load_and_select_layer_in, browse_dialog_to_load_file, \
+    valid_file_selected_in, apply_symbology, get_nodata_value, unset_the_nodata_value, get_source_from, \
+    unload_layer, load_layer, add_color_value_to_symbology, is_integer_data_type, StyleEditorDialog
 from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, wait_process, open_file
 
 # plugin path
@@ -182,8 +182,12 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # handle connect layer selection
         self.QCBox_LayerToEdit.layerChanged.connect(self.select_layer_to_edit)
         self.QCBox_band_LayerToEdit.currentIndexChanged.connect(lambda: self.setup_layer_to_edit())
-        # call to browse the render file
-        self.QPBtn_browseLayerToEdit.clicked.connect(self.browse_dialog_layer_to_edit)
+        # browse the thematic layer to edit
+        self.QPBtn_browseLayerToEdit.clicked.connect(lambda: browse_dialog_to_load_file(
+            self, self.QCBox_LayerToEdit,
+            dialog_title=self.tr("Select the thematic layer to edit"),
+            file_filters=self.tr("Raster files (*.tif *.img);;All files (*.*)"),
+            msg_bar=self.MsgBar))
         # open the layer style editor for the thematic layer
         self.QPBtn_LayerStyle.clicked.connect(self.open_layer_style_editor)
         # update recode pixel table
@@ -731,21 +735,6 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # close
         self.closingPlugin.emit()
         event.accept()
-
-    @pyqtSlot()
-    def browse_dialog_layer_to_edit(self):
-        file_path, _ = QFileDialog.getOpenFileName(self,
-            self.tr("Select the thematic layer to edit"), "",
-            self.tr("Raster files (*.tif *.img);;All files (*.*)"))
-        if file_path != '' and os.path.isfile(file_path):
-            # load to qgis and update combobox list
-            layer = load_and_select_layer_in(file_path, self.QCBox_LayerToEdit)
-            if not layer:
-                self.MsgBar.pushMessage(
-                    "Could not load the thematic layer: \"{}\"".format(file_path),
-                    level=Qgis.MessageLevel.Warning, duration=10)
-                return
-            self.select_layer_to_edit(layer)
 
     @pyqtSlot()
     def open_layer_style_editor(self):

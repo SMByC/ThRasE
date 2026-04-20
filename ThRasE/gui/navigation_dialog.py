@@ -27,10 +27,10 @@ from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis, QgsWkbTypes, Qg
 from qgis.gui import QgsMapToolPan, QgsRubberBand, QgsMapTool
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QColorDialog
+from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QColorDialog
 from qgis.PyQt.QtCore import pyqtSlot, Qt, QTimer
 
-from ThRasE.utils.qgis_utils import load_and_select_layer_in
+from ThRasE.utils.qgis_utils import browse_dialog_to_load_file
 from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
@@ -73,10 +73,11 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.QCBox_VectorFile.currentIndexChanged.connect(
             lambda: self.render_over_thematic(self.QCBox_VectorFile.currentLayer()))
         # call to browse the render file
-        self.QPBtn_BrowseVectorFile.clicked.connect(lambda: self.browser_dialog_to_load_file(
-            self.QCBox_VectorFile,
+        self.QPBtn_BrowseVectorFile.clicked.connect(lambda: browse_dialog_to_load_file(
+            self, self.QCBox_VectorFile,
             dialog_title=self.tr("Select the vector file"),
-            file_filters=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)")))
+            file_filters=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
+            msg_bar=self.MsgBar))
         # buttons connections
         self.QPBtn_BuildNavigationTools.clicked.connect(self.build_tools)
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
@@ -130,20 +131,6 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.build_tools_line.setHidden(True)
             self.NavBuildTypeBlock.setHidden(True)
             self.NavBuildToolsBlock.setHidden(True)
-
-    @pyqtSlot()
-    def browser_dialog_to_load_file(self, combo_box, dialog_title, file_filters):
-        file_path, _ = QFileDialog.getOpenFileName(self, dialog_title, "", file_filters)
-        if file_path != '' and os.path.isfile(file_path):
-            # load to qgis and update combobox list
-            layer = load_and_select_layer_in(file_path, combo_box)
-            if not layer:
-                self.MsgBar.pushMessage(
-                    "Could not load the vector file: \"{}\"".format(file_path),
-                    level=Qgis.MessageLevel.Warning, duration=10)
-                return
-
-            self.render_over_thematic(combo_box.currentLayer())
 
     @pyqtSlot()
     def render_over_thematic(self, layer):

@@ -24,7 +24,7 @@ from math import isnan
 from pathlib import Path
 from subprocess import call
 
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget, QgsMapLayerComboBox
@@ -97,6 +97,16 @@ def load_and_select_layer_in(source, combo_box, layer_name=None, add_to_legend=T
 
 def add_layer(layer, add_to_legend=True):
     QgsProject.instance().addMapLayer(layer, add_to_legend)
+
+
+def browse_dialog_to_load_file(parent, combo_box, dialog_title, file_filters, msg_bar=None, add_to_legend=True):
+    """Open a file dialog, load the chosen file into QGIS and select it in `combo_box`."""
+    file_path, _ = QFileDialog.getOpenFileName(parent, dialog_title, "", file_filters)
+    if file_path != '' and os.path.isfile(file_path):
+        qgslayer = load_and_select_layer_in(file_path, combo_box, add_to_legend=add_to_legend)
+        if not qgslayer:
+            (msg_bar or iface.messageBar()).pushMessage(f"Could not load the layer: {file_path}",
+                                                        level=Qgis.MessageLevel.Warning, duration=10)
 
 
 RASTER_EXTENSIONS = (".tif", ".tiff", ".vrt", ".img", ".jp2", ".asc", ".nc", ".hdf", ".ecw", ".dt2")
