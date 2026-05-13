@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -23,21 +22,22 @@ import os.path
 import shutil
 from pathlib import Path
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QLocale
+from qgis.PyQt.QtCore import QCoreApplication, QLocale, QSettings, Qt, QTranslator
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.utils import iface
 
-# Initialize Qt resources from file resources.py
-from .resources_rc import *
-
-from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.gui.about_dialog import AboutDialog
+from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.utils.qgis_utils import unload_layer
+
+# Initialize Qt resources from file resources.py
+from .resources_rc import *  # noqa: F403
 
 
 class ThRasE:
     """QGIS Plugin Implementation."""
+
     dialog = None
     # tmp dir for all process and intermediate files, only on demand
     tmp_dir = None
@@ -56,10 +56,10 @@ class ThRasE:
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
         try:
-            locale = QSettings().value('locale/userLocale', QLocale().name(), type=str)[0:2]
-        except:
-            locale = 'en'
-        locale_path = os.path.join(self.plugin_dir, 'i18n', 'ThRasE_{}.qm'.format(locale))
+            locale = QSettings().value("locale/userLocale", QLocale().name(), type=str)[0:2]
+        except Exception:
+            locale = "en"
+        locale_path = os.path.join(self.plugin_dir, "i18n", f"ThRasE_{locale}.qm")
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -85,12 +85,12 @@ class ThRasE:
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('ThRasE', message)
+        return QCoreApplication.translate("ThRasE", message)
 
     def initGui(self):
         ### Main dialog menu
         # Create action that will start plugin configuration
-        icon_path = ':/plugins/thrase/icons/thrase.svg'
+        icon_path = ":/plugins/thrase/icons/thrase.svg"
         self.dockable_action = QAction(QIcon(icon_path), "ThRasE", self.iface.mainWindow())
         # connect the action to the run method
         self.dockable_action.triggered.connect(self.run)
@@ -100,8 +100,8 @@ class ThRasE:
 
         # Plugin info
         # Create action that will start plugin configuration
-        icon_path = ':/plugins/thrase/icons/about.svg'
-        self.about_action = QAction(QIcon(icon_path), self.tr('About'), self.iface.mainWindow())
+        icon_path = ":/plugins/thrase/icons/about.svg"
+        self.about_action = QAction(QIcon(icon_path), self.tr("About"), self.iface.mainWindow())
         # connect the action to the run method
         self.about_action.triggered.connect(self.about)
         # Add toolbar button and menu item
@@ -110,7 +110,7 @@ class ThRasE:
     def about(self):
         self.about_dialog.show()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def run(self):
         """Run method that loads and starts the plugin"""
@@ -141,11 +141,13 @@ class ThRasE:
         else:
             # an instance of ThRasE is already created
             # brings that instance to front even if it is minimized
-            ThRasE.dialog.setWindowState(ThRasE.dialog.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
+            ThRasE.dialog.setWindowState(
+                ThRasE.dialog.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive
+            )
             ThRasE.dialog.raise_()
             ThRasE.dialog.activateWindow()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin is closed"""
@@ -156,16 +158,28 @@ class ThRasE:
             ThRasE.dialog.restore_recode_table()
 
         # restore the opacity of all layer toolbars to 100%
-        [lt.update_layer_opacity(100) for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
-         for lt in lts if lt.opacity < 100]
+        [
+            lt.update_layer_opacity(100)
+            for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
+            for lt in lts
+            if lt.opacity < 100
+        ]
 
         # close the navigation dialog if is open
-        if LayerToEdit.current and LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.isVisible():
+        if (
+            LayerToEdit.current
+            and LayerToEdit.current.navigation_dialog
+            and LayerToEdit.current.navigation_dialog.isVisible()
+        ):
             LayerToEdit.current.navigation_dialog.close()
             LayerToEdit.current.navigation_dialog = None
 
         # close the autofill dialog if is open
-        if hasattr(ThRasE.dialog, "autofill_dialog") and ThRasE.dialog.autofill_dialog and ThRasE.dialog.autofill_dialog.isVisible():
+        if (
+            hasattr(ThRasE.dialog, "autofill_dialog")
+            and ThRasE.dialog.autofill_dialog
+            and ThRasE.dialog.autofill_dialog.isVisible()
+        ):
             ThRasE.dialog.autofill_dialog.close()
             ThRasE.dialog.autofill_dialog = None
 
@@ -185,6 +199,7 @@ class ThRasE:
         LayerToEdit.current = None
 
         from qgis.utils import reloadPlugin
+
         reloadPlugin("ThRasE - Thematic Raster Editor")
 
     def unload(self):
@@ -205,9 +220,9 @@ class ThRasE:
         # unload all layers instances from Qgis saved in tmp dir
         try:
             d = ThRasE.tmp_dir
-            files_in_tmp_dir = [Path(d, f) for f in os.listdir(d)
-                                if Path(d, f).is_file()]
-        except: files_in_tmp_dir = []
+            files_in_tmp_dir = [Path(d, f) for f in os.listdir(d) if Path(d, f).is_file()]
+        except Exception:
+            files_in_tmp_dir = []
 
         for file_tmp in files_in_tmp_dir:
             unload_layer(str(file_tmp))

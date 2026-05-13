@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,16 +17,15 @@
  *                                                                         *
  ***************************************************************************/
 """
-import pytest
-import numpy as np
-from osgeo import gdal
 
+import numpy as np
+import pytest
+from osgeo import gdal
 from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.editing import LayerToEdit
-from ThRasE.utils.qgis_utils import load_layer
 from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
-
+from ThRasE.utils.qgis_utils import load_layer
 
 
 @pytest.mark.usefixtures("plugin", "thrase_dialog")
@@ -300,6 +298,7 @@ class TestEditingTools:
         class MockMsgBar:
             def pushMessage(self, *args, **kwargs):
                 pass
+
         dialog.MsgBar = MockMsgBar()
 
         dialog.setup_gui()
@@ -393,6 +392,7 @@ class TestEditingTools:
         class MockMsgBar:
             def pushMessage(self, *args, **kwargs):
                 pass
+
         dialog.MsgBar = MockMsgBar()
 
         dialog.setup_gui()
@@ -401,10 +401,8 @@ class TestEditingTools:
         # selector is hidden and the PixelTable is populated with a single,
         # non-interactive row (no class selection is required in vector mode).
         dialog.QCBox_LayerForMasking.setLayer(vector_mask_layer)
-        assert dialog.vector_mask_layer is vector_mask_layer, \
-            "Vector layer was not registered as the active mask"
-        assert dialog.raster_mask_layer is None, \
-            "Raster mask state should be empty when a vector mask is selected"
+        assert dialog.vector_mask_layer is vector_mask_layer, "Vector layer was not registered as the active mask"
+        assert dialog.raster_mask_layer is None, "Raster mask state should be empty when a vector mask is selected"
 
         # Disable recording changes in registry for testing
         dialog.RecordChangesInRegistry.setChecked(False)
@@ -424,6 +422,7 @@ def _assert_rasters_equal(layer_a, layer_b, band=1):
     Any mismatch causes the test to fail. A concise sample of differences is reported for debugging.
     """
     from ThRasE.utils.qgis_utils import get_source_from
+
     path_a = get_source_from(layer_a)
     path_b = get_source_from(layer_b)
     dsa = gdal.Open(path_a)
@@ -443,13 +442,15 @@ def _assert_rasters_equal(layer_a, layer_b, band=1):
     # Georeference checks (tolerant on floating rounding)
     def _approx(a, b, tol=1e-9):
         return abs(a - b) <= tol * max(1.0, abs(a), abs(b))
-    assert (len(gt_a) == len(gt_b) and all(_approx(a, b) for a, b in zip(gt_a, gt_b))), \
+
+    assert len(gt_a) == len(gt_b) and all(_approx(a, b) for a, b in zip(gt_a, gt_b, strict=False)), (
         f"GeoTransform mismatch: A={gt_a} vs B={gt_b}"
+    )
     assert proj_a == proj_b, "Projection WKT mismatch between rasters"
 
-    diff_mask = (ba != bb)
+    diff_mask = ba != bb
     if np.any(diff_mask):
-        ys, xs = np.nonzero(diff_mask)
+        _ys, xs = np.nonzero(diff_mask)
         count = len(xs)
         pytest.fail(f"Rasters arrays differ at {count} pixel(s)")
 

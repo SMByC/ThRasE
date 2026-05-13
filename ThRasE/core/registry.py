@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,26 +17,25 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 import itertools
 import os
 
-from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtCore import QVariant
 from qgis.core import (
-    QgsRectangle,
-    QgsGeometry,
-    QgsWkbTypes,
-    QgsFields,
-    QgsField,
-    QgsFeature,
-    QgsVectorFileWriter,
     QgsCoordinateTransformContext,
-    QgsVectorLayer,
-    QgsSingleSymbolRenderer,
+    QgsFeature,
+    QgsField,
+    QgsFields,
     QgsFillSymbol,
+    QgsGeometry,
+    QgsRectangle,
+    QgsSingleSymbolRenderer,
+    QgsVectorFileWriter,
+    QgsVectorLayer,
+    QgsWkbTypes,
 )
-
-from ThRasE.utils.system_utils import wait_process
+from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtGui import QColor
 
 
 class RegistryTile:
@@ -105,6 +103,7 @@ class RegistryTileGroup:
     def center(self):
         # center the view on the group without changing zoom level
         from ThRasE.gui.main_dialog import ThRasEDialog
+
         tiles_extent = self.tiles_extent()
         if tiles_extent.isEmpty():
             return
@@ -122,8 +121,7 @@ class RegistryTileGroup:
             width = current_extent.width()
             height = current_extent.height()
             new_extent = QgsRectangle(
-                center_x - width/2, center_y - height/2,
-                center_x + width/2, center_y + height/2
+                center_x - width / 2, center_y - height / 2, center_x + width / 2, center_y + height / 2
             )
             view_widget.render_widget.update_canvas_to(new_extent)
 
@@ -147,20 +145,18 @@ class Registry:
     def create_memory_layer(self):
         """Create memory vector layer to store tile geometries."""
         crs = self.layer_to_edit.qgs_layer.crs()
-        self.memory_layer = QgsVectorLayer(
-            f"Polygon?crs={crs.authid()}",
-            "ThRasE Registry",
-            "memory"
-        )
+        self.memory_layer = QgsVectorLayer(f"Polygon?crs={crs.authid()}", "ThRasE Registry", "memory")
 
         # add fields
         provider = self.memory_layer.dataProvider()
-        provider.addAttributes([
-            QgsField("tile_idx", QVariant.Int),
-            QgsField("group_idx", QVariant.Int),
-            QgsField("center_x", QVariant.Double),
-            QgsField("center_y", QVariant.Double),
-        ])
+        provider.addAttributes(
+            [
+                QgsField("tile_idx", QVariant.Int),
+                QgsField("group_idx", QVariant.Int),
+                QgsField("center_x", QVariant.Double),
+                QgsField("center_y", QVariant.Double),
+            ]
+        )
         self.memory_layer.updateFields()
 
         # set initial state (hidden by default)
@@ -176,18 +172,21 @@ class Registry:
             color = self.tiles_color
 
         # Simple border renderer - no fill, 0.3 border width
-        border_symbol = QgsFillSymbol.createSimple({
-            'color': 'transparent',
-            'style': 'no',
-            'outline_color': color.name(),
-            'outline_width': '0.3',
-            'outline_style': 'solid'
-        })
+        border_symbol = QgsFillSymbol.createSimple(
+            {
+                "color": "transparent",
+                "style": "no",
+                "outline_color": color.name(),
+                "outline_width": "0.3",
+                "outline_style": "solid",
+            }
+        )
         self.renderer = QgsSingleSymbolRenderer(border_symbol)
 
     def update_registry_layer_in_canvases(self):
         """Refresh render layers in all active canvases to update registry layer visibility."""
         from ThRasE.gui.main_dialog import ThRasEDialog
+
         for view_widget in ThRasEDialog.view_widgets:
             if view_widget.is_active:
                 view_widget.render_widget.update_render_layers()
@@ -211,6 +210,7 @@ class Registry:
     def refresh_all_canvases(self):
         """Refresh all active view widget canvases."""
         from ThRasE.gui.main_dialog import ThRasEDialog
+
         for view_widget in ThRasEDialog.view_widgets:
             if view_widget.is_active:
                 view_widget.render_widget.canvas.refresh()
@@ -238,11 +238,14 @@ class Registry:
 
         # check if registry widget is visible and enabled, and if we have a current group
         from ThRasE.thrase import ThRasE
-        registry_visible = (ThRasE.dialog and
-                           ThRasE.dialog.registry_widget and
-                           ThRasE.dialog.registry_widget.isVisible() and
-                           self.enabled and
-                           self.current_group)
+
+        registry_visible = (
+            ThRasE.dialog
+            and ThRasE.dialog.registry_widget
+            and ThRasE.dialog.registry_widget.isVisible()
+            and self.enabled
+            and self.current_group
+        )
 
         if registry_visible:
             # restore current group display
@@ -269,9 +272,13 @@ class Registry:
 
     def update(self, force_rebuild=False):
         """Update registry state after pixel edits."""
-        grouped_logs = {gid: list(logs) for gid, logs
-            in itertools.groupby((pl for pl in self.layer_to_edit.pixel_log_store.values()
-            if pl.group_id is not None), key=lambda pl: pl.group_id)}
+        grouped_logs = {
+            gid: list(logs)
+            for gid, logs in itertools.groupby(
+                (pl for pl in self.layer_to_edit.pixel_log_store.values() if pl.group_id is not None),
+                key=lambda pl: pl.group_id,
+            )
+        }
 
         if not grouped_logs:
             if self.groups:
@@ -348,10 +355,7 @@ class Registry:
 
         subset_after = subset_before
         if subset_before.startswith('"group_idx"'):
-            if self.current_group:
-                subset_after = f'"group_idx" = {self.current_group.idx}'
-            else:
-                subset_after = "FALSE"
+            subset_after = f'"group_idx" = {self.current_group.idx}' if self.current_group else "FALSE"
         elif subset_before == "" and not self.groups:
             subset_after = "FALSE"
 
@@ -374,7 +378,8 @@ class Registry:
         entries = []
         iterable = (
             ((gid, group_id_to_logs.get(gid)) for gid in group_ids)
-            if group_ids is not None else group_id_to_logs.items()
+            if group_ids is not None
+            else group_id_to_logs.items()
         )
         for gid, logs in iterable:
             if not logs:
@@ -477,12 +482,9 @@ class Registry:
             # create feature
             feat = QgsFeature(fields)
             feat.setGeometry(geom)
-            feat.setAttributes([
-                group_ids.get(pl.group_id),
-                int(pl.old_value),
-                int(pl.new_value),
-                pl.edit_date.isoformat()
-            ])
+            feat.setAttributes(
+                [group_ids.get(pl.group_id), int(pl.old_value), int(pl.new_value), pl.edit_date.isoformat()]
+            )
             features.append(feat)
 
         if not features:
@@ -507,7 +509,7 @@ class Registry:
             if not success:
                 return False, f"Error writing features: {writer.errorMessage()}", 0
         except Exception as e:
-            return False, f"Error writing features: {str(e)}", 0
+            return False, f"Error writing features: {e!s}", 0
         finally:
             del writer
 

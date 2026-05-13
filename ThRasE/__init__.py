@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -37,4 +36,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     from .thrase import ThRasE
+
     return ThRasE(iface)

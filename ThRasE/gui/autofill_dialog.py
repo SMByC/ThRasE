@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -22,13 +21,13 @@
 import os
 from pathlib import Path
 
+from qgis.core import Qgis
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
-from qgis.core import Qgis
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'autofill_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "autofill_dialog.ui"))
 
 
 class AutoFill(QDialog, FORM_CLASS):
@@ -52,14 +51,15 @@ class AutoFill(QDialog, FORM_CLASS):
     def check_condition(self, condition):
         if condition == "*":
             return True
-        if condition is None or condition == '':
+        if condition is None or condition == "":
             return False
         if "*" in condition:
-            self.MsgBar.pushMessage(condition, "'*' must be used alone as a wildcard",
-                                    level=Qgis.MessageLevel.Warning, duration=10)
+            self.MsgBar.pushMessage(
+                condition, "'*' must be used alone as a wildcard", level=Qgis.MessageLevel.Warning, duration=10
+            )
             return False
         try:
-            condition_to_evaluate = condition.replace('v', 'V').replace('V', '1')
+            condition_to_evaluate = condition.replace("v", "V").replace("V", "1")
             eval(condition_to_evaluate)
             return True
         except Exception:
@@ -67,10 +67,10 @@ class AutoFill(QDialog, FORM_CLASS):
             return False
 
     def check_value(self, value):
-        if value is None or value == '':
+        if value is None or value == "":
             return True
         try:
-            value_to_evaluate = value.replace('v', 'V').replace('V', '1')
+            value_to_evaluate = value.replace("v", "V").replace("V", "1")
             eval(value_to_evaluate)
             return True
         except Exception:
@@ -78,8 +78,8 @@ class AutoFill(QDialog, FORM_CLASS):
             return False
 
     def apply_autofill(self):
-        from ThRasE.thrase import ThRasE
         from ThRasE.core.editing import LayerToEdit
+        from ThRasE.thrase import ThRasE
 
         # first close active items opened in the table
         self.AutoFillTable.setCurrentItem(None)
@@ -99,22 +99,24 @@ class AutoFill(QDialog, FORM_CLASS):
             return
 
         curr_values = [str(pixel["value"]) for pixel in LayerToEdit.current.pixels]
-        new_values = [""]*len(curr_values)
+        new_values = [""] * len(curr_values)
 
         # apply the autofill
         for condition, value in autofill_entries:
-            condition = condition.replace('v', 'V').strip()
-            value = value.replace('v', 'V').strip()
+            condition = condition.replace("v", "V").strip()
+            value = value.replace("v", "V").strip()
 
             for idx_row, curr_value in enumerate(curr_values):
-                condition_to_evaluate = condition.replace('V', curr_value)
+                condition_to_evaluate = condition.replace("V", curr_value)
 
-                if condition_to_evaluate == '*' or eval(condition_to_evaluate):
-                    new_values[idx_row] = eval(value.replace('V', curr_value)) if value != "" else None
+                if condition_to_evaluate == "*" or eval(condition_to_evaluate):
+                    new_values[idx_row] = eval(value.replace("V", curr_value)) if value != "" else None
 
         # update the values in the table
         for idx_row, new_value in enumerate(new_values):
-            LayerToEdit.current.pixels[idx_row]["new_value"] = int(round(float(new_value))) if new_value not in [None, ""] else None
+            LayerToEdit.current.pixels[idx_row]["new_value"] = (
+                round(float(new_value)) if new_value not in [None, ""] else None
+            )
 
         ThRasE.dialog.set_recode_pixel_table()
         ThRasE.dialog.update_recode_pixel_table()

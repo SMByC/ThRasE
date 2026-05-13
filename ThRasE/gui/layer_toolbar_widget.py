@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -22,21 +21,20 @@
 import os
 from pathlib import Path
 
-from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget
-from qgis.PyQt.QtCore import pyqtSlot
 from qgis.core import QgsMapLayer
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtWidgets import QWidget
 
+from ThRasE.utils.qgis_utils import StyleEditorDialog, browse_dialog_to_load_file
 from ThRasE.utils.system_utils import block_signals_to
-from ThRasE.utils.qgis_utils import browse_dialog_to_load_file, StyleEditorDialog
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'layer_toolbar_widget.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "layer_toolbar_widget.ui"))
 
 
 class LayerToolbarWidget(QWidget, FORM_CLASS):
-
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.id = None  # position: 1=upper, 2=intermediate, 3=lower
@@ -60,11 +58,18 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         self.QCBox_RenderFile.setToolTip("{} layer".format({1: "1st", 2: "2nd", 3: "3rd"}[self.id]))
         # call to browse the render file
         from ThRasE.thrase import ThRasE
-        self.QCBox_browseRenderFile.clicked.connect(lambda: browse_dialog_to_load_file(
-            self, self.QCBox_RenderFile,
-            dialog_title=self.tr("Select the {} layer for this view".format({1: "1st", 2: "2nd", 3: "3rd"}[self.id])),
-            file_filters=self.tr("Raster or vector files (*.tif *.img *.gpkg *.shp);;All files (*.*)"),
-            msg_bar=ThRasE.dialog.MsgBar))
+
+        self.QCBox_browseRenderFile.clicked.connect(
+            lambda: browse_dialog_to_load_file(
+                self,
+                self.QCBox_RenderFile,
+                dialog_title=self.tr(
+                    "Select the {} layer for this view".format({1: "1st", 2: "2nd", 3: "3rd"}[self.id])
+                ),
+                file_filters=self.tr("Raster or vector files (*.tif *.img *.gpkg *.shp);;All files (*.*)"),
+                msg_bar=ThRasE.dialog.MsgBar,
+            )
+        )
         # edit layer properties
         self.layerStyleEditor.setDisabled(True)
         self.layerStyleEditor.clicked.connect(self.layer_style_editor)
@@ -131,9 +136,9 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         self.enable()
         self.render_widget.update_render_layers()
         if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
-            self.layerOpacity.setValue(int(self.layer.opacity()*100))
+            self.layerOpacity.setValue(int(self.layer.opacity() * 100))
         else:
-            self.layerOpacity.setValue(int(self.layer.renderer().opacity()*100))
+            self.layerOpacity.setValue(int(self.layer.renderer().opacity() * 100))
 
     @pyqtSlot(bool)
     def on_off_layer(self, checked):
@@ -157,17 +162,24 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
 
         if self.layer:
             if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
-                self.layer.setOpacity(opacity/100.0)
+                self.layer.setOpacity(opacity / 100.0)
             else:
-                self.layer.renderer().setOpacity(opacity/100.0)
+                self.layer.renderer().setOpacity(opacity / 100.0)
             if hasattr(self.layer, "setCacheImage"):
                 self.layer.setCacheImage(None)
             self.layer.triggerRepaint()
 
             from ThRasE.gui.main_dialog import ThRasEDialog
-            same_layer_in_others_layer_toolbars = \
-                [layer_toolbar for layer_toolbar in [lt for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets] for lt in lts]
-                 if layer_toolbar != self and layer_toolbar.layer == self.layer]
+
+            same_layer_in_others_layer_toolbars = [
+                layer_toolbar
+                for layer_toolbar in [
+                    lt
+                    for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
+                    for lt in lts
+                ]
+                if layer_toolbar != self and layer_toolbar.layer == self.layer
+            ]
 
             for layer_toolbar in same_layer_in_others_layer_toolbars:
                 with block_signals_to(layer_toolbar.layerOpacity):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,19 +17,20 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 import os
 import uuid
 from pathlib import Path
 
-from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget, QColorDialog
-from qgis.PyQt.QtCore import Qt, pyqtSlot, QTimer
-from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsWkbTypes, QgsFeature, QgsRaster
+from qgis.core import QgsFeature, QgsRaster, QgsWkbTypes
 from qgis.gui import QgsMapTool, QgsRubberBand
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import Qt, QTimer, pyqtSlot
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import QColorDialog, QWidget
 from qgis.utils import iface
 
-from ThRasE.core.editing import Pixel, LayerToEdit, edit_layer, check_before_editing, EditLog
+from ThRasE.core.editing import EditLog, LayerToEdit, Pixel, check_before_editing, edit_layer
 from ThRasE.utils.qgis_utils import get_pixel_centroid
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
@@ -39,7 +39,6 @@ plugin_folder = os.path.dirname(os.path.dirname(__file__))
 
 
 class ViewWidget(QWidget):
-
     def setup_view_widget(self):
         self.render_widget.parent_view = self
 
@@ -58,7 +57,7 @@ class ViewWidget(QWidget):
             "pixel": EditLog("pixel"),
             "line": EditLog("line"),
             "polygon": EditLog("polygon"),
-            "freehand": EditLog("polygon")
+            "freehand": EditLog("polygon"),
         }
         # mouse pixel value tracking in recode pixel table
         self.mouse_pixel_value_tracking = False
@@ -132,9 +131,12 @@ class ViewWidget(QWidget):
     @pyqtSlot()
     def unhighlight_cells_in_recode_pixel_table():
         from ThRasE.thrase import ThRasE
+
         with block_signals_to(ThRasE.dialog.recodePixelTable):
-            [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white)
-             for idx in range(len(LayerToEdit.current.pixels))]
+            [
+                ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white)
+                for idx in range(len(LayerToEdit.current.pixels))
+            ]
 
     def toggle_mouse_pixel_value_tracking(self, enabled):
         """Connect or disconnect canvas tracking for pixel-value highlighting."""
@@ -189,8 +191,12 @@ class ViewWidget(QWidget):
             self.is_active = True
             # if the navigation is using, then draw the current tile in this view
             from ThRasE.thrase import ThRasE
-            if LayerToEdit.current is not None and LayerToEdit.current.navigation.is_valid \
-               and ThRasE.dialog.currentTileKeepVisible.isChecked():
+
+            if (
+                LayerToEdit.current is not None
+                and LayerToEdit.current.navigation.is_valid
+                and ThRasE.dialog.currentTileKeepVisible.isChecked()
+            ):
                 LayerToEdit.current.navigation.current_tile.show()
 
     def disable(self):
@@ -203,6 +209,7 @@ class ViewWidget(QWidget):
             self.is_active = False
             # if the navigation is using, erase the current tile in this view
             from ThRasE.thrase import ThRasE
+
             if LayerToEdit.current is not None and LayerToEdit.current.navigation.is_valid:
                 if ThRasE.dialog.currentTileKeepVisible.isChecked():
                     LayerToEdit.current.navigation.current_tile.show()
@@ -217,6 +224,7 @@ class ViewWidget(QWidget):
             new_extent = self.render_widget.canvas.extent()
             # update canvas for all view activated except this view
             from ThRasE.gui.main_dialog import ThRasEDialog
+
             for view_widget in ThRasEDialog.view_widgets:
                 # for all view widgets in main dialog
                 if view_widget.is_active and view_widget != self:
@@ -228,7 +236,7 @@ class ViewWidget(QWidget):
             color = QColorDialog.getColor(self.lines_color, self)
         if color.isValid():
             self.lines_color = color
-            self.LinesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            self.LinesColor.setStyleSheet(f"QToolButton{{background-color:{color.name()};}}")
             # restart a start draw again
             maptool_instance = self.render_widget.canvas.mapTool()
             if isinstance(maptool_instance, PickerLineTool):
@@ -242,7 +250,7 @@ class ViewWidget(QWidget):
             color = QColorDialog.getColor(self.polygons_color, self)
         if color.isValid():
             self.polygons_color = color
-            self.PolygonsColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            self.PolygonsColor.setStyleSheet(f"QToolButton{{background-color:{color.name()};}}")
             # restart a start draw again
             maptool_instance = self.render_widget.canvas.mapTool()
             if isinstance(maptool_instance, PickerPolygonTool):
@@ -258,7 +266,7 @@ class ViewWidget(QWidget):
             color = QColorDialog.getColor(self.freehand_color, self)
         if color.isValid():
             self.freehand_color = color
-            self.FreehandColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            self.FreehandColor.setStyleSheet(f"QToolButton{{background-color:{color.name()};}}")
             # restart a start draw again
             maptool_instance = self.render_widget.canvas.mapTool()
             if isinstance(maptool_instance, PickerFreehandTool):
@@ -294,12 +302,13 @@ class ViewWidget(QWidget):
                 self.UndoLine.setEnabled(False)
                 line_feature, pixels_and_values = self.edit_logs["line"].undo()
                 # delete the line
-                rubber_band = next((rb for rb in self.lines_drawn if
-                                    rb.asGeometry().equals(line_feature.geometry())), None)
+                rubber_band = next(
+                    (rb for rb in self.lines_drawn if rb.asGeometry().equals(line_feature.geometry())), None
+                )
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.GeometryType.LineGeometry)
                     self.lines_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixels_and_values)))
+                ThRasE.dialog.editing_status.setText(f"Undo: {len(pixels_and_values)} pixels restored!")
             if action == "redo":
                 self.RedoLine.setEnabled(False)
                 line_feature, pixels_and_values = self.edit_logs["line"].redo()
@@ -311,7 +320,7 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(line_feature.geometry())
                 self.lines_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixels_and_values)))
+                ThRasE.dialog.editing_status.setText(f"Redo: {len(pixels_and_values)} pixels remade!")
             # make action
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixels_and_values]
@@ -327,12 +336,13 @@ class ViewWidget(QWidget):
                 self.UndoPolygon.setEnabled(False)
                 polygon_feature, pixels_and_values = self.edit_logs["polygon"].undo()
                 # delete the rubber band
-                rubber_band = next((rb for rb in self.polygons_drawn if
-                                    rb.asGeometry().equals(polygon_feature.geometry())), None)
+                rubber_band = next(
+                    (rb for rb in self.polygons_drawn if rb.asGeometry().equals(polygon_feature.geometry())), None
+                )
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                     self.polygons_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixels_and_values)))
+                ThRasE.dialog.editing_status.setText(f"Undo: {len(pixels_and_values)} pixels restored!")
             if action == "redo":
                 self.RedoPolygon.setEnabled(False)
                 polygon_feature, pixels_and_values = self.edit_logs["polygon"].redo()
@@ -344,7 +354,7 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(polygon_feature.geometry())
                 self.polygons_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixels_and_values)))
+                ThRasE.dialog.editing_status.setText(f"Redo: {len(pixels_and_values)} pixels remade!")
             # make action
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixels_and_values]
@@ -360,12 +370,13 @@ class ViewWidget(QWidget):
                 self.UndoFreehand.setEnabled(False)
                 freehand_feature, pixels_and_values = self.edit_logs["freehand"].undo()
                 # delete the rubber band
-                rubber_band = next((rb for rb in self.freehand_drawn if
-                                    rb.asGeometry().equals(freehand_feature.geometry())), None)
+                rubber_band = next(
+                    (rb for rb in self.freehand_drawn if rb.asGeometry().equals(freehand_feature.geometry())), None
+                )
                 if rubber_band:
                     rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
                     self.freehand_drawn.remove(rubber_band)
-                ThRasE.dialog.editing_status.setText("Undo: {} pixels restored!".format(len(pixels_and_values)))
+                ThRasE.dialog.editing_status.setText(f"Undo: {len(pixels_and_values)} pixels restored!")
             if action == "redo":
                 self.RedoFreehand.setEnabled(False)
                 freehand_feature, pixels_and_values = self.edit_logs["freehand"].redo()
@@ -377,7 +388,7 @@ class ViewWidget(QWidget):
                 rubber_band.setWidth(4)
                 rubber_band.addGeometry(freehand_feature.geometry())
                 self.freehand_drawn.append(rubber_band)
-                ThRasE.dialog.editing_status.setText("Redo: {} pixels remade!".format(len(pixels_and_values)))
+                ThRasE.dialog.editing_status.setText(f"Redo: {len(pixels_and_values)} pixels remade!")
             # make action
             group_id = uuid.uuid4()
             [LayerToEdit.current.edit_pixel(pixel, value, group_id) for pixel, value in pixels_and_values]
@@ -397,6 +408,7 @@ class ViewWidget(QWidget):
     def toggle_layer_toolbars(enable=None):
         # open/close all layer toolbars widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
+
         for view_widget in ThRasEDialog.view_widgets:
             if enable is None:
                 view_widget.layer_toolbar_widgets.setHidden(view_widget.layer_toolbar_widgets.isVisible())
@@ -413,6 +425,7 @@ class ViewWidget(QWidget):
     def toggle_editing_toolbars(enable=None):
         # open/close all edition tool widgets
         from ThRasE.gui.main_dialog import ThRasEDialog
+
         for view_widget in ThRasEDialog.view_widgets:
             if enable is None:
                 view_widget.widget_EditingToolbar.setHidden(view_widget.widget_EditingToolbar.isVisible())
@@ -427,6 +440,7 @@ class ViewWidget(QWidget):
     @pyqtSlot()
     def use_pixels_picker_for_edit(self):
         from ThRasE.thrase import ThRasE
+
         if isinstance(self.render_widget.canvas.mapTool(), PickerPixelTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
@@ -444,6 +458,7 @@ class ViewWidget(QWidget):
     @pyqtSlot()
     def use_lines_picker_for_edit(self):
         from ThRasE.thrase import ThRasE
+
         if isinstance(self.render_widget.canvas.mapTool(), PickerLineTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
@@ -453,7 +468,9 @@ class ViewWidget(QWidget):
                 self.LinesPicker.setChecked(False)
                 return
             # finish the other picker activation
-            if isinstance(self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerPolygonTool, PickerFreehandTool)):
+            if isinstance(
+                self.render_widget.canvas.mapTool(), (PickerPixelTool, PickerPolygonTool, PickerFreehandTool)
+            ):
                 self.render_widget.canvas.mapTool().finish()
             # enable edit
             self.render_widget.canvas.setMapTool(PickerLineTool(self), clean=True)
@@ -461,6 +478,7 @@ class ViewWidget(QWidget):
     @pyqtSlot()
     def use_polygons_picker_for_edit(self):
         from ThRasE.thrase import ThRasE
+
         if isinstance(self.render_widget.canvas.mapTool(), PickerPolygonTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
@@ -478,6 +496,7 @@ class ViewWidget(QWidget):
     @pyqtSlot()
     def use_freehand_picker_for_edit(self):
         from ThRasE.thrase import ThRasE
+
         if isinstance(self.render_widget.canvas.mapTool(), PickerFreehandTool):
             # disable edit and return to normal map tool
             self.render_widget.canvas.mapTool().finish()
@@ -518,7 +537,9 @@ class ViewWidget(QWidget):
 
 
 # load a single view in the widget edition when columns == 1
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'view_widget_single.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "view_widget_single.ui"))
+
+
 class ViewWidgetSingle(ViewWidget, FORM_CLASS):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
@@ -529,7 +550,9 @@ class ViewWidgetSingle(ViewWidget, FORM_CLASS):
 
 
 # load a multi view (two rows) in the widget edition when columns > 1
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'view_widget_multi.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "view_widget_multi.ui"))
+
+
 class ViewWidgetMulti(ViewWidget, FORM_CLASS):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
@@ -557,6 +580,7 @@ class PickerPixelTool(QgsMapTool):
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
         # clear map coordinate in the footer
         from ThRasE.thrase import ThRasE
+
         ThRasE.dialog.map_coordinate.setText("")
 
     def edit(self, event):
@@ -580,10 +604,10 @@ class PickerPixelTool(QgsMapTool):
     def canvasMoveEvent(self, event):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
+
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
-            map_coordinate.x(), map_coordinate.y(), crs))
+        ThRasE.dialog.map_coordinate.setText(f"Coordinate: {map_coordinate.x():.3f}, {map_coordinate.y():.3f} ({crs})")
         # edit pixels while drawing (mouse button pressed)
         if self.drawing:
             self.edit(event)
@@ -635,6 +659,7 @@ class PickerLineTool(QgsMapTool):
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
         # clear map coordinate in the footer
         from ThRasE.thrase import ThRasE
+
         ThRasE.dialog.map_coordinate.setText("")
 
     def define_line(self):
@@ -670,10 +695,10 @@ class PickerLineTool(QgsMapTool):
     def canvasMoveEvent(self, event):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
+
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
-            map_coordinate.x(), map_coordinate.y(), crs))
+        ThRasE.dialog.map_coordinate.setText(f"Coordinate: {map_coordinate.x():.3f}, {map_coordinate.y():.3f} ({crs})")
         # draw the line while mouse button is pressed
         if not self.drawing or not self.line:
             return
@@ -730,11 +755,15 @@ class PickerPolygonTool(QgsMapTool):
         color = self.view_widget.polygons_color
         color.setAlpha(70)
         # create the main polygon rubber band
-        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(
+            self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry
+        )
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(4)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
-        self.aux_rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
+        self.aux_rubber_band = QgsRubberBand(
+            self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry
+        )
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(4)
 
@@ -778,10 +807,10 @@ class PickerPolygonTool(QgsMapTool):
     def canvasMoveEvent(self, event):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
+
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
-            map_coordinate.x(), map_coordinate.y(), crs))
+        ThRasE.dialog.map_coordinate.setText(f"Coordinate: {map_coordinate.x():.3f}, {map_coordinate.y():.3f} ({crs})")
         # draw the auxiliary rubber band
         if self.aux_rubber_band is None:
             return
@@ -844,11 +873,11 @@ class PickerPolygonTool(QgsMapTool):
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
         # clear map coordinate in the footer
         from ThRasE.thrase import ThRasE
+
         ThRasE.dialog.map_coordinate.setText("")
 
 
 class PickerFreehandTool(QgsMapTool):
-
     def __init__(self, view_widget):
         QgsMapTool.__init__(self, view_widget.render_widget.canvas)
         self.view_widget = view_widget
@@ -862,7 +891,9 @@ class PickerFreehandTool(QgsMapTool):
         color = self.view_widget.freehand_color
         color.setAlpha(140)
         # create the main freehand rubber band
-        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(
+            self.view_widget.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry
+        )
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(4)
         self.drawing = False
@@ -892,14 +923,16 @@ class PickerFreehandTool(QgsMapTool):
     def canvasMoveEvent(self, event):
         # set map coordinates in the footer
         from ThRasE.thrase import ThRasE
+
         map_coordinate = iface.mapCanvas().getCoordinateTransform().toMapCoordinates(event.pos().x(), event.pos().y())
         crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
-        ThRasE.dialog.map_coordinate.setText("Coordinate: {:.3f}, {:.3f} ({})".format(
-            map_coordinate.x(), map_coordinate.y(), crs))
+        ThRasE.dialog.map_coordinate.setText(f"Coordinate: {map_coordinate.x():.3f}, {map_coordinate.y():.3f} ({crs})")
         # draw the auxiliary rubber band
         if not self.drawing or not self.rubber_band:
             return
-        self.rubber_band.addPoint(self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos()))
+        self.rubber_band.addPoint(
+            self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(event.pos())
+        )
 
     def canvasReleaseEvent(self, event):
         self.drawing = False
@@ -949,4 +982,5 @@ class PickerFreehandTool(QgsMapTool):
         self.view_widget.render_widget.canvas.setMapTool(self.view_widget.render_widget.default_point_tool)
         # clear map coordinate in the footer
         from ThRasE.thrase import ThRasE
+
         ThRasE.dialog.map_coordinate.setText("")

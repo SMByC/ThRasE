@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,18 +17,21 @@
  *                                                                         *
  ***************************************************************************/
 """
-import pytest
 
-from qgis.core import QgsPointXY, QgsGeometry, QgsRectangle
+from typing import ClassVar
+
+import pytest
+from qgis.core import QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.gui import QgsMapCanvas
 
 from ThRasE.core.editing import LayerToEdit
-from ThRasE.core.navigation import Navigation, NavigationTile
+from ThRasE.core.navigation import NavigationTile
 from ThRasE.utils.qgis_utils import load_layer
 
 
 class _DummyWidget:
     """Generic stub that returns False for isChecked and no-ops for setEnabled."""
+
     def isChecked(self):
         return False
 
@@ -39,6 +41,7 @@ class _DummyWidget:
 
 class _DummyRenderWidget:
     """Minimal render widget stub with a real QgsMapCanvas for navigation tests."""
+
     def __init__(self):
         self.canvas = QgsMapCanvas()
 
@@ -48,6 +51,7 @@ class _DummyRenderWidget:
 
 class _DummyNavigationDialog:
     """Minimal navigation dialog stub so build_navigation can create rubber bands."""
+
     def __init__(self):
         self.render_widget = _DummyRenderWidget()
         self.highlight_tile = None
@@ -72,10 +76,12 @@ def nav_layer(plugin, thrase_dialog):
 # Tests for NavigationTile
 # ---------------------------------------------------------------------------
 
+
 class TestNavigationTile:
     def test_tile_extent(self):
         """NavigationTile stores the correct extent."""
         from qgis.PyQt.QtGui import QColor
+
         tile = NavigationTile(1, 100, 200, 300, 400, QColor("blue"))
         assert tile.idx == 1
         assert tile.xmin == 100
@@ -87,6 +93,7 @@ class TestNavigationTile:
     def test_tile_is_valid_whole(self):
         """All tiles are valid when nav_type is 'whole'."""
         from qgis.PyQt.QtGui import QColor
+
         tile = NavigationTile(1, 0, 10, 0, 10, QColor("blue"))
 
         class _FakeNav:
@@ -97,6 +104,7 @@ class TestNavigationTile:
     def test_tile_is_valid_points(self):
         """All tiles are valid when nav_type is 'points'."""
         from qgis.PyQt.QtGui import QColor
+
         tile = NavigationTile(1, 0, 10, 0, 10, QColor("blue"))
 
         class _FakeNav:
@@ -107,30 +115,30 @@ class TestNavigationTile:
     def test_tile_is_valid_polygons_intersects(self):
         """Tile is valid when it intersects a polygon."""
         from qgis.PyQt.QtGui import QColor
+
         tile = NavigationTile(1, 0, 10, 0, 10, QColor("blue"))
-        polygon = QgsGeometry.fromPolygonXY([[
-            QgsPointXY(5, 5), QgsPointXY(15, 5),
-            QgsPointXY(15, 15), QgsPointXY(5, 15), QgsPointXY(5, 5)
-        ]])
+        polygon = QgsGeometry.fromPolygonXY(
+            [[QgsPointXY(5, 5), QgsPointXY(15, 5), QgsPointXY(15, 15), QgsPointXY(5, 15), QgsPointXY(5, 5)]]
+        )
 
         class _FakeNav:
-            nav_type = "polygons"
-            polygons = [polygon]
+            nav_type: ClassVar[str] = "polygons"
+            polygons: ClassVar[list] = [polygon]
 
         assert tile.is_valid(_FakeNav()) is True
 
     def test_tile_is_valid_polygons_no_intersect(self):
         """Tile is not valid when it does not intersect any polygon."""
         from qgis.PyQt.QtGui import QColor
+
         tile = NavigationTile(1, 0, 10, 0, 10, QColor("blue"))
-        polygon = QgsGeometry.fromPolygonXY([[
-            QgsPointXY(50, 50), QgsPointXY(60, 50),
-            QgsPointXY(60, 60), QgsPointXY(50, 60), QgsPointXY(50, 50)
-        ]])
+        polygon = QgsGeometry.fromPolygonXY(
+            [[QgsPointXY(50, 50), QgsPointXY(60, 50), QgsPointXY(60, 60), QgsPointXY(50, 60), QgsPointXY(50, 50)]]
+        )
 
         class _FakeNav:
-            nav_type = "polygons"
-            polygons = [polygon]
+            nav_type: ClassVar[str] = "polygons"
+            polygons: ClassVar[list] = [polygon]
 
         assert tile.is_valid(_FakeNav()) is False
 
@@ -138,6 +146,7 @@ class TestNavigationTile:
 # ---------------------------------------------------------------------------
 # Tests for Navigation.build_navigation (whole thematic file)
 # ---------------------------------------------------------------------------
+
 
 class TestBuildNavigationWhole:
     def test_build_whole_horizontal(self, nav_layer):
@@ -198,8 +207,7 @@ class TestBuildNavigationWhole:
         nav = nav_layer.navigation
         extent = nav_layer.extent()
         # tile size much larger than the extent
-        tile_size = max(extent.xMaximum() - extent.xMinimum(),
-                        extent.yMaximum() - extent.yMinimum()) * 10
+        tile_size = max(extent.xMaximum() - extent.xMinimum(), extent.yMaximum() - extent.yMinimum()) * 10
 
         nav.build_navigation(tile_size, "horizontal")
 
@@ -211,6 +219,7 @@ class TestBuildNavigationWhole:
 # Tests for Navigation.build_navigation (polygons)
 # ---------------------------------------------------------------------------
 
+
 class TestBuildNavigationPolygons:
     def test_build_with_polygon(self, nav_layer):
         """Build navigation with a polygon only produces tiles that intersect it."""
@@ -219,13 +228,17 @@ class TestBuildNavigationPolygons:
         # polygon covering the top-left quarter of the extent
         cx = (extent.xMinimum() + extent.xMaximum()) / 2
         cy = (extent.yMinimum() + extent.yMaximum()) / 2
-        polygon = QgsGeometry.fromPolygonXY([[
-            QgsPointXY(extent.xMinimum(), cy),
-            QgsPointXY(cx, cy),
-            QgsPointXY(cx, extent.yMaximum()),
-            QgsPointXY(extent.xMinimum(), extent.yMaximum()),
-            QgsPointXY(extent.xMinimum(), cy),
-        ]])
+        polygon = QgsGeometry.fromPolygonXY(
+            [
+                [
+                    QgsPointXY(extent.xMinimum(), cy),
+                    QgsPointXY(cx, cy),
+                    QgsPointXY(cx, extent.yMaximum()),
+                    QgsPointXY(extent.xMinimum(), extent.yMaximum()),
+                    QgsPointXY(extent.xMinimum(), cy),
+                ]
+            ]
+        )
 
         tile_size = (extent.xMaximum() - extent.xMinimum()) / 4
         result = nav.build_navigation(tile_size, "horizontal", polygons=[polygon])
@@ -235,17 +248,15 @@ class TestBuildNavigationPolygons:
         assert len(nav.tiles) > 0
         # all tiles must intersect the polygon
         for tile in nav.tiles:
-            assert polygon.intersects(tile.extent), \
-                f"Tile {tile.idx} does not intersect the polygon"
+            assert polygon.intersects(tile.extent), f"Tile {tile.idx} does not intersect the polygon"
 
     def test_polygon_outside_extent_produces_no_tiles(self, nav_layer):
         """A polygon completely outside the layer extent produces no tiles."""
         nav = nav_layer.navigation
         # polygon far away from the layer extent
-        polygon = QgsGeometry.fromPolygonXY([[
-            QgsPointXY(0, 0), QgsPointXY(1, 0),
-            QgsPointXY(1, 1), QgsPointXY(0, 1), QgsPointXY(0, 0)
-        ]])
+        polygon = QgsGeometry.fromPolygonXY(
+            [[QgsPointXY(0, 0), QgsPointXY(1, 0), QgsPointXY(1, 1), QgsPointXY(0, 1), QgsPointXY(0, 0)]]
+        )
 
         result = nav.build_navigation(1000, "horizontal", polygons=[polygon])
 
@@ -257,6 +268,7 @@ class TestBuildNavigationPolygons:
 # Tests for Navigation.build_navigation (points)
 # ---------------------------------------------------------------------------
 
+
 class TestBuildNavigationPoints:
     def test_build_with_points(self, nav_layer):
         """Build navigation with points creates one tile per point inside the extent."""
@@ -265,8 +277,7 @@ class TestBuildNavigationPoints:
         cx = (extent.xMinimum() + extent.xMaximum()) / 2
         cy = (extent.yMinimum() + extent.yMaximum()) / 2
 
-        points = [QgsPointXY(cx, cy),
-                  QgsPointXY(cx - 1000, cy + 1000)]
+        points = [QgsPointXY(cx, cy), QgsPointXY(cx - 1000, cy + 1000)]
 
         tile_size = 5000
         result = nav.build_navigation(tile_size, "horizontal", points=points)
@@ -308,6 +319,7 @@ class TestBuildNavigationPoints:
 # ---------------------------------------------------------------------------
 # Tests for Navigation.set_current_tile and navigation state
 # ---------------------------------------------------------------------------
+
 
 class TestNavigationState:
     def test_set_current_tile(self, nav_layer):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,19 +17,23 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 import functools
+import os
+import subprocess
+import sys
 import traceback
-import os, sys, subprocess
 from collections import OrderedDict
+
 try:
     from yaml import CSafeLoader as SafeLoader
 except ImportError:
     from yaml import SafeLoader
 
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QPushButton
-from qgis.PyQt.QtGui import QCursor
 from qgis.core import Qgis
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QCursor
+from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QPushButton
 from qgis.utils import iface
 
 
@@ -46,10 +49,8 @@ def error_handler(func):
 
             # select the message bar
             from ThRasE.thrase import ThRasE
-            if ThRasE.dialog:
-                msg_bar = ThRasE.dialog.MsgBar
-            else:
-                msg_bar = iface.messageBar()
+
+            msg_bar = ThRasE.dialog.MsgBar if ThRasE.dialog else iface.messageBar()
 
             msg_bar.clearWidgets()
 
@@ -57,9 +58,11 @@ def error_handler(func):
             def details_message_box(error, more_details):
                 msgBox = QMessageBox()
                 msgBox.setWindowTitle("ThRasE - Error handler")
-                msgBox.setText("<i>{}</i>".format(error))
-                msgBox.setInformativeText("If you consider this as an error of ThRasE, report it in "
-                                          "<a href='https://github.com/SMByC/ThRasE/issues'>issue tracker</a>")
+                msgBox.setText(f"<i>{error}</i>")
+                msgBox.setInformativeText(
+                    "If you consider this as an error of ThRasE, report it in "
+                    "<a href='https://github.com/SMByC/ThRasE/issues'>issue tracker</a>"
+                )
                 msgBox.setDetailedText(more_details)
                 msgBox.setTextFormat(Qt.TextFormat.RichText)
                 msgBox.setStandardButtons(QMessageBox.StandardButton.Ok)
@@ -94,6 +97,7 @@ def wait_process(func):
         QApplication.processEvents()
         # finally return the object by f
         return obj_returned
+
     return wrapper
 
 
@@ -112,8 +116,9 @@ def open_file(filename):
         os.startfile(filename)
 
 
-class block_signals_to(object):
+class block_signals_to:
     """Block all signals emits from specific QT object"""
+
     def __init__(self, object_to_block):
         self.object_to_block = object_to_block
 
@@ -135,9 +140,12 @@ class block_signals_to(object):
 # --------------------------------------------------------------------------
 # Legacy YAML loader support
 
+
 class LegacyLoader(SafeLoader):
     """Custom YAML loader for handling legacy configuration files."""
+
     pass
+
 
 def _normalize_pairs(items):
     """Normalize a sequence or dict into a list of (key, value) tuples."""
@@ -156,9 +164,11 @@ def _normalize_pairs(items):
             normalized.append((item, None))
     return normalized
 
+
 def construct_python_tuple(loader, node):
     """Construct a Python tuple from a YAML sequence node."""
     return tuple(loader.construct_sequence(node, deep=True))
+
 
 def construct_ordered_dict(loader, node):
     """Construct an OrderedDict from a YAML sequence node, supporting legacy formats."""
@@ -171,21 +181,24 @@ def construct_ordered_dict(loader, node):
         items = items.items()
     return OrderedDict(_normalize_pairs(items), **kwargs)
 
+
 def construct_yaml_map(loader, node):
     """Construct an OrderedDict from a YAML map node."""
     loader.flatten_mapping(node)
     pairs = loader.construct_pairs(node, deep=True)
     return OrderedDict(pairs)
 
+
 def construct_yaml_omap(loader, node):
     """Construct an OrderedDict from a YAML omap node."""
     items = loader.construct_sequence(node, deep=True)
     return OrderedDict(_normalize_pairs(items))
 
+
 # Register constructors
-LegacyLoader.add_constructor('tag:yaml.org,2002:python/tuple', construct_python_tuple)
-LegacyLoader.add_constructor('tag:yaml.org,2002:python/object/apply:collections.OrderedDict', construct_ordered_dict)
-LegacyLoader.add_constructor('tag:yaml.org,2002:map', construct_yaml_map)
-LegacyLoader.add_constructor('tag:yaml.org,2002:omap', construct_yaml_omap)
+LegacyLoader.add_constructor("tag:yaml.org,2002:python/tuple", construct_python_tuple)
+LegacyLoader.add_constructor("tag:yaml.org,2002:python/object/apply:collections.OrderedDict", construct_ordered_dict)
+LegacyLoader.add_constructor("tag:yaml.org,2002:map", construct_yaml_map)
+LegacyLoader.add_constructor("tag:yaml.org,2002:omap", construct_yaml_omap)
 
 # --------------------------------------------------------------------------

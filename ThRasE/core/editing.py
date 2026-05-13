@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,39 +17,48 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
-import math
+
 import functools
+import math
+import os
 import uuid
-import numpy as np
-from datetime import datetime
-from copy import deepcopy
-from shutil import move
-from osgeo import gdal
 from collections import OrderedDict
+from copy import deepcopy
+from datetime import datetime
+from shutil import move
+from typing import ClassVar
+
+import numpy as np
 import yaml
+from osgeo import gdal
+
 try:
     from yaml import CSafeDumper as SafeDumper
 except ImportError:
     from yaml import SafeDumper
 
-from qgis.core import QgsRaster, QgsPointXY, QgsRasterBlock, Qgis, QgsGeometry
+import itertools
+
+from qgis.core import Qgis, QgsGeometry, QgsPointXY, QgsRaster, QgsRasterBlock
 from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
 from ThRasE.core.registry import Registry
-from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
-from ThRasE.utils.qgis_utils import get_source_from, apply_symbology
-from ThRasE.utils.system_utils import wait_process, block_signals_to
+from ThRasE.utils.others_utils import copy_band_metadata, copy_dataset_metadata, get_xml_style
+from ThRasE.utils.qgis_utils import apply_symbology, get_source_from
+from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 
 def check_before_editing():
     from ThRasE.thrase import ThRasE
+
     # check if the recode pixel table is empty
     if not LayerToEdit.current.old_new_value:
         ThRasE.dialog.MsgBar.pushMessage(
             "There are no changes to apply in the recode pixel table. Please set new pixel values first",
-            level=Qgis.MessageLevel.Warning, duration=10)
+            level=Qgis.MessageLevel.Warning,
+            duration=10,
+        )
         return False
     return True
 
@@ -59,12 +67,17 @@ def edit_layer(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         from ThRasE.thrase import ThRasE
+
         # set layer for edit
         if not LayerToEdit.current.data_provider.isEditable():
             if not LayerToEdit.current.data_provider.setEditable(True):
                 from ThRasE.thrase import ThRasE
-                ThRasE.dialog.MsgBar.pushMessage("The current thematic raster cannot be edited due to layer restrictions or permission issues",
-                                                 level=Qgis.MessageLevel.Critical, duration=20)
+
+                ThRasE.dialog.MsgBar.pushMessage(
+                    "The current thematic raster cannot be edited due to layer restrictions or permission issues",
+                    level=Qgis.MessageLevel.Critical,
+                    duration=20,
+                )
                 return False
         # do
         obj_returned = func(*args, **kwargs)
@@ -72,11 +85,12 @@ def edit_layer(func):
         LayerToEdit.current.data_provider.setEditable(False)
         # finally return the object of func
         return obj_returned
+
     return wrapper
 
 
-class LayerToEdit(object):
-    instances = {}
+class LayerToEdit:
+    instances: ClassVar[dict] = {}
     current = None
 
     def __init__(self, layer, band):
@@ -115,7 +129,9 @@ class LayerToEdit(object):
         return self.qgs_layer.extent()
 
     def get_pixel_value_from_xy(self, x, y):
-        return self.data_provider.identify(QgsPointXY(x, y), QgsRaster.IdentifyFormat.IdentifyFormatValue).results()[self.band]
+        return self.data_provider.identify(QgsPointXY(x, y), QgsRaster.IdentifyFormat.IdentifyFormatValue).results()[
+            self.band
+        ]
 
     def get_pixel_value_from_pnt(self, point):
         return self.data_provider.identify(point, QgsRaster.IdentifyFormat.IdentifyFormatValue).results()[self.band]
@@ -132,11 +148,16 @@ class LayerToEdit(object):
                 if nodata is not None and int(xml_item.get("value")) == int(nodata):
                     continue
 
-                pixel = {"value": int(xml_item.get("value")), "color": {}, "new_value": None, "s/h": True,
-                         "label": xml_item.get("label", "")}
+                pixel = {
+                    "value": int(xml_item.get("value")),
+                    "color": {},
+                    "new_value": None,
+                    "s/h": True,
+                    "label": xml_item.get("label", ""),
+                }
 
-                item_color = xml_item.get("color").lstrip('#')
-                item_color = tuple(int(item_color[i:i + 2], 16) for i in (0, 2, 4))
+                item_color = xml_item.get("color").lstrip("#")
+                item_color = tuple(int(item_color[i : i + 2], 16) for i in (0, 2, 4))
                 pixel["color"]["R"] = item_color[0]
                 pixel["color"]["G"] = item_color[1]
                 pixel["color"]["B"] = item_color[2]
@@ -157,27 +178,36 @@ class LayerToEdit(object):
 
     def setup_symbology(self):
         # fill/restart the symbology based on the real pixel-color values from file
-        self.symbology = \
-            [(pixel.get("label") or str(pixel["value"]), pixel["value"],
-              (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], 255 if pixel["s/h"] else 0))
-             for pixel in self.pixels]
+        self.symbology = [
+            (
+                pixel.get("label") or str(pixel["value"]),
+                pixel["value"],
+                (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], 255 if pixel["s/h"] else 0),
+            )
+            for pixel in self.pixels
+        ]
 
         apply_symbology(self.qgs_layer, self.band, self.symbology)
 
     def get_old_and_new_pixel_values(self, pixel):
         old_value = self.get_pixel_value_from_pnt(pixel.qgs_point)
-        return old_value, self.old_new_value[old_value] \
-            if old_value in self.old_new_value and self.old_new_value[old_value] != old_value else None
+        return old_value, self.old_new_value[old_value] if old_value in self.old_new_value and self.old_new_value[
+            old_value
+        ] != old_value else None
 
     def highlight_value_in_recode_pixel_table(self, value_to_select):
         """Highlight the current pixel value from mouse pointer on canvas"""
         from ThRasE.thrase import ThRasE
+
         if self.pixels is None:
             return
         if value_to_select is None:
             ThRasE.dialog.recodePixelTable.clearSelection()
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white) for idx in range(len(self.pixels))]
+                [
+                    ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white)
+                    for idx in range(len(self.pixels))
+                ]
             return
 
         row_idx = next((idx for idx, i in enumerate(self.pixels) if i["value"] == value_to_select), None)
@@ -186,17 +216,22 @@ class LayerToEdit(object):
             ThRasE.dialog.recodePixelTable.setCurrentCell(row_idx, 2)
             # set background
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white) for idx in range(len(self.pixels))]
+                [
+                    ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white)
+                    for idx in range(len(self.pixels))
+                ]
                 ThRasE.dialog.recodePixelTable.item(row_idx, 2).setBackground(Qt.GlobalColor.yellow)
         else:
             ThRasE.dialog.recodePixelTable.clearSelection()
             with block_signals_to(ThRasE.dialog.recodePixelTable):
-                [ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white) for idx in range(len(self.pixels))]
+                [
+                    ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white)
+                    for idx in range(len(self.pixels))
+                ]
 
     def check_point_inside_layer(self, pixel):
         # check if the pixel is within active raster bounds
-        return True if self.bounds[0] <= pixel.x() <= self.bounds[2] \
-                       and self.bounds[1] <= pixel.y() <= self.bounds[3] else False
+        return bool(self.bounds[0] <= pixel.x() <= self.bounds[2] and self.bounds[1] <= pixel.y() <= self.bounds[3])
 
     def edit_pixel(self, pixel, new_value=None, group_id=None, store=None):
         if new_value is None:
@@ -212,7 +247,9 @@ class LayerToEdit(object):
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
         if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
-            return PixelLog(pixel, old_value, new_value, group_id, store=self.registry.enabled if store is None else store)
+            return PixelLog(
+                pixel, old_value, new_value, group_id, store=self.registry.enabled if store is None else store
+            )
 
     @edit_layer
     def edit_from_pixel_picker(self, pixel):
@@ -220,10 +257,11 @@ class LayerToEdit(object):
         pixel_log = self.edit_pixel(pixel, group_id=group_id)
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("{} pixel edited!".format(1 if pixel_log else 0))
+
+        ThRasE.dialog.editing_status.setText(f"{1 if pixel_log else 0} pixel edited!")
 
         if pixel_log:  # the pixel was edited
-            if hasattr(self.qgs_layer, 'setCacheImage'):
+            if hasattr(self.qgs_layer, "setCacheImage"):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
@@ -244,23 +282,32 @@ class LayerToEdit(object):
 
         # function for check if the pixel must be edited
         def check_pixel_to_edit_in(x, y):
-            pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x)*ps_x + ps_x/2  # locate the pixel centroid in x
-            pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y)*ps_y - ps_y/2  # locate the pixel centroid in y
+            pc_x = self.bounds[0] + int((x - self.bounds[0]) / ps_x) * ps_x + ps_x / 2  # locate the pixel centroid in x
+            pc_y = self.bounds[3] - int((self.bounds[3] - y) / ps_y) * ps_y - ps_y / 2  # locate the pixel centroid in y
 
             point = QgsPointXY(pc_x, pc_y)
-            if line_feature.geometry().distance(QgsGeometry.fromPointXY(point)) <= ps_avg*line_buffer:
+            if line_feature.geometry().distance(QgsGeometry.fromPointXY(point)) <= ps_avg * line_buffer:
                 # return the pixel-point to edit
                 return point
 
         # analysis all pixel if is inside in the segments of box of pair pixel consecutive
         polyline = line_feature.geometry().asPolyline()
-        points_to_process = \
-            [[check_pixel_to_edit_in(x, y)
-              for y in np.arange(min(p1.y(), p2.y())-ps_y*line_buffer, max(p1.y(), p2.y())+ps_y*line_buffer, ps_y)
-              for x in np.arange(min(p1.x(), p2.x())-ps_x*line_buffer, max(p1.x(), p2.x())+ps_x*line_buffer, ps_x)]
-             for p1, p2 in zip(polyline[:-1], polyline[1:])]
+        points_to_process = [
+            [
+                check_pixel_to_edit_in(x, y)
+                for y in np.arange(
+                    min(p1.y(), p2.y()) - ps_y * line_buffer, max(p1.y(), p2.y()) + ps_y * line_buffer, ps_y
+                )
+                for x in np.arange(
+                    min(p1.x(), p2.x()) - ps_x * line_buffer, max(p1.x(), p2.x()) + ps_x * line_buffer, ps_x
+                )
+            ]
+            for p1, p2 in itertools.pairwise(polyline)
+        ]
         # flat the list, clean None and duplicates
-        pixels_to_process = [Pixel(point=point) for point in set([item for sublist in points_to_process for item in sublist if item])]
+        pixels_to_process = [
+            Pixel(point=point) for point in {item for sublist in points_to_process for item in sublist if item}
+        ]
 
         # edit and return all the pixel and value before edit it, for save in history class
         group_id = uuid.uuid4()
@@ -268,10 +315,11 @@ class LayerToEdit(object):
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("{} pixels edited!".format(len(pixel_logs)))
+
+        ThRasE.dialog.editing_status.setText(f"{len(pixel_logs)} pixels edited!")
 
         if pixel_logs:
-            if hasattr(self.qgs_layer, 'setCacheImage'):
+            if hasattr(self.qgs_layer, "setCacheImage"):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
@@ -299,10 +347,11 @@ class LayerToEdit(object):
         # create geometry engine for optimized contains operations
         geom_engine = QgsGeometry.createGeometryEngine(polygon_feature.geometry().constGet())
         geom_engine.prepareGeometry()
-        points = \
-            [QgsGeometry.fromPointXY(QgsPointXY(x, y))
-             for y in np.arange(y_min, y_max + ps_y, ps_y)
-             for x in np.arange(x_min, x_max + ps_x, ps_x)]
+        points = [
+            QgsGeometry.fromPointXY(QgsPointXY(x, y))
+            for y in np.arange(y_min, y_max + ps_y, ps_y)
+            for x in np.arange(x_min, x_max + ps_x, ps_x)
+        ]
         points_inside_polygon = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
 
         group_id = uuid.uuid4()
@@ -310,10 +359,11 @@ class LayerToEdit(object):
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("{} pixels edited!".format(len(pixel_logs)))
+
+        ThRasE.dialog.editing_status.setText(f"{len(pixel_logs)} pixels edited!")
 
         if pixel_logs:
-            if hasattr(self.qgs_layer, 'setCacheImage'):
+            if hasattr(self.qgs_layer, "setCacheImage"):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
@@ -341,10 +391,11 @@ class LayerToEdit(object):
         # create geometry engine for optimized contains operations
         geom_engine = QgsGeometry.createGeometryEngine(freehand_feature.geometry().constGet())
         geom_engine.prepareGeometry()
-        points = \
-            [QgsGeometry.fromPointXY(QgsPointXY(x, y))
-             for y in np.arange(y_min, y_max + ps_y, ps_y)
-             for x in np.arange(x_min, x_max + ps_x, ps_x)]
+        points = [
+            QgsGeometry.fromPointXY(QgsPointXY(x, y))
+            for y in np.arange(y_min, y_max + ps_y, ps_y)
+            for x in np.arange(x_min, x_max + ps_x, ps_x)
+        ]
         points_inside_freehand = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
 
         group_id = uuid.uuid4()
@@ -352,10 +403,11 @@ class LayerToEdit(object):
         pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
 
         from ThRasE.thrase import ThRasE
-        ThRasE.dialog.editing_status.setText("{} pixels edited!".format(len(pixel_logs)))
+
+        ThRasE.dialog.editing_status.setText(f"{len(pixel_logs)} pixels edited!")
 
         if pixel_logs:
-            if hasattr(self.qgs_layer, 'setCacheImage'):
+            if hasattr(self.qgs_layer, "setCacheImage"):
                 self.qgs_layer.setCacheImage(None)
             self.qgs_layer.reload()
             self.qgs_layer.triggerRepaint()
@@ -438,10 +490,12 @@ class LayerToEdit(object):
             if record_in_registry and edited_pixels_count:
                 ps_x = self.qgs_layer.rasterUnitsPerPixelX()
                 ps_y = self.qgs_layer.rasterUnitsPerPixelY()
-                xmin, ymin, xmax, ymax = self.bounds
+                xmin, _ymin, _xmax, ymax = self.bounds
 
                 group_id = uuid.uuid4()
-                for row_idx, col_idx, old_val, new_val in zip(row_indices, col_indices, old_values, new_values):
+                for row_idx, col_idx, old_val, new_val in zip(
+                    row_indices, col_indices, old_values, new_values, strict=False
+                ):
                     x_coord = xmin + (float(col_idx) + 0.5) * ps_x
                     y_coord = ymax - (float(row_idx) + 0.5) * ps_y
                     PixelLog(Pixel(x=x_coord, y=y_coord), int(old_val), int(new_val), group_id, store=True)
@@ -455,7 +509,7 @@ class LayerToEdit(object):
             ThRasE.dialog.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.MessageLevel.Critical, duration=20)
             return False
 
-        if hasattr(self.qgs_layer, 'setCacheImage'):
+        if hasattr(self.qgs_layer, "setCacheImage"):
             self.qgs_layer.setCacheImage(None)
         self.qgs_layer.reload()
         self.qgs_layer.triggerRepaint()
@@ -469,6 +523,7 @@ class LayerToEdit(object):
     @wait_process
     def save_config(self, file_out):
         from ThRasE.thrase import ThRasE
+
         # save in class
         self.config_file = file_out
 
@@ -479,12 +534,11 @@ class LayerToEdit(object):
 
             class OrderedDumper(SafeDumper):
                 """Custom dumper that keeps insertion order for dict-like objects."""
+
                 pass
 
             def represent_ordered_mapping(dumper, data):
-                return dumper.represent_mapping(
-                    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-                    list(data.items()))
+                return dumper.represent_mapping(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, list(data.items()))
 
             OrderedDumper.add_representer(dict, represent_ordered_mapping)
             OrderedDumper.add_representer(OrderedDict, represent_ordered_mapping)
@@ -492,7 +546,8 @@ class LayerToEdit(object):
 
         def setup_path(_path):
             """
-            Sets up the path by calculating the relative path of input path to the directory of where yaml file is being saving.
+            Sets up the path by calculating the relative path of input path
+            to the directory of where yaml file is being saving.
             """
             if _path is None:
                 return None
@@ -505,7 +560,7 @@ class LayerToEdit(object):
                     return relative_path
                 else:
                     return _path
-            except:
+            except Exception:
                 # If the paths cannot be related, return the original input path
                 return _path
 
@@ -513,10 +568,11 @@ class LayerToEdit(object):
 
         data = OrderedDict()
         # general settings
-        data["thematic_file_to_edit"] = \
-            {"path": setup_path(self.file_path),
-             "band": self.band,
-             "nodata_action": self.nodata_action}
+        data["thematic_file_to_edit"] = {
+            "path": setup_path(self.file_path),
+            "band": self.band,
+            "nodata_action": self.nodata_action,
+        }
         data["grid_view_widgets"] = {"columns": ThRasE.dialog.grid_columns, "rows": ThRasE.dialog.grid_rows}
         data["main_dialog_size"] = (ThRasE.dialog.size().width(), ThRasE.dialog.size().height())
         data["config_file"] = self.config_file
@@ -531,6 +587,7 @@ class LayerToEdit(object):
         data["editing_toolbars_enabled"] = ThRasE.dialog.QPBtn_EditingToolbars.isChecked()
         # save the extent in the views using a view with a valid layer (not empty)
         from ThRasE.gui.main_dialog import ThRasEDialog
+
         for view_widget in ThRasEDialog.view_widgets:
             if view_widget.is_active and not view_widget.render_widget.canvas.extent().isEmpty():
                 data["extent"] = view_widget.render_widget.canvas.extent().toRectF().getCoords()
@@ -540,47 +597,64 @@ class LayerToEdit(object):
         for view_widget in ThRasEDialog.view_widgets:
             layer_toolbars = []
             for layer_toolbar in view_widget.layer_toolbars:
-                layer_toolbars.append({"is_active": layer_toolbar.OnOff_LayerToolbar.isChecked(),
-                                      "layer_name": layer_toolbar.layer.name() if layer_toolbar.layer else None,
-                                      "layer_path": setup_path(get_source_from(layer_toolbar.layer)),
-                                      "opacity": layer_toolbar.opacity})
-            data["view_widgets"].append({"layer_toolbars": layer_toolbars,
-                                         "mouse_pixel_value": view_widget.mousePixelValue2Table.isChecked(),
-                                         "pixels_picker_enabled": view_widget.PixelsPicker.isChecked(),
-                                         "lines_picker_enabled": view_widget.LinesPicker.isChecked(),
-                                         "line_buffer": view_widget.LineBuffer.currentText(),
-                                         "lines_color": view_widget.lines_color.name(),
-                                         "polygons_picker_enabled": view_widget.PolygonsPicker.isChecked(),
-                                         "polygons_color": view_widget.polygons_color.name(),
-                                         "freehand_picker_enabled": view_widget.FreehandPicker.isChecked(),
-                                         "freehand_color": view_widget.freehand_color.name(),
-                                         "auto_clear_enabled": view_widget.AutoClear.isChecked()})
+                layer_toolbars.append(
+                    {
+                        "is_active": layer_toolbar.OnOff_LayerToolbar.isChecked(),
+                        "layer_name": layer_toolbar.layer.name() if layer_toolbar.layer else None,
+                        "layer_path": setup_path(get_source_from(layer_toolbar.layer)),
+                        "opacity": layer_toolbar.opacity,
+                    }
+                )
+            data["view_widgets"].append(
+                {
+                    "layer_toolbars": layer_toolbars,
+                    "mouse_pixel_value": view_widget.mousePixelValue2Table.isChecked(),
+                    "pixels_picker_enabled": view_widget.PixelsPicker.isChecked(),
+                    "lines_picker_enabled": view_widget.LinesPicker.isChecked(),
+                    "line_buffer": view_widget.LineBuffer.currentText(),
+                    "lines_color": view_widget.lines_color.name(),
+                    "polygons_picker_enabled": view_widget.PolygonsPicker.isChecked(),
+                    "polygons_color": view_widget.polygons_color.name(),
+                    "freehand_picker_enabled": view_widget.FreehandPicker.isChecked(),
+                    "freehand_color": view_widget.freehand_color.name(),
+                    "auto_clear_enabled": view_widget.AutoClear.isChecked(),
+                }
+            )
         # navigation
         data["navigation"] = {}
 
-        if self.navigation_dialog is None or not ThRasE.dialog.QPBtn_EnableNavigation.isChecked() or not self.navigation.is_valid:
+        if (
+            self.navigation_dialog is None
+            or not ThRasE.dialog.QPBtn_EnableNavigation.isChecked()
+            or not self.navigation.is_valid
+        ):
             data["navigation"]["type"] = "free"
         else:
             data["navigation"]["type"] = self.navigation_dialog.QCBox_BuildNavType.currentText()
             data["navigation"]["tile_keep_visible"] = ThRasE.dialog.currentTileKeepVisible.isChecked()
             data["navigation"]["tile_size"] = self.navigation_dialog.tileSize.value()
-            data["navigation"]["mode"] = \
+            data["navigation"]["mode"] = (
                 "horizontal" if self.navigation_dialog.nav_horizontal_mode.isChecked() else "vertical"
+            )
             data["navigation"]["tiles_color"] = self.navigation.tiles_color.name()
             data["navigation"]["current_tile_id"] = self.navigation.current_tile.idx
-            data["navigation"]["size_dialog"] = (self.navigation_dialog.size().width(), self.navigation_dialog.size().height())
-            data["navigation"]["extent_dialog"] = self.navigation_dialog.render_widget.canvas.extent().toRectF().getCoords()
+            data["navigation"]["size_dialog"] = (
+                self.navigation_dialog.size().width(),
+                self.navigation_dialog.size().height(),
+            )
+            data["navigation"]["extent_dialog"] = (
+                self.navigation_dialog.render_widget.canvas.extent().toRectF().getCoords()
+            )
             data["navigation"]["build_tools"] = self.navigation_dialog.QPBtn_BuildNavigationTools.isChecked()
             # special type navigation
             if data["navigation"]["type"] == "AOIs":
-                aois = [[[[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asMultiPolygon()[0]][0]
-                        for aoi in self.navigation_dialog.aoi_drawn]
+                aois = [
+                    next([[pl.x(), pl.y()] for pl in pls] for pls in aoi.asGeometry().asMultiPolygon()[0])
+                    for aoi in self.navigation_dialog.aoi_drawn
+                ]
                 data["navigation"]["aois"] = aois
-            if data["navigation"]["type"] in ["polygons",
-                                              "points",
-                                              "centroid of polygons"]:
-                data["navigation"]["vector_file"] = \
-                    setup_path(get_source_from(self.navigation_dialog.QCBox_VectorFile))
+            if data["navigation"]["type"] in ["polygons", "points", "centroid of polygons"]:
+                data["navigation"]["vector_file"] = setup_path(get_source_from(self.navigation_dialog.QCBox_VectorFile))
 
         # registry (widget state and pixel logs)
         rw = ThRasE.dialog.registry_widget
@@ -592,6 +666,7 @@ class LayerToEdit(object):
             "auto_center": rw.autoCenter.isChecked(),
             "show_all": rw.showAll.isChecked(),
         }
+
         # serialize all pixel logs from the current layer registry
         def serialize_pixel_log(pixel_log):
             return {
@@ -602,8 +677,12 @@ class LayerToEdit(object):
                 "edit_date": pixel_log.edit_date.isoformat(),
                 "group_id": str(pixel_log.group_id) if pixel_log.group_id is not None else None,
             }
+
         # compress pixel logs: JSON -> gzip -> base64
-        import json, gzip, base64
+        import base64
+        import gzip
+        import json
+
         pixel_logs = list(self.pixel_log_store.values())
         pixel_logs.sort(key=lambda pl: (pl.edit_date, str(pl.group_id)))
         pixel_logs_serialized = [serialize_pixel_log(pl) for pl in pixel_logs]
@@ -617,10 +696,11 @@ class LayerToEdit(object):
         # CCD plugin config
         if ThRasE.dialog.ccd_plugin_available:
             from CCD_Plugin.utils.config import get_plugin_config
+
             data["ccd_plugin_config"] = get_plugin_config(ThRasE.dialog.ccd_plugin.id)
             data["ccd_plugin_opened"] = ThRasE.dialog.QPBtn_CCDPlugin.isChecked()
 
-        with open(file_out, 'w', encoding='utf-8') as yaml_file:
+        with open(file_out, "w", encoding="utf-8") as yaml_file:
             yaml.dump(data, yaml_file, Dumper=dumper, default_flow_style=False, sort_keys=False)
 
 
@@ -629,8 +709,12 @@ class Pixel:
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return self._hash or hash((round(self.qgs_point.x(), LayerToEdit.current.pixel_tolerance),
-                                   round(self.qgs_point.y(), LayerToEdit.current.pixel_tolerance)))
+        return self._hash or hash(
+            (
+                round(self.qgs_point.x(), LayerToEdit.current.pixel_tolerance),
+                round(self.qgs_point.y(), LayerToEdit.current.pixel_tolerance),
+            )
+        )
 
     def __init__(self, x=None, y=None, point=None):
         self._hash = None
@@ -705,7 +789,9 @@ class EditLog:
             return pixel, LayerToEdit.current.get_pixel_value_from_pnt(pixel.qgs_point)
         if self.edit_type in ["line", "polygon"]:
             feature, pixel_values = edit_log_entry
-            return feature, [(pixel, LayerToEdit.current.get_pixel_value_from_pnt(pixel.qgs_point)) for pixel, _ in pixel_values]
+            return feature, [
+                (pixel, LayerToEdit.current.get_pixel_value_from_pnt(pixel.qgs_point)) for pixel, _ in pixel_values
+            ]
 
     def undo(self):
         if self.can_be_undone():

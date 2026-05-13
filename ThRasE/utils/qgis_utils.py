@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,19 +17,31 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 import os
 import platform
 from math import isnan
 from pathlib import Path
 from subprocess import call
 
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog
+from qgis.core import (
+    Qgis,
+    QgsColorRampShader,
+    QgsMapLayer,
+    QgsPalettedRasterRenderer,
+    QgsPointXY,
+    QgsProject,
+    QgsProviderRegistry,
+    QgsRasterLayer,
+    QgsRasterShader,
+    QgsSingleBandPseudoColorRenderer,
+    QgsStyle,
+    QgsVectorLayer,
+)
+from qgis.gui import QgsMapLayerComboBox, QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
-from qgis.gui import QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget, QgsMapLayerComboBox
-from qgis.core import QgsProject, QgsProviderRegistry, QgsRasterLayer, QgsVectorLayer, Qgis, QgsStyle, QgsMapLayer, \
-                      QgsPointXY, QgsPalettedRasterRenderer, QgsSingleBandPseudoColorRenderer, QgsColorRampShader, \
-                      QgsRasterShader
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog
 from qgis.utils import iface
 
 
@@ -102,11 +113,12 @@ def add_layer(layer, add_to_legend=True):
 def browse_dialog_to_load_file(parent, combo_box, dialog_title, file_filters, msg_bar=None, add_to_legend=True):
     """Open a file dialog, load the chosen file into QGIS and select it in `combo_box`."""
     file_path, _ = QFileDialog.getOpenFileName(parent, dialog_title, "", file_filters)
-    if file_path != '' and os.path.isfile(file_path):
+    if file_path != "" and os.path.isfile(file_path):
         qgslayer = load_and_select_layer_in(file_path, combo_box, add_to_legend=add_to_legend)
         if not qgslayer:
-            (msg_bar or iface.messageBar()).pushMessage(f"Could not load the layer: {file_path}",
-                                                        level=Qgis.MessageLevel.Warning, duration=10)
+            (msg_bar or iface.messageBar()).pushMessage(
+                f"Could not load the layer: {file_path}", level=Qgis.MessageLevel.Warning, duration=10
+            )
 
 
 RASTER_EXTENSIONS = (".tif", ".tiff", ".vrt", ".img", ".jp2", ".asc", ".nc", ".hdf", ".ecw", ".dt2")
@@ -130,9 +142,12 @@ def detect_provider(source):
         if "EE" in QgsProviderRegistry.instance().providerList():
             return "EE", QgsRasterLayer
         else:
-            iface.messageBar().pushMessage("ThRasE",
+            iface.messageBar().pushMessage(
+                "ThRasE",
                 "Google Earth Engine plugin is required to load this layer, install and configure it.",
-                level=Qgis.MessageLevel.Warning, duration=20)
+                level=Qgis.MessageLevel.Warning,
+                duration=20,
+            )
             return None, None
 
     # OGC services
@@ -148,11 +163,13 @@ def detect_provider(source):
         return "wcs", QgsRasterLayer
 
     # Databases
-    if s.startswith("postgresql://") or "provider=postgres" in s or (
-            "dbname=" in s and ("table=" in s or "schema=" in s)):
+    if (
+        s.startswith("postgresql://")
+        or "provider=postgres" in s
+        or ("dbname=" in s and ("table=" in s or "schema=" in s))
+    ):
         return "postgres", QgsVectorLayer
-    if "spatialite" in s or "provider=spatialite" in s or (
-            ".sqlite" in s and "table=" in s):
+    if "spatialite" in s or "provider=spatialite" in s or (".sqlite" in s and "table=" in s):
         return "spatialite", QgsVectorLayer
 
     # ArcGIS REST services
@@ -181,7 +198,11 @@ def load_layer(source, name=None, add_to_legend=True):
     name = name or (os.path.splitext(os.path.basename(source))[0] if os.path.isfile(source) else "Remote Layer")
 
     provider_key, layer_class = detect_provider(source)
-    qgslayer = (layer_class(source, name, provider_key) if provider_key else layer_class(source, name)) if layer_class else None
+    qgslayer = (
+        (layer_class(source, name, provider_key) if provider_key else layer_class(source, name))
+        if layer_class
+        else None
+    )
 
     if qgslayer and qgslayer.isValid():
         QgsProject.instance().addMapLayer(qgslayer, add_to_legend)
@@ -219,15 +240,18 @@ def get_nodata_value(layer, band=1):
 
 
 def unset_the_nodata_value(layer):
-    cmd = ['gdal_edit' if platform.system() == 'Windows' else 'gdal_edit.py',
-           '"{}"'.format(get_source_from(layer)), "-unsetnodata"]
+    cmd = [
+        "gdal_edit" if platform.system() == "Windows" else "gdal_edit.py",
+        f'"{get_source_from(layer)}"',
+        "-unsetnodata",
+    ]
     return_code = call(" ".join(cmd), shell=True)
     return return_code
 
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'style_editor.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "style_editor.ui"))
 
 
 class StyleEditorDialog(QDialog, FORM_CLASS):
@@ -236,7 +260,7 @@ class StyleEditorDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.layer = layer
 
-        self.setWindowTitle("{} - Style Editor".format(self.layer.name()))
+        self.setWindowTitle(f"{self.layer.name()} - Style Editor")
 
         if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
             self.StyleEditorWidget = QgsRendererPropertiesDialog(self.layer, QgsStyle(), True, parent)
@@ -259,7 +283,9 @@ def apply_symbology(rlayer, rband, symbology):
     """Apply symbology to raster layer using Paletted/Unique values"""
     paletted_classes = []
     for name, value, color in symbology:
-        paletted_classes.append(QgsPalettedRasterRenderer.Class(value, QColor(color[0], color[1], color[2], color[3]), name))
+        paletted_classes.append(
+            QgsPalettedRasterRenderer.Class(value, QColor(color[0], color[1], color[2], color[3]), name)
+        )
 
     renderer = QgsPalettedRasterRenderer(rlayer.dataProvider(), rband, paletted_classes)
     # Set renderer for raster layer
@@ -267,10 +293,17 @@ def apply_symbology(rlayer, rband, symbology):
 
     # set the opacity to the layer based on the opacity set in layer toolbar UI
     from ThRasE.gui.main_dialog import ThRasEDialog
+
     layer_toolbar = next(
-        (layer_toolbar for layer_toolbar in
-         [lt for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets] for lt in lts]
-         if layer_toolbar.layer == rlayer), False)
+        (
+            layer_toolbar
+            for layer_toolbar in [
+                lt for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets] for lt in lts
+            ]
+            if layer_toolbar.layer == rlayer
+        ),
+        False,
+    )
     if layer_toolbar:
         if rlayer.type() == QgsMapLayer.LayerType.VectorLayer:
             rlayer.setOpacity(layer_toolbar.opacity / 100.0)
@@ -278,7 +311,7 @@ def apply_symbology(rlayer, rband, symbology):
             rlayer.renderer().setOpacity(layer_toolbar.opacity / 100.0)
 
     # Repaint
-    if hasattr(rlayer, 'setCacheImage'):
+    if hasattr(rlayer, "setCacheImage"):
         rlayer.setCacheImage(None)
     rlayer.triggerRepaint()
 
@@ -359,6 +392,7 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
 def get_pixel_centroid(x, y):
     """Get the centroid of the pixel where the point is located"""
     from ThRasE.core.editing import LayerToEdit
+
     bounds = LayerToEdit.current.bounds
     pixel_width = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelX()
     pixel_height = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY()

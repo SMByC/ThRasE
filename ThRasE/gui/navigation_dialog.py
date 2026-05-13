@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -22,24 +21,32 @@
 import os
 from pathlib import Path
 
-from qgis.core import QgsMapLayerProxyModel, QgsUnitTypes, Qgis, QgsWkbTypes, QgsFeature, QgsCoordinateReferenceSystem, \
-    QgsCoordinateTransform, QgsProject, QgsRectangle
-from qgis.gui import QgsMapToolPan, QgsRubberBand, QgsMapTool
+from qgis.core import (
+    Qgis,
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsFeature,
+    QgsMapLayerProxyModel,
+    QgsProject,
+    QgsRectangle,
+    QgsUnitTypes,
+    QgsWkbTypes,
+)
+from qgis.gui import QgsMapTool, QgsMapToolPan, QgsRubberBand
 from qgis.PyQt import uic
+from qgis.PyQt.QtCore import Qt, QTimer, pyqtSlot
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QColorDialog
-from qgis.PyQt.QtCore import pyqtSlot, Qt, QTimer
+from qgis.PyQt.QtWidgets import QColorDialog, QDialog, QMessageBox
 
 from ThRasE.utils.qgis_utils import browse_dialog_to_load_file
 from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'navigation_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "navigation_dialog.ui"))
 
 
 class NavigationDialog(QDialog, FORM_CLASS):
-
     def __init__(self, parent=None, layer_to_edit=None):
         QDialog.__init__(self, parent)
         self.setupUi(self)
@@ -71,13 +78,18 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.VectorLayer)
         # handle connect layer selection with render canvas
         self.QCBox_VectorFile.currentIndexChanged.connect(
-            lambda: self.render_over_thematic(self.QCBox_VectorFile.currentLayer()))
+            lambda: self.render_over_thematic(self.QCBox_VectorFile.currentLayer())
+        )
         # call to browse the render file
-        self.QPBtn_BrowseVectorFile.clicked.connect(lambda: browse_dialog_to_load_file(
-            self, self.QCBox_VectorFile,
-            dialog_title=self.tr("Select the vector file"),
-            file_filters=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
-            msg_bar=self.MsgBar))
+        self.QPBtn_BrowseVectorFile.clicked.connect(
+            lambda: browse_dialog_to_load_file(
+                self,
+                self.QCBox_VectorFile,
+                dialog_title=self.tr("Select the vector file"),
+                file_filters=self.tr("Vector files (*.gpkg *.shp);;All files (*.*)"),
+                msg_bar=self.MsgBar,
+            )
+        )
         # buttons connections
         self.QPBtn_BuildNavigationTools.clicked.connect(self.build_tools)
         self.QPBtn_BuildNavigation.clicked.connect(self.call_to_build_navigation)
@@ -88,35 +100,63 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.ZoomToTiles.clicked.connect(self.zoom_to_tiles)
         # slider and spinbox connection
         self.SliderNavigation.valueChanged.connect(self.highlight)
-        self.SliderNavigation.sliderReleased.connect(lambda: self.change_tile_from_slider(self.SliderNavigation.value()))
+        self.SliderNavigation.sliderReleased.connect(
+            lambda: self.change_tile_from_slider(self.SliderNavigation.value())
+        )
         self.currentTile.valueChanged.connect(self.change_tile_from_spinbox)
         # #### setup units in tile size
         # set/update the units in tileSize item
         layer_unit = self.layer_to_edit.qgs_layer.crs().mapUnits()
         if layer_unit == Qgis.DistanceUnit.Unknown:
             layer_unit = Qgis.DistanceUnit.Meters
-            str_unit = QgsUnitTypes.toString(layer_unit) + \
-                       "\nWARNING: The layer does not have a valid map unit, meters will be used as the base unit."
+            str_unit = (
+                QgsUnitTypes.toString(layer_unit)
+                + "\nWARNING: The layer does not have a valid map unit, meters will be used as the base unit."
+            )
         else:
             str_unit = QgsUnitTypes.toString(layer_unit)
         abbr_unit = QgsUnitTypes.toAbbreviatedString(layer_unit)
         # Set the properties of the QdoubleSpinBox based on the distance unit of the thematic layer
-        self.tileSize.setSuffix(" {}".format(abbr_unit))
-        self.tileSize.setToolTip("Defines the side length of the navigation tiles in {}.\n"
-                                 "(units based on the current thematic layer to edit)\n"
-                                 "(rebuild the navigation to make the changes)".format(str_unit))
+        self.tileSize.setSuffix(f" {abbr_unit}")
+        self.tileSize.setToolTip(
+            f"Defines the side length of the navigation tiles in {str_unit}.\n"
+            "(units based on the current thematic layer to edit)\n"
+            "(rebuild the navigation to make the changes)"
+        )
         self.tileSize.setRange(0, 360 if layer_unit == Qgis.DistanceUnit.Degrees else 10e10)
         self.tileSize.setDecimals(
-            4 if layer_unit in [Qgis.DistanceUnit.Kilometers, Qgis.DistanceUnit.NauticalMiles,
-                                Qgis.DistanceUnit.Miles, Qgis.DistanceUnit.Degrees] else 1)
+            4
+            if layer_unit
+            in [
+                Qgis.DistanceUnit.Kilometers,
+                Qgis.DistanceUnit.NauticalMiles,
+                Qgis.DistanceUnit.Miles,
+                Qgis.DistanceUnit.Degrees,
+            ]
+            else 1
+        )
         self.tileSize.setSingleStep(
-            0.0001 if layer_unit in [Qgis.DistanceUnit.Kilometers, Qgis.DistanceUnit.NauticalMiles,
-                                     Qgis.DistanceUnit.Miles, Qgis.DistanceUnit.Degrees] else 1)
-        default_tile_size = {Qgis.DistanceUnit.Meters: 15000, Qgis.DistanceUnit.Kilometers: 15,
-                             Qgis.DistanceUnit.Feet: 49125, Qgis.DistanceUnit.NauticalMiles: 8.125,
-                             Qgis.DistanceUnit.Yards: 16500, Qgis.DistanceUnit.Miles: 9.375,
-                             Qgis.DistanceUnit.Degrees: 0.1375, Qgis.DistanceUnit.Centimeters: 1500000,
-                             Qgis.DistanceUnit.Millimeters: 15000000}
+            0.0001
+            if layer_unit
+            in [
+                Qgis.DistanceUnit.Kilometers,
+                Qgis.DistanceUnit.NauticalMiles,
+                Qgis.DistanceUnit.Miles,
+                Qgis.DistanceUnit.Degrees,
+            ]
+            else 1
+        )
+        default_tile_size = {
+            Qgis.DistanceUnit.Meters: 15000,
+            Qgis.DistanceUnit.Kilometers: 15,
+            Qgis.DistanceUnit.Feet: 49125,
+            Qgis.DistanceUnit.NauticalMiles: 8.125,
+            Qgis.DistanceUnit.Yards: 16500,
+            Qgis.DistanceUnit.Miles: 9.375,
+            Qgis.DistanceUnit.Degrees: 0.1375,
+            Qgis.DistanceUnit.Centimeters: 1500000,
+            Qgis.DistanceUnit.Millimeters: 15000000,
+        }
         self.tileSize.setValue(default_tile_size[layer_unit])
 
     @pyqtSlot()
@@ -150,7 +190,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             # update navigation color state
             navigation = self.layer_to_edit.navigation
             navigation.tiles_color = color
-            self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            self.TilesColor.setStyleSheet(f"QToolButton{{background-color:{color.name()};}}")
 
             # propagate new color to all tiles
             for tile in navigation.tiles:
@@ -164,12 +204,14 @@ class NavigationDialog(QDialog, FORM_CLASS):
             # redraw current tile in all active view widgets
             if navigation.is_valid and navigation.current_tile is not None:
                 from ThRasE.thrase import ThRasE
+
                 navigation.clear(rbs_in="main_dialog")
                 navigation.current_tile.show()
                 if not ThRasE.dialog.currentTileKeepVisible.isChecked():
                     QTimer.singleShot(1200, navigation.current_tile.hide)
                 # refresh active view widgets
                 from ThRasE.gui.main_dialog import ThRasEDialog
+
                 for view_widget in ThRasEDialog.view_widgets:
                     if view_widget.is_active:
                         view_widget.render_widget.refresh()
@@ -191,21 +233,25 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
-            self.QCBox_VectorFile.setToolTip("Select a polygon vector file to use as the\n"
-                                             "base for building the navigation tiles")
+            self.QCBox_VectorFile.setToolTip(
+                "Select a polygon vector file to use as the\nbase for building the navigation tiles"
+            )
         if nav_type == "points":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PointLayer)
-            self.QCBox_VectorFile.setToolTip("Select a point vector file to use as the\n"
-                                             "base for building the navigation tiles")
+            self.QCBox_VectorFile.setToolTip(
+                "Select a point vector file to use as the\nbase for building the navigation tiles"
+            )
         if nav_type == "centroid of polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
             self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
-            self.QCBox_VectorFile.setToolTip("Select a polygon vector file to use as the\n"
-                                             "base for building the navigation tiles\n"
-                                             "using the centroid of each polygon")
+            self.QCBox_VectorFile.setToolTip(
+                "Select a polygon vector file to use as the\n"
+                "base for building the navigation tiles\n"
+                "using the centroid of each polygon"
+            )
 
     @pyqtSlot()
     def activate_deactivate_AOI_picker(self):
@@ -229,11 +275,21 @@ class NavigationDialog(QDialog, FORM_CLASS):
     @pyqtSlot()
     def call_to_build_navigation(self):
         # first prompt if the user do some progress in navigation tile
-        if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
-            quit_msg = "If you build another navigation you will lose the progress " \
-                       "(the current tile position).\n\nDo you want to continue?"
-            reply = QMessageBox.question(None, 'Building the navigation tiles',
-                                         quit_msg, QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+        if (
+            self.layer_to_edit.navigation.current_tile is not None
+            and self.layer_to_edit.navigation.current_tile.idx != 1
+        ):
+            quit_msg = (
+                "If you build another navigation you will lose the progress "
+                "(the current tile position).\n\nDo you want to continue?"
+            )
+            reply = QMessageBox.question(
+                None,
+                "Building the navigation tiles",
+                quit_msg,
+                QMessageBox.StandardButton.Yes,
+                QMessageBox.StandardButton.No,
+            )
             if reply == QMessageBox.StandardButton.No:
                 return
 
@@ -247,7 +303,9 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         if self.QCBox_BuildNavType.currentText() == "AOIs":
             if not self.aoi_drawn:
-                self.MsgBar.pushMessage("Navigation building failed: no polygons were drawn", level=Qgis.MessageLevel.Warning, duration=10)
+                self.MsgBar.pushMessage(
+                    "Navigation building failed: no polygons were drawn", level=Qgis.MessageLevel.Warning, duration=10
+                )
                 return
             aois = [aoi.asGeometry() for aoi in self.aoi_drawn]
             # build navigation
@@ -256,13 +314,17 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.MessageLevel.Warning, duration=10)
+                self.MsgBar.pushMessage(
+                    "First select a valid vector file of polygons", level=Qgis.MessageLevel.Warning, duration=10
+                )
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
-            crs_transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(vector_layer.crs()),
-                                                   QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
-                                                   QgsProject.instance())
+            crs_transform = QgsCoordinateTransform(
+                QgsCoordinateReferenceSystem(vector_layer.crs()),
+                QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
+                QgsProject.instance(),
+            )
             [geom.transform(crs_transform) for geom in geometries]
             # build navigation
             nav_status = self.layer_to_edit.navigation.build_navigation(tile_size, nav_mode, polygons=geometries)
@@ -270,13 +332,17 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "points":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of points", level=Qgis.MessageLevel.Warning, duration=10)
+                self.MsgBar.pushMessage(
+                    "First select a valid vector file of points", level=Qgis.MessageLevel.Warning, duration=10
+                )
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as points
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
-            crs_transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(vector_layer.crs()),
-                                                   QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
-                                                   QgsProject.instance())
+            crs_transform = QgsCoordinateTransform(
+                QgsCoordinateReferenceSystem(vector_layer.crs()),
+                QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
+                QgsProject.instance(),
+            )
             [geom.transform(crs_transform) for geom in geometries]
             points = [geom.asPoint() for geom in geometries]
             # build navigation
@@ -285,13 +351,17 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if self.QCBox_BuildNavType.currentText() == "centroid of polygons":
             vector_layer = self.QCBox_VectorFile.currentLayer()
             if not vector_layer:
-                self.MsgBar.pushMessage("First select a valid vector file of polygons", level=Qgis.MessageLevel.Warning, duration=10)
+                self.MsgBar.pushMessage(
+                    "First select a valid vector file of polygons", level=Qgis.MessageLevel.Warning, duration=10
+                )
                 return
             geometries = [feature.geometry() for feature in vector_layer.getFeatures()]  # as polygons
             # convert all coordinates system of the input geometries to target crs of the thematic edit file
-            crs_transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(vector_layer.crs()),
-                                                   QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
-                                                   QgsProject.instance())
+            crs_transform = QgsCoordinateTransform(
+                QgsCoordinateReferenceSystem(vector_layer.crs()),
+                QgsCoordinateReferenceSystem(self.layer_to_edit.qgs_layer.crs()),
+                QgsProject.instance(),
+            )
             [geom.transform(crs_transform) for geom in geometries]
             points = [geom.centroid().asPoint() for geom in geometries]
             # build navigation
@@ -299,12 +369,13 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         # finish build navigation
         from ThRasE.thrase import ThRasE
+
         if nav_status:  # navigation is valid
             self.layer_to_edit.navigation.is_valid = True
             self.DeleteNavigation.setEnabled(True)
             # set settings in the navigation dialog
             self.SliderNavigationBlock.setEnabled(True)
-            self.totalTiles.setText("/{}".format(len(self.layer_to_edit.navigation.tiles)))
+            self.totalTiles.setText(f"/{len(self.layer_to_edit.navigation.tiles)}")
             self.SliderNavigation.setMaximum(len(self.layer_to_edit.navigation.tiles))
             self.currentTile.setValue(self.layer_to_edit.navigation.current_tile.idx)
             self.currentTile.setMaximum(len(self.layer_to_edit.navigation.tiles))
@@ -320,7 +391,9 @@ class NavigationDialog(QDialog, FORM_CLASS):
             self.layer_to_edit.navigation.is_valid = False
             self.DeleteNavigation.setEnabled(False)
             ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)
-            self.MsgBar.pushMessage("Navigation is not valid, check the settings", level=Qgis.MessageLevel.Critical, duration=20)
+            self.MsgBar.pushMessage(
+                "Navigation is not valid, check the settings", level=Qgis.MessageLevel.Critical, duration=20
+            )
 
     @pyqtSlot(int)
     def change_tile_from_slider(self, idx_tile):
@@ -339,6 +412,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         # adjust navigation components in main dialog
         from ThRasE.thrase import ThRasE
+
         ThRasE.dialog.QPBar_TilesNavigation.setValue(idx_tile)
         if idx_tile == 1:  # first item
             ThRasE.dialog.previousTile.setEnabled(False)
@@ -353,14 +427,15 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
     def highlight(self, idx_tile=None):
         if idx_tile:  # from slider
-
             with block_signals_to(self.currentTile):
                 self.currentTile.setValue(idx_tile)
 
             # update the review tiles in the navigation dialog
             self.layer_to_edit.navigation.clear(rbs_in="nav_dialog")
-            [tile.create(self.render_widget.canvas, rbs_in="nav_dialog", current_idx_tile=idx_tile) for tile in
-             self.layer_to_edit.navigation.tiles]
+            [
+                tile.create(self.render_widget.canvas, rbs_in="nav_dialog", current_idx_tile=idx_tile)
+                for tile in self.layer_to_edit.navigation.tiles
+            ]
 
         if idx_tile:
             tile = next((tile for tile in self.layer_to_edit.navigation.tiles if tile.idx == idx_tile), None)
@@ -376,11 +451,21 @@ class NavigationDialog(QDialog, FORM_CLASS):
     @pyqtSlot()
     def delete_navigation(self):
         # first prompt if the user do some progress in navigation tiles
-        if self.layer_to_edit.navigation.current_tile is not None and self.layer_to_edit.navigation.current_tile.idx != 1:
-            quit_msg = "Clear the current navigation you will lose the progress " \
-                       "(the current tile position).\n\nDo you want to continue?"
-            reply = QMessageBox.question(None, 'Building the navigation tiles',
-                                         quit_msg, QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+        if (
+            self.layer_to_edit.navigation.current_tile is not None
+            and self.layer_to_edit.navigation.current_tile.idx != 1
+        ):
+            quit_msg = (
+                "Clear the current navigation you will lose the progress "
+                "(the current tile position).\n\nDo you want to continue?"
+            )
+            reply = QMessageBox.question(
+                None,
+                "Building the navigation tiles",
+                quit_msg,
+                QMessageBox.StandardButton.Yes,
+                QMessageBox.StandardButton.No,
+            )
             if reply == QMessageBox.StandardButton.No:
                 return
 
@@ -415,11 +500,15 @@ class AOIPickerTool(QgsMapTool):
         color = QColor("red")
         color.setAlpha(40)
         # create the main polygon rubber band
-        self.rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(
+            self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry
+        )
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(3)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
-        self.aux_rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
+        self.aux_rubber_band = QgsRubberBand(
+            self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry
+        )
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(3)
 

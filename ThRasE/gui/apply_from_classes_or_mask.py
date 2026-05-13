@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -24,35 +23,37 @@ import uuid
 from copy import deepcopy
 from pathlib import Path
 from shutil import move
+
 import numpy as np
 from osgeo import gdal, ogr, osr
-
-from qgis.core import (QgsMapLayerProxyModel, Qgis, QgsMapLayer,
-                       QgsSingleSymbolRenderer, QgsFillSymbol, QgsWkbTypes)
+from qgis.core import Qgis, QgsFillSymbol, QgsMapLayer, QgsMapLayerProxyModel, QgsSingleSymbolRenderer, QgsWkbTypes
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
+from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QDialog, QTableWidgetItem, QDialogButtonBox
-from qgis.PyQt.QtCore import pyqtSlot, Qt
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QTableWidgetItem
 
-from ThRasE.core.editing import Pixel, PixelLog, LayerToEdit
-from ThRasE.utils.others_utils import get_xml_style, copy_band_metadata, copy_dataset_metadata
-from ThRasE.utils.qgis_utils import browse_dialog_to_load_file, apply_symbology, get_source_from, \
-    remove_layers_hidden_from_legend
+from ThRasE.core.editing import LayerToEdit, Pixel, PixelLog
+from ThRasE.utils.others_utils import copy_band_metadata, copy_dataset_metadata, get_xml_style
+from ThRasE.utils.qgis_utils import (
+    apply_symbology,
+    browse_dialog_to_load_file,
+    get_source_from,
+    remove_layers_hidden_from_legend,
+)
 from ThRasE.utils.system_utils import block_signals_to, error_handler, wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'apply_from_classes_or_mask.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "apply_from_classes_or_mask.ui"))
 
 # Yellow highlight used to mark the mask area on the canvas
-VECTOR_MASK_FILL_RGBA = (255, 255, 0, 120)    # polygon fill on the canvas
-VECTOR_MASK_OUTLINE_RGBA = (200, 160, 0, 255) # polygon outline on the canvas
+VECTOR_MASK_FILL_RGBA = (255, 255, 0, 120)  # polygon fill on the canvas
+VECTOR_MASK_OUTLINE_RGBA = (200, 160, 0, 255)  # polygon outline on the canvas
 VECTOR_MASK_TABLE_RGBA = (255, 255, 0, 255)  # table vector mask (fully opaque)
 
 
 class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
-
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         self.setupUi(self)
@@ -87,37 +88,54 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         self.QCBox_LayerForMaskingBand.clear()
         # accept raster layers AND polygon vector layers as mask sources
         self.QCBox_LayerForMasking.setFilters(
-            QgsMapLayerProxyModel.Filter.RasterLayer | QgsMapLayerProxyModel.Filter.PolygonLayer)
+            QgsMapLayerProxyModel.Filter.RasterLayer | QgsMapLayerProxyModel.Filter.PolygonLayer
+        )
         # hide the thematic layer being edited so it can't be chosen as its own mask
         self.QCBox_LayerForMasking.setExceptedLayerList([LayerToEdit.current.qgs_layer])
         # dispatch when the user picks a layer from the combobox
-        try: self.QCBox_LayerForMasking.layerChanged.disconnect()
-        except TypeError: pass
+        try:
+            self.QCBox_LayerForMasking.layerChanged.disconnect()
+        except TypeError:
+            pass
         self.QCBox_LayerForMasking.layerChanged.connect(self.select_mask_layer)
         # refresh the classes table when the raster mask band changes
-        try: self.QCBox_LayerForMaskingBand.currentIndexChanged.disconnect()
-        except TypeError: pass
+        try:
+            self.QCBox_LayerForMaskingBand.currentIndexChanged.disconnect()
+        except TypeError:
+            pass
         self.QCBox_LayerForMaskingBand.currentIndexChanged.connect(self.setup_raster_mask_classes)
         # browse button: open a file dialog to load a mask (raster or polygon vector);
         # the layer is loaded hidden from the legend and removed on dialog close.
-        try: self.QCBox_BrowseLayerForMasking.clicked.disconnect()
-        except TypeError: pass
-        self.QCBox_BrowseLayerForMasking.clicked.connect(lambda: browse_dialog_to_load_file(
-            self, self.QCBox_LayerForMasking,
-            dialog_title=self.tr("Select a raster or polygon vector file for masking"),
-            file_filters=self.tr(
-                "Raster or vector files (*.tif *.img *.shp *.gpkg *.geojson *.json *.kml *.gml);;"
-                "Raster files (*.tif *.img);;"
-                "Vector files (*.shp *.gpkg *.geojson *.json *.kml *.gml);;"
-                "All files (*.*)"),
-            msg_bar=self.MsgBar, add_to_legend=False))
+        try:
+            self.QCBox_BrowseLayerForMasking.clicked.disconnect()
+        except TypeError:
+            pass
+        self.QCBox_BrowseLayerForMasking.clicked.connect(
+            lambda: browse_dialog_to_load_file(
+                self,
+                self.QCBox_LayerForMasking,
+                dialog_title=self.tr("Select a raster or polygon vector file for masking"),
+                file_filters=self.tr(
+                    "Raster or vector files (*.tif *.img *.shp *.gpkg *.geojson *.json *.kml *.gml);;"
+                    "Raster files (*.tif *.img);;"
+                    "Vector files (*.shp *.gpkg *.geojson *.json *.kml *.gml);;"
+                    "All files (*.*)"
+                ),
+                msg_bar=self.MsgBar,
+                add_to_legend=False,
+            )
+        )
         # toggle raster class selection via the table (raster mode only)
-        try: self.PixelTable.itemClicked.disconnect()
-        except TypeError: pass
+        try:
+            self.PixelTable.itemClicked.disconnect()
+        except TypeError:
+            pass
         self.PixelTable.itemClicked.connect(self.table_item_clicked)
         # Apply button
-        try: self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.disconnect()
-        except TypeError: pass
+        try:
+            self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.disconnect()
+        except TypeError:
+            pass
         self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(lambda: self.apply())
         # registry checkbox (tooltip reflects whether the registry is available)
         registry_enabled = LayerToEdit.current.registry.enabled if LayerToEdit.current else False
@@ -140,7 +158,7 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         - vector        : hide the band selector and relabel the table as an
                           informational legend for the polygon mask.
         """
-        is_vector = (mode == "vector")
+        is_vector = mode == "vector"
         self.QCBox_LayerForMaskingBand.setVisible(not is_vector)
         self.label_3.setText(self.tr("Mask layer:") if is_vector else self.tr("Classes for masking:"))
 
@@ -149,10 +167,14 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         # restore raster mask symbology
         if self.raster_mask_layer and self.QCBox_LayerForMaskingBand.currentText() and self.pixel_classes_backup:
             band = int(self.QCBox_LayerForMaskingBand.currentText())
-            symbology = \
-                [(str(pixel["value"]), pixel["value"],
-                  (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"]))
-                 for pixel in self.pixel_classes_backup]
+            symbology = [
+                (
+                    str(pixel["value"]),
+                    pixel["value"],
+                    (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"]),
+                )
+                for pixel in self.pixel_classes_backup
+            ]
             apply_symbology(self.raster_mask_layer, band, symbology)
         # restore vector mask renderer
         if self.vector_mask_layer and self.vector_mask_renderer_backup is not None:
@@ -196,9 +218,11 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         # CRS must match the layer to edit (applies to both raster and vector)
         if layer.crs() != LayerToEdit.current.qgs_layer.crs():
             self.MsgBar.pushMessage(
-                f"The selected layer \"{layer.name()}\" doesn't have the same coordinate system "
-                f"as the thematic layer to edit \"{LayerToEdit.current.qgs_layer.name()}\"",
-                level=Qgis.MessageLevel.Critical, duration=20)
+                f'The selected layer "{layer.name()}" doesn\'t have the same coordinate system '
+                f'as the thematic layer to edit "{LayerToEdit.current.qgs_layer.name()}"',
+                level=Qgis.MessageLevel.Critical,
+                duration=20,
+            )
             self._reset_layer_combo()
             self._set_mask_mode(None)
             return
@@ -208,8 +232,8 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
             if layer.geometryType() != QgsWkbTypes.GeometryType.PolygonGeometry:
                 self.MsgBar.pushMessage(
-                    "Only polygon vector layers are supported as a mask",
-                    level=Qgis.MessageLevel.Critical, duration=20)
+                    "Only polygon vector layers are supported as a mask", level=Qgis.MessageLevel.Critical, duration=20
+                )
                 self._reset_layer_combo()
                 self._set_mask_mode(None)
                 return
@@ -218,12 +242,15 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
     def _setup_raster_mask(self, layer):
         """Configure the dialog to use a raster layer as the mask source."""
         # pixel size must match (raster only)
-        if (round(layer.rasterUnitsPerPixelX(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelX(), 3) or
-            round(layer.rasterUnitsPerPixelY(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY(), 3)):
+        if round(layer.rasterUnitsPerPixelX(), 3) != round(
+            LayerToEdit.current.qgs_layer.rasterUnitsPerPixelX(), 3
+        ) or round(layer.rasterUnitsPerPixelY(), 3) != round(LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY(), 3):
             self.MsgBar.pushMessage(
-                f"The selected raster \"{layer.name()}\" doesn't have the same pixel size "
-                f"as the thematic layer to edit \"{LayerToEdit.current.qgs_layer.name()}\"",
-                level=Qgis.MessageLevel.Critical, duration=20)
+                f'The selected raster "{layer.name()}" doesn\'t have the same pixel size '
+                f'as the thematic layer to edit "{LayerToEdit.current.qgs_layer.name()}"',
+                level=Qgis.MessageLevel.Critical,
+                duration=20,
+            )
             self._reset_layer_combo()
             self._set_mask_mode(None)
             return
@@ -249,13 +276,15 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         self.vector_mask_renderer_backup = current_renderer.clone() if current_renderer is not None else None
 
         # apply a yellow highlight symbology so the masked area is clearly visible
-        yellow_symbol = QgsFillSymbol.createSimple({
-            'color': ','.join(str(v) for v in VECTOR_MASK_FILL_RGBA),
-            'style': 'solid',
-            'outline_color': ','.join(str(v) for v in VECTOR_MASK_OUTLINE_RGBA),
-            'outline_width': '0.5',
-            'outline_style': 'solid',
-        })
+        yellow_symbol = QgsFillSymbol.createSimple(
+            {
+                "color": ",".join(str(v) for v in VECTOR_MASK_FILL_RGBA),
+                "style": "solid",
+                "outline_color": ",".join(str(v) for v in VECTOR_MASK_OUTLINE_RGBA),
+                "outline_width": "0.5",
+                "outline_style": "solid",
+            }
+        )
         layer.setRenderer(QgsSingleSymbolRenderer(yellow_symbol))
         layer.triggerRepaint()
 
@@ -285,17 +314,13 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
 
             # color swatch (yellow, matching the polygon highlight)
             color_item = QTableWidgetItem()
-            color_item.setFlags(color_item.flags()
-                                & ~Qt.ItemFlag.ItemIsSelectable
-                                & ~Qt.ItemFlag.ItemIsEditable)
+            color_item.setFlags(color_item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEditable)
             color_item.setBackground(QColor(*VECTOR_MASK_TABLE_RGBA))
             self.PixelTable.setItem(0, 0, color_item)
 
             # informative label (not selectable, not checkable)
             label_item = QTableWidgetItem(self.tr("mask area"))
-            label_item.setFlags(label_item.flags()
-                                & ~Qt.ItemFlag.ItemIsSelectable
-                                & ~Qt.ItemFlag.ItemIsEditable)
+            label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEditable)
             label_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             self.PixelTable.setItem(0, 1, label_item)
 
@@ -326,8 +351,8 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
                     continue
 
                 pixel = {"value": int(value), "color": {}, "select": False}
-                item_color = color.lstrip('#')
-                item_color = tuple(int(item_color[i:i + 2], 16) for i in (0, 2, 4))
+                item_color = color.lstrip("#")
+                item_color = tuple(int(item_color[i : i + 2], 16) for i in (0, 2, 4))
                 pixel["color"]["R"] = item_color[0]
                 pixel["color"]["G"] = item_color[1]
                 pixel["color"]["B"] = item_color[2]
@@ -360,22 +385,23 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             # add Header
             self.PixelTable.setHorizontalHeaderLabels(header)
             # insert items
-            for col_idx, header in enumerate(header):
-                if header == "":
+            for col_idx, col_header in enumerate(header):
+                if col_header == "":
                     for row_idx, pixel in enumerate(self.pixel_classes):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
-                        item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
-                                                        pixel["color"]["B"], pixel["color"]["A"]))
+                        item_table.setBackground(
+                            QColor(pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"])
+                        )
                         self.PixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "class value":
+                if col_header == "class value":
                     for row_idx, pixel in enumerate(self.pixel_classes):
                         item_table = QTableWidgetItem(str(pixel["value"]))
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsEditable)
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
                         self.PixelTable.setItem(row_idx, col_idx, item_table)
-                if header == "select":
+                if col_header == "select":
                     for row_idx, pixel in enumerate(self.pixel_classes):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() | Qt.ItemFlag.ItemIsUserCheckable)
@@ -411,10 +437,14 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         else:
             self.pixel_classes[row_idx]["color"] = self.pixel_classes_backup[row_idx]["color"]
 
-        symbology = \
-            [(str(pixel["value"]), pixel["value"],
-              (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"]))
-             for pixel in self.pixel_classes]
+        symbology = [
+            (
+                str(pixel["value"]),
+                pixel["value"],
+                (pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"]),
+            )
+            for pixel in self.pixel_classes
+        ]
         apply_symbology(self.raster_mask_layer, band, symbology)
 
     @staticmethod
@@ -446,7 +476,9 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         if not (self.raster_mask_layer or self.vector_mask_layer):
             self.MsgBar.pushMessage(
                 "Please select a raster or polygon vector layer to use as a mask",
-                level=Qgis.MessageLevel.Warning, duration=10)
+                level=Qgis.MessageLevel.Warning,
+                duration=10,
+            )
             return
 
         # raster masking requires at least one class selected in the table
@@ -454,21 +486,27 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         if self.raster_mask_layer:
             pixel_table = self.PixelTable
             if pixel_table.rowCount() == 0:
-                self.MsgBar.pushMessage("The pixel classes table is empty",
-                                        level=Qgis.MessageLevel.Warning, duration=10)
+                self.MsgBar.pushMessage(
+                    "The pixel classes table is empty", level=Qgis.MessageLevel.Warning, duration=10
+                )
                 return
-            classes_selected = [int(pixel_table.item(row_idx, 1).text()) for row_idx in range(len(self.pixel_classes))
-                                if pixel_table.item(row_idx, 2).checkState() == Qt.CheckState.Checked]
+            classes_selected = [
+                int(pixel_table.item(row_idx, 1).text())
+                for row_idx in range(len(self.pixel_classes))
+                if pixel_table.item(row_idx, 2).checkState() == Qt.CheckState.Checked
+            ]
             if not classes_selected:
-                self.MsgBar.pushMessage("No class was selected to apply",
-                                        level=Qgis.MessageLevel.Warning, duration=10)
+                self.MsgBar.pushMessage("No class was selected to apply", level=Qgis.MessageLevel.Warning, duration=10)
                 return
 
         mask_source_layer = self.raster_mask_layer or self.vector_mask_layer
         extent_intercepted = LayerToEdit.current.qgs_layer.extent().intersect(mask_source_layer.extent())
         if extent_intercepted.isEmpty():
-            self.MsgBar.pushMessage("No overlap was found between the mask layer and the layer to edit",
-                                    level=Qgis.MessageLevel.Info, duration=10)
+            self.MsgBar.pushMessage(
+                "No overlap was found between the mask layer and the layer to edit",
+                level=Qgis.MessageLevel.Info,
+                duration=10,
+            )
             return
 
         record_changes = self.RecordChangesInRegistry.isChecked() and LayerToEdit.current.registry.enabled
@@ -490,8 +528,8 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
 
             # Get georeferencing information of the layer to edit
             layer_gt = ds_in.GetGeoTransform()
-            ps_x = layer_gt[1]           # pixel size in x
-            ps_y = abs(layer_gt[5])      # pixel size in y (absolute value)
+            ps_x = layer_gt[1]  # pixel size in x
+            ps_y = abs(layer_gt[5])  # pixel size in y (absolute value)
 
             # Calculate pixel indices in the layer-to-edit for the overlap extent
             x_min = extent_intercepted.xMinimum()
@@ -500,14 +538,15 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             y_max = extent_intercepted.yMaximum()
 
             # Indices in layer to edit
-            layer_idx_x = int(round((x_min - layer_gt[0]) / ps_x))
-            layer_idx_y = int(round((layer_gt[3] - y_max) / ps_y))
-            cols = int(round((x_max - x_min) / ps_x))
-            rows = int(round((y_max - y_min) / ps_y))
+            layer_idx_x = round((x_min - layer_gt[0]) / ps_x)
+            layer_idx_y = round((layer_gt[3] - y_max) / ps_y)
+            cols = round((x_max - x_min) / ps_x)
+            rows = round((y_max - y_min) / ps_y)
 
             if cols <= 0 or rows <= 0:
-                self.MsgBar.pushMessage("No pixels were identified within the overlap extent",
-                                        level=Qgis.MessageLevel.Info, duration=10)
+                self.MsgBar.pushMessage(
+                    "No pixels were identified within the overlap extent", level=Qgis.MessageLevel.Info, duration=10
+                )
                 del ds_in
                 return
 
@@ -518,18 +557,19 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             rows = min(rows, ds_in.RasterYSize - layer_idx_y)
 
             if cols <= 0 or rows <= 0:
-                self.MsgBar.pushMessage("No pixels to read within valid raster bounds",
-                                        level=Qgis.MessageLevel.Info, duration=10)
+                self.MsgBar.pushMessage(
+                    "No pixels to read within valid raster bounds", level=Qgis.MessageLevel.Info, duration=10
+                )
                 del ds_in
                 return
 
             # ---- Build the boolean mask over the overlap sub-region ---- #
             if self.raster_mask_layer:
-                mask = self._build_raster_classes_mask(
-                    x_min, y_max, cols, rows, ps_x, ps_y, classes_selected)
+                mask = self._build_raster_classes_mask(x_min, y_max, cols, rows, ps_x, ps_y, classes_selected)
             else:
                 mask = self._build_vector_polygon_mask(
-                    ds_in, layer_gt, layer_idx_x, layer_idx_y, cols, rows, ps_x, ps_y)
+                    ds_in, layer_gt, layer_idx_x, layer_idx_y, cols, rows, ps_x, ps_y
+                )
 
             if mask is None:
                 del ds_in
@@ -537,15 +577,19 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             if not mask.any():
                 self.MsgBar.pushMessage(
                     "No pixels of the layer to edit fall within the selected mask in the overlap area",
-                    level=Qgis.MessageLevel.Info, duration=10)
+                    level=Qgis.MessageLevel.Info,
+                    duration=10,
+                )
                 del ds_in
                 return
 
             # Extract the corresponding region from the layer to edit and apply recodes
-            overlap_data = data_array[layer_idx_y:layer_idx_y + rows, layer_idx_x:layer_idx_x + cols]
+            overlap_data = data_array[layer_idx_y : layer_idx_y + rows, layer_idx_x : layer_idx_x + cols]
             for old_value, new_value in LayerToEdit.current.old_new_value.items():
                 change_mask = mask & (overlap_data == old_value)
-                new_data_array[layer_idx_y:layer_idx_y + rows, layer_idx_x:layer_idx_x + cols][change_mask] = new_value
+                new_data_array[layer_idx_y : layer_idx_y + rows, layer_idx_x : layer_idx_x + cols][change_mask] = (
+                    new_value
+                )
 
             # Compute which pixels actually changed
             row_indices, col_indices = np.nonzero(new_data_array != data_array)
@@ -554,7 +598,9 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             if edited_pixels_count == 0:
                 self.MsgBar.pushMessage(
                     "No pixels were edited (the selected mask may not require changes in the target layer)",
-                    level=Qgis.MessageLevel.Info, duration=10)
+                    level=Qgis.MessageLevel.Info,
+                    duration=10,
+                )
                 del ds_in
                 return
 
@@ -604,9 +650,11 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
 
             # Record the changes in ThRasE registry
             if record_changes and edited_pixels_count:
-                xmin, ymin, xmax, ymax = LayerToEdit.current.bounds
+                xmin, _ymin, _xmax, ymax = LayerToEdit.current.bounds
                 group_id = uuid.uuid4()
-                for row_idx, col_idx, old_val, new_val in zip(row_indices, col_indices, old_values, new_values):
+                for row_idx, col_idx, old_val, new_val in zip(
+                    row_indices, col_indices, old_values, new_values, strict=False
+                ):
                     x_coord = xmin + (float(col_idx) + 0.5) * ps_x
                     y_coord = ymax - (float(row_idx) + 0.5) * ps_y
                     PixelLog(Pixel(x=x_coord, y=y_coord), int(old_val), int(new_val), group_id, store=True)
@@ -621,7 +669,7 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             self.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.MessageLevel.Critical, duration=20)
             return
 
-        if hasattr(LayerToEdit.current.qgs_layer, 'setCacheImage'):
+        if hasattr(LayerToEdit.current.qgs_layer, "setCacheImage"):
             LayerToEdit.current.qgs_layer.setCacheImage(None)
         LayerToEdit.current.qgs_layer.reload()
         LayerToEdit.current.qgs_layer.triggerRepaint()
@@ -632,7 +680,9 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
 
         self.MsgBar.pushMessage(
             "DONE: Changes were successfully applied within the selected mask",
-            level=Qgis.MessageLevel.Success, duration=10)
+            level=Qgis.MessageLevel.Success,
+            duration=10,
+        )
 
         # finish the edition
         self.restore_mask_symbology()
@@ -659,23 +709,27 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             raise RuntimeError("Unable to open the raster mask file")
         try:
             classes_gt = classes_ds.GetGeoTransform()
-            classes_idx_x = max(0, int(round((x_min - classes_gt[0]) / ps_x)))
-            classes_idx_y = max(0, int(round((classes_gt[3] - y_max) / ps_y)))
+            classes_idx_x = max(0, round((x_min - classes_gt[0]) / ps_x))
+            classes_idx_y = max(0, round((classes_gt[3] - y_max) / ps_y))
             cols_c = min(cols, classes_ds.RasterXSize - classes_idx_x)
             rows_c = min(rows, classes_ds.RasterYSize - classes_idx_y)
             if cols_c <= 0 or rows_c <= 0:
-                self.MsgBar.pushMessage("No pixels to read within valid raster bounds",
-                                        level=Qgis.MessageLevel.Info, duration=10)
+                self.MsgBar.pushMessage(
+                    "No pixels to read within valid raster bounds", level=Qgis.MessageLevel.Info, duration=10
+                )
                 return None
 
             raster_mask_band = int(self.QCBox_LayerForMaskingBand.currentText())
-            class_array = classes_ds.GetRasterBand(raster_mask_band).ReadAsArray(
-                classes_idx_x, classes_idx_y, cols_c, rows_c).astype(int)
+            class_array = (
+                classes_ds.GetRasterBand(raster_mask_band)
+                .ReadAsArray(classes_idx_x, classes_idx_y, cols_c, rows_c)
+                .astype(int)
+            )
         finally:
             del classes_ds
 
         mask = np.zeros((rows, cols), dtype=bool)
-        mask[:class_array.shape[0], :class_array.shape[1]] = np.isin(class_array, classes_selected)
+        mask[: class_array.shape[0], : class_array.shape[1]] = np.isin(class_array, classes_selected)
         return mask
 
     def _build_vector_polygon_mask(self, ds_in, layer_gt, layer_idx_x, layer_idx_y, cols, rows, ps_x, ps_y):
@@ -692,20 +746,21 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         overlap_x_min = layer_gt[0] + layer_idx_x * ps_x
         overlap_y_max = layer_gt[3] - layer_idx_y * ps_y
 
-        mask_ds = gdal.GetDriverByName('MEM').Create('', cols, rows, 1, gdal.GDT_Byte)
+        mask_ds = gdal.GetDriverByName("MEM").Create("", cols, rows, 1, gdal.GDT_Byte)
         mask_ds.SetGeoTransform((overlap_x_min, ps_x, 0, overlap_y_max, 0, -ps_y))
         mask_ds.SetProjection(ds_in.GetProjection())
 
         vec_path, vec_layer_name = self._parse_vector_source(self.vector_mask_layer)
-        is_file_backed = (self.vector_mask_layer.providerType() != "memory"
-                          and bool(vec_path) and os.path.isfile(vec_path))
+        is_file_backed = (
+            self.vector_mask_layer.providerType() != "memory" and bool(vec_path) and os.path.isfile(vec_path)
+        )
 
         if is_file_backed:
-            rasterize_kwargs = {'burnValues': [1], 'allTouched': False}
+            rasterize_kwargs = {"burnValues": [1], "allTouched": False}
             if vec_layer_name:
-                rasterize_kwargs['layers'] = [vec_layer_name]
+                rasterize_kwargs["layers"] = [vec_layer_name]
             if gdal.Rasterize(mask_ds, vec_path, **rasterize_kwargs) is None:
-                raise RuntimeError(f"Unable to rasterize the vector mask \"{vec_path}\"")
+                raise RuntimeError(f'Unable to rasterize the vector mask "{vec_path}"')
         else:
             # non file-backed layers (memory, scratch, etc.) cannot be opened by
             # OGR via a path; transfer their polygons into an OGR in-memory
@@ -714,8 +769,7 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             ogr_layer = ogr_ds.GetLayer(0)
             if ogr_layer is None or ogr_layer.GetFeatureCount() == 0:
                 raise RuntimeError("The selected vector mask has no polygon features")
-            if gdal.RasterizeLayer(mask_ds, [1], ogr_layer, burn_values=[1],
-                                   options=['ALL_TOUCHED=FALSE']) != 0:
+            if gdal.RasterizeLayer(mask_ds, [1], ogr_layer, burn_values=[1], options=["ALL_TOUCHED=FALSE"]) != 0:
                 raise RuntimeError("Unable to rasterize the in-memory vector mask")
 
         return mask_ds.GetRasterBand(1).ReadAsArray().astype(bool)
@@ -730,9 +784,9 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         srs = osr.SpatialReference()
         srs.ImportFromWkt(qgs_layer.crs().toWkt())
 
-        mem_drv = ogr.GetDriverByName('Memory')
-        mem_ds = mem_drv.CreateDataSource('thrase_vector_mask')
-        mem_layer = mem_ds.CreateLayer('mask', srs, ogr.wkbMultiPolygon)
+        mem_drv = ogr.GetDriverByName("Memory")
+        mem_ds = mem_drv.CreateDataSource("thrase_vector_mask")
+        mem_layer = mem_ds.CreateLayer("mask", srs, ogr.wkbMultiPolygon)
         layer_defn = mem_layer.GetLayerDefn()
 
         for feature in qgs_layer.getFeatures():

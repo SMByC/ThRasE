@@ -1,10 +1,9 @@
 import os
 import sys
 import types
-import shutil
 from pathlib import Path
-import pytest
 
+import pytest
 from qgis.testing import start_app
 
 # Pre-stub Qt resources module to avoid heavy import during plugin/module import
@@ -16,7 +15,7 @@ pytest_plugins = ("pytest_qgis",)
 # Expose tests data dir
 pytest.tests_data_dir = Path(__file__).parent.resolve() / "data"
 
-_is_docker = (os.environ.get("IS_DOCKER_CONTAINER", "")[:1].lower() in ("t", "y", "1"))
+_is_docker = os.environ.get("IS_DOCKER_CONTAINER", "")[:1].lower() in ("t", "y", "1")
 
 if _is_docker:
     # when running in a docker container, we use the start_app provided by qgis rather
@@ -31,6 +30,7 @@ def pytest_sessionfinish(session, exitstatus):
     if _is_docker:
         os._exit(exitstatus)
 
+
 class _MsgBar:
     def pushMessage(self, *args, **kwargs):
         pass
@@ -39,7 +39,8 @@ class _MsgBar:
         pass
 
     def createMessage(self, *args):
-        from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout
+        from qgis.PyQt.QtWidgets import QHBoxLayout, QWidget
+
         w = QWidget()
         QHBoxLayout(w)
         return w
@@ -79,6 +80,7 @@ class _EnableDisable:
 
 class DummyDialog:
     """A minimal ThRasE.dialog stub needed by core editing functions during tests."""
+
     def __init__(self):
         self.MsgBar = _MsgBar()
         self.registry_widget = _RegistryWidget()
@@ -98,6 +100,7 @@ def plugin(pytestconfig, qgis_iface, qgis_parent, qgis_new_project):
     The plugin GUI is registered but we avoid running modal dialogs in tests.
     """
     from ThRasE import classFactory
+
     plugin = classFactory(qgis_iface)
     plugin.initGui()
     yield plugin
@@ -129,7 +132,7 @@ def load_yaml_mapping():
 
     def _loader(yaml_path: Path):
         # Use an unsafe loader to support legacy !!python/object/apply:collections.OrderedDict dumped files
-        with open(yaml_path, "r") as f:
+        with open(yaml_path) as f:
             try:
                 # Prefer yaml.unsafe_load if available (PyYAML >=5.1)
                 unsafe_load = getattr(yaml, "unsafe_load", None)

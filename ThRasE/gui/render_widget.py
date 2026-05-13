@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,11 +17,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+from qgis.core import QgsCoordinateTransform, QgsProject
+from qgis.gui import QgsMapCanvas, QgsMapToolPan
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QWidget, QGridLayout
-from qgis.core import QgsCoordinateTransform, QgsProject
-from qgis.gui import QgsMapToolPan, QgsMapCanvas
+from qgis.PyQt.QtWidgets import QGridLayout, QWidget
 from qgis.utils import iface
 
 from ThRasE.utils.system_utils import block_signals_to
@@ -69,9 +69,11 @@ class RenderWidget(QWidget):
                 self.canvas.setDestinationCrs(iface.mapCanvas().mapSettings().destinationCrs())
 
             # get all valid activated layers
-            valid_layers = [layer_toolbar.layer for layer_toolbar in self.layer_toolbars
-                           if layer_toolbar.is_active and layer_toolbar.layer is not None
-                           and layer_toolbar.layer.isValid()]
+            valid_layers = [
+                layer_toolbar.layer
+                for layer_toolbar in self.layer_toolbars
+                if layer_toolbar.is_active and layer_toolbar.layer is not None and layer_toolbar.layer.isValid()
+            ]
 
             if not valid_layers:
                 self.canvas.setLayers([])
@@ -80,28 +82,33 @@ class RenderWidget(QWidget):
 
             # include registry memory layer if exists
             from ThRasE.core.editing import LayerToEdit
-            memory_layer = (LayerToEdit.current.registry.memory_layer
-                           if LayerToEdit.current and LayerToEdit.current.registry.memory_layer
-                           else None)
 
-            layers_to_set = [memory_layer] + valid_layers if memory_layer else valid_layers
+            memory_layer = (
+                LayerToEdit.current.registry.memory_layer
+                if LayerToEdit.current and LayerToEdit.current.registry.memory_layer
+                else None
+            )
+
+            layers_to_set = [memory_layer, *valid_layers] if memory_layer else valid_layers
             self.canvas.setLayers(layers_to_set)
 
             # set init extent from other view if any is activated else set layer extent
             from ThRasE.gui.main_dialog import ThRasEDialog
-            others_extents = [view_widget.render_widget.canvas.extent()
-                             for view_widget in ThRasEDialog.view_widgets
-                             if view_widget.is_active and view_widget.render_widget != self
-                             and not view_widget.render_widget.canvas.extent().isEmpty()]
+
+            others_extents = [
+                view_widget.render_widget.canvas.extent()
+                for view_widget in ThRasEDialog.view_widgets
+                if view_widget.is_active
+                and view_widget.render_widget != self
+                and not view_widget.render_widget.canvas.extent().isEmpty()
+            ]
 
             if others_extents:
                 self.update_canvas_to(others_extents[0])
             elif self.canvas.extent().isEmpty():
                 # first layer to render - set extent using the first valid layer
                 transform = QgsCoordinateTransform(
-                    valid_layers[0].crs(),
-                    self.canvas.mapSettings().destinationCrs(),
-                    QgsProject.instance()
+                    valid_layers[0].crs(), self.canvas.mapSettings().destinationCrs(), QgsProject.instance()
                 )
                 new_extent = transform.transformBoundingBox(valid_layers[0].extent())
                 self.canvas.setExtent(new_extent)

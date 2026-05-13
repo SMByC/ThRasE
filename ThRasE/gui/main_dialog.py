@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -19,57 +18,92 @@
  ***************************************************************************/
 """
 
-import os
 import configparser
+import os
 import tempfile
-from datetime import datetime
 from copy import deepcopy
-from pathlib import Path
+from datetime import datetime
 from html import escape
+from pathlib import Path
+from typing import ClassVar
+
 import yaml
+
 try:
     from yaml import CSafeLoader as SafeLoader
 except ImportError:
     from yaml import SafeLoader
 
+from qgis.core import (
+    Qgis,
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsMapLayerProxyModel,
+    QgsPointXY,
+    QgsProject,
+    QgsRectangle,
+)
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import pyqtSignal, Qt, pyqtSlot, QTimer, QEvent
-from qgis.PyQt.QtWidgets import QMessageBox, QGridLayout, QFileDialog, QTableWidgetItem, QColorDialog, QWidget, QLabel, \
-    QComboBox, QDialog, QDockWidget, QFrame, QCheckBox, QApplication, QDialogButtonBox
-from qgis.core import Qgis, QgsMapLayerProxyModel, QgsRectangle, QgsPointXY, QgsCoordinateReferenceSystem, \
-    QgsCoordinateTransform, QgsProject
+from qgis.PyQt.QtCore import QEvent, Qt, QTimer, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
+from qgis.PyQt.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QColorDialog,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QDockWidget,
+    QFileDialog,
+    QFrame,
+    QGridLayout,
+    QLabel,
+    QMessageBox,
+    QTableWidgetItem,
+    QWidget,
+)
 from qgis.utils import iface
 
 from ThRasE.core.editing import LayerToEdit
 from ThRasE.gui.about_dialog import AboutDialog
-from ThRasE.gui.view_widget import ViewWidget, ViewWidgetSingle, ViewWidgetMulti
+from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.navigation_dialog import NavigationDialog
-from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
-from ThRasE.utils.qgis_utils import load_and_select_layer_in, browse_dialog_to_load_file, \
-    valid_file_selected_in, apply_symbology, get_nodata_value, unset_the_nodata_value, get_source_from, \
-    unload_layer, load_layer, add_color_value_to_symbology, is_integer_data_type, StyleEditorDialog
-from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, wait_process, open_file
+from ThRasE.gui.view_widget import ViewWidget, ViewWidgetMulti, ViewWidgetSingle
+from ThRasE.utils.qgis_utils import (
+    StyleEditorDialog,
+    add_color_value_to_symbology,
+    apply_symbology,
+    browse_dialog_to_load_file,
+    get_nodata_value,
+    get_source_from,
+    is_integer_data_type,
+    load_and_select_layer_in,
+    load_layer,
+    unload_layer,
+    unset_the_nodata_value,
+    valid_file_selected_in,
+)
+from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, open_file, wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'main_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "main_dialog.ui"))
 
 # read metadata
 cfg = configparser.ConfigParser()
-cfg.read(str(Path(plugin_folder, 'metadata.txt')))
-VERSION = cfg.get('general', 'version')
-HOMEPAGE = cfg.get('general', 'homepage')
+cfg.read(str(Path(plugin_folder, "metadata.txt")))
+VERSION = cfg.get("general", "version")
+HOMEPAGE = cfg.get("general", "homepage")
 
 
 class ThRasEDialog(QDialog, FORM_CLASS):
     closingPlugin = pyqtSignal()
-    view_widgets = []
+    view_widgets: ClassVar[list] = []
 
     def __init__(self, parent=None):
         """Constructor."""
-        super(ThRasEDialog, self).__init__(parent)
+        super().__init__(parent)
         # Set up the user interface from Designer through FORM_CLASS.
         # After self.setupUi() you can access any designer object by doing
         # self.<objectname>, and you can use autoconnect slots - see
@@ -80,12 +114,14 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.grid_rows = None
         self.grid_columns = None
         # flags
-        self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMinimizeButtonHint | Qt.WindowType.WindowMaximizeButtonHint)
+        self.setWindowFlags(
+            self.windowFlags() | Qt.WindowType.WindowMinimizeButtonHint | Qt.WindowType.WindowMaximizeButtonHint
+        )
 
     def setup_gui(self):
         # ######### plugin info ######### #
         self.about_dialog = AboutDialog()
-        self.QPBtn_PluginInfo.setToolTip("ThRasE v{}".format(VERSION))
+        self.QPBtn_PluginInfo.setToolTip(f"ThRasE v{VERSION}")
         self.QPBtn_PluginInfo.clicked.connect(self.about_dialog.show)
 
         # ######### navigation ######### #
@@ -183,11 +219,15 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QCBox_LayerToEdit.layerChanged.connect(self.select_layer_to_edit)
         self.QCBox_band_LayerToEdit.currentIndexChanged.connect(lambda: self.setup_layer_to_edit())
         # browse the thematic layer to edit
-        self.QPBtn_browseLayerToEdit.clicked.connect(lambda: browse_dialog_to_load_file(
-            self, self.QCBox_LayerToEdit,
-            dialog_title=self.tr("Select the thematic layer to edit"),
-            file_filters=self.tr("Raster files (*.tif *.img);;All files (*.*)"),
-            msg_bar=self.MsgBar))
+        self.QPBtn_browseLayerToEdit.clicked.connect(
+            lambda: browse_dialog_to_load_file(
+                self,
+                self.QCBox_LayerToEdit,
+                dialog_title=self.tr("Select the thematic layer to edit"),
+                file_filters=self.tr("Raster files (*.tif *.img);;All files (*.*)"),
+                msg_bar=self.MsgBar,
+            )
+        )
         # open the layer style editor for the thematic layer
         self.QPBtn_LayerStyle.clicked.connect(self.open_layer_style_editor)
         # update recode pixel table
@@ -220,19 +260,23 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         ccd_widget_layout = self.ccd_plugin_widget.layout()
         try:
             try:
-                from qgis.PyQt.QtWebKitWidgets import QWebView  # Qt5
+                from qgis.PyQt.QtWebKitWidgets import QWebView  # Qt5  # noqa: F401
             except ImportError:
-                from qgis.PyQt.QtWebEngineWidgets import QWebEngineView  # Qt6
+                from qgis.PyQt.QtWebEngineWidgets import QWebEngineView  # Qt6  # noqa: F401
             from CCD_Plugin.CCD_Plugin import CCD_Plugin
             from CCD_Plugin.gui.CCD_Plugin_dockwidget import CCD_PluginDockWidget
-            from CCD_Plugin.utils.config import get_plugin_config, restore_plugin_config
+            from CCD_Plugin.utils.config import get_plugin_config, restore_plugin_config  # noqa: F401
+
             self.ccd_plugin_available = True
         except ImportError:
-            label = QLabel("\nError: Continuous Change Detection (CCD) plugin is not available in your Qgis\n"
-                           "instance. To integrate the CCD inside ThRasE, go to the plugin managing in\n"
-                           "Qgis and search CCD-Plugin, install it and restart ThRasE.\n\n"
-                           "CCD helps to analyze the trends and breakpoints of change of the\n"
-                           "samples over multi-year time series using Landsat and Sentinel.\n", self)
+            label = QLabel(
+                "\nError: Continuous Change Detection (CCD) plugin is not available in your Qgis\n"
+                "instance. To integrate the CCD inside ThRasE, go to the plugin managing in\n"
+                "Qgis and search CCD-Plugin, install it and restart ThRasE.\n\n"
+                "CCD helps to analyze the trends and breakpoints of change of the\n"
+                "samples over multi-year time series using Landsat and Sentinel.\n",
+                self,
+            )
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             ccd_widget_layout.addWidget(label)
             ccd_widget_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -260,6 +304,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
             # init tmp dir for all process and intermediate files
             from ThRasE.thrase import ThRasE
+
             if ThRasE.tmp_dir is None:
                 ThRasE.tmp_dir = tempfile.mkdtemp()
             self.ccd_plugin.tmp_dir = ThRasE.tmp_dir
@@ -277,6 +322,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         view_widget.FreehandPicker.setChecked(False)
                         ThRasE.dialog.editing_status.setText("")
                         ThRasE.dialog.map_coordinate.setText("")
+
             self.ccd_plugin.widget.pick_on_map.toggled.connect(coordinates_from_map)
 
             # uncheck the pick on map button in CCD plugin when editing tools are enabled
@@ -316,25 +362,28 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                     layer_toolbar.deactivate()
 
     def get_yaml_config(self, yaml_file_path):
-        if yaml_file_path != '' and os.path.isfile(yaml_file_path) and os.access(yaml_file_path, os.R_OK):
+        if yaml_file_path != "" and os.path.isfile(yaml_file_path) and os.access(yaml_file_path, os.R_OK):
             try:
-                with open(yaml_file_path, 'r', encoding='utf-8') as yaml_file:
+                with open(yaml_file_path, encoding="utf-8") as yaml_file:
                     yaml_config = yaml.load(yaml_file, Loader=SafeLoader)
                     return yaml_config
             except yaml.constructor.ConstructorError:
                 # Support legacy YAML files that store ordered mappings and tuples
-                with open(yaml_file_path, 'r', encoding='utf-8') as yaml_file:
+                with open(yaml_file_path, encoding="utf-8") as yaml_file:
                     yaml_config = yaml.load(yaml_file, Loader=LegacyLoader)
                     return yaml_config
             except Exception as err:
-                msg = "Error while read the yaml file ThRasE configuration:\n\n{}".format(err)
-                QMessageBox.critical(self.init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.StandardButton.Ok)
+                msg = f"Error while read the yaml file ThRasE configuration:\n\n{err}"
+                QMessageBox.critical(self.init_dialog, "ThRasE - Loading config...", msg, QMessageBox.StandardButton.Ok)
                 self.close()
                 return False
         else:
-            msg = "Opening the config ThRasE file:\n{}\n\nFile does not exist, or you do not " \
-                  "have read access to the file".format(self.init_dialog.QgsFile_LoadConfigFile.filePath())
-            QMessageBox.critical(self.init_dialog, 'ThRasE - Loading config...', msg, QMessageBox.StandardButton.Ok)
+            file_path = self.init_dialog.QgsFile_LoadConfigFile.filePath()
+            msg = (
+                f"Opening the config ThRasE file:\n{file_path}\n\n"
+                "File does not exist, or you do not have read access to the file"
+            )
+            QMessageBox.critical(self.init_dialog, "ThRasE - Loading config...", msg, QMessageBox.StandardButton.Ok)
             self.close()
             return False
 
@@ -356,7 +405,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         key_renames = {
             "edition_tools_widget": "editing_toolbars_enabled",
             "active_layers_widget": "layer_toolbars_enabled",
-            "number_active_layers": "num_layer_toolbars_per_view"
+            "number_active_layers": "num_layer_toolbars_per_view",
         }
         for old_key, new_key in key_renames.items():
             if old_key in yaml_config:
@@ -374,8 +423,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             thematic_layer = load_and_select_layer_in(thematic_filepath_to_edit, self.QCBox_LayerToEdit)
         if not thematic_layer:
             self.MsgBar.pushMessage(
-                "Could not load the thematic layer to edit: \"{}\"".format(thematic_filepath_to_edit),
-                level=Qgis.MessageLevel.Critical, duration=-1)
+                f'Could not load the thematic layer to edit: "{thematic_filepath_to_edit}"',
+                level=Qgis.MessageLevel.Critical,
+                duration=-1,
+            )
             return
         nodata_action = yaml_config["thematic_file_to_edit"].get("nodata_action")
         self.select_layer_to_edit(self.QCBox_LayerToEdit.currentLayer(), nodata_action=nodata_action)
@@ -404,12 +455,13 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             msg_box.setText(
                 "The class labels in the current layer symbology are different "
                 "from those in the saved configuration file.\n\n"
-                "Which symbology do you want to use for the recode pixel table?")
+                "Which symbology do you want to use for the recode pixel table?"
+            )
             btn_from_layer = msg_box.addButton("Use symbology from layer", QMessageBox.ButtonRole.AcceptRole)
             btn_from_config = msg_box.addButton("Use symbology from config file", QMessageBox.ButtonRole.RejectRole)
             msg_box.setDefaultButton(btn_from_config)
             msg_box.exec()
-            use_current_symbology = (msg_box.clickedButton() == btn_from_layer)
+            use_current_symbology = msg_box.clickedButton() == btn_from_layer
 
         if use_current_symbology:
             # Keep the current QGIS symbology/labels but restore new_value and s/h from saved config
@@ -441,15 +493,19 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.QPBtn_EditingToolbars.setChecked(bool(yaml_config["editing_toolbars_enabled"]))
             ViewWidget.toggle_editing_toolbars(enable=yaml_config["editing_toolbars_enabled"])
 
-        for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"]):
+        for view_widget, yaml_view_widget in zip(ThRasEDialog.view_widgets, yaml_config["view_widgets"], strict=False):
             # layer toolbars
-            for layer_toolbar, yaml_layer_toolbar in zip(view_widget.layer_toolbars, yaml_view_widget["layer_toolbars"]):
+            for layer_toolbar, yaml_layer_toolbar in zip(
+                view_widget.layer_toolbars, yaml_view_widget["layer_toolbars"], strict=False
+            ):
                 # TODO delete after some time, compatibility old yaml file
                 if "layer" in yaml_layer_toolbar:
                     yaml_layer_toolbar["layer_path"] = yaml_layer_toolbar["layer"]
                 if "layer_name" not in yaml_layer_toolbar:
                     if yaml_layer_toolbar["layer_path"]:
-                        yaml_layer_toolbar["layer_name"] = os.path.splitext(os.path.basename(yaml_layer_toolbar["layer_path"]))[0]
+                        yaml_layer_toolbar["layer_name"] = os.path.splitext(
+                            os.path.basename(yaml_layer_toolbar["layer_path"])
+                        )[0]
                     else:
                         yaml_layer_toolbar["layer_name"] = ""
 
@@ -459,10 +515,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 qgslayer = load_and_select_layer_in(source_file, layer_toolbar.QCBox_RenderFile, layer_name=layer_name)
                 if source_file and not qgslayer:
                     self.MsgBar.pushMessage(
-                            "Could not load the layer \"{layer_name}\" in the view {view_name}: "
-                            "{source_file}".format(layer_name=layer_name, view_name=view_widget.id,
-                                                    source_file=source_file),
-                            level=Qgis.MessageLevel.Warning, duration=-1)
+                        f'Could not load the layer "{layer_name}" in the view {view_widget.id}: {source_file}',
+                        level=Qgis.MessageLevel.Warning,
+                        duration=-1,
+                    )
                     continue
                 layer_toolbar.set_render_layer(qgslayer)
 
@@ -487,7 +543,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 view_widget.use_lines_picker_for_edit()
 
             if yaml_view_widget.get("line_buffer"):
-                selected_index = view_widget.LineBuffer.findText(yaml_view_widget["line_buffer"], Qt.MatchFlag.MatchFixedString)
+                selected_index = view_widget.LineBuffer.findText(
+                    yaml_view_widget["line_buffer"], Qt.MatchFlag.MatchFixedString
+                )
                 view_widget.LineBuffer.setCurrentIndex(selected_index)
             if yaml_view_widget.get("lines_color"):
                 view_widget.change_lines_color(QColor(yaml_view_widget["lines_color"]))
@@ -541,7 +599,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
             self.QPBtn_EnableNavigation.setChecked(True)
             selected_index = LayerToEdit.current.navigation_dialog.QCBox_BuildNavType.findText(
-                yaml_config["navigation"]["type"], Qt.MatchFlag.MatchFixedString)
+                yaml_config["navigation"]["type"], Qt.MatchFlag.MatchFixedString
+            )
             LayerToEdit.current.navigation_dialog.QCBox_BuildNavType.setCurrentIndex(selected_index)
             LayerToEdit.current.navigation_dialog.tileSize.setValue(yaml_config["navigation"]["tile_size"])
             if yaml_config["navigation"]["mode"] == "horizontal":
@@ -562,29 +621,35 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         nav_dialog_canvas.mapTool().aux_rubber_band.addPoint(point)
                     nav_dialog_canvas.mapTool().define_polygon()
                 nav_dialog_canvas.mapTool().finish()
-            if yaml_config["navigation"]["type"] in ["polygons",
-                                                     "points",
-                                                     "centroid of polygons"]:
+            if yaml_config["navigation"]["type"] in ["polygons", "points", "centroid of polygons"]:
                 # recover the vector file
                 vector_file = yaml_config["navigation"]["vector_file"]
                 nav_vector_layer = load_and_select_layer_in(
-                    vector_file, LayerToEdit.current.navigation_dialog.QCBox_VectorFile)
+                    vector_file, LayerToEdit.current.navigation_dialog.QCBox_VectorFile
+                )
                 if not nav_vector_layer:
                     self.MsgBar.pushMessage(
-                        "Could not load the navigation vector file: \"{}\"".format(vector_file),
-                        level=Qgis.MessageLevel.Warning, duration=-1)
+                        f'Could not load the navigation vector file: "{vector_file}"',
+                        level=Qgis.MessageLevel.Warning,
+                        duration=-1,
+                    )
             # build navigation with all settings loaded
             LayerToEdit.current.navigation_dialog.call_to_build_navigation()
             current_tile_id = yaml_config["navigation"]["current_tile_id"]
-            LayerToEdit.current.navigation.current_tile = \
-                next((tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None)
+            LayerToEdit.current.navigation.current_tile = next(
+                (tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None
+            )
             # navigation dialog
-            LayerToEdit.current.navigation_dialog.QPBtn_BuildNavigationTools.setChecked(bool(yaml_config["navigation"]["build_tools"]))
+            LayerToEdit.current.navigation_dialog.QPBtn_BuildNavigationTools.setChecked(
+                bool(yaml_config["navigation"]["build_tools"])
+            )
             LayerToEdit.current.navigation_dialog.build_tools()
             if "size_dialog" in yaml_config["navigation"] and yaml_config["navigation"]:
                 LayerToEdit.current.navigation_dialog.resize(*yaml_config["navigation"]["size_dialog"])
             if "extent_dialog" in yaml_config["navigation"] and yaml_config["navigation"]["extent_dialog"]:
-                LayerToEdit.current.navigation_dialog.render_widget.canvas.setExtent(QgsRectangle(*yaml_config["navigation"]["extent_dialog"]))
+                LayerToEdit.current.navigation_dialog.render_widget.canvas.setExtent(
+                    QgsRectangle(*yaml_config["navigation"]["extent_dialog"])
+                )
             if LayerToEdit.current.navigation.is_valid:
                 LayerToEdit.current.navigation_dialog.change_tile_from_slider(current_tile_id)
                 LayerToEdit.current.navigation_dialog.change_tile_from_spinbox(current_tile_id)
@@ -596,7 +661,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.QPBar_TilesNavigation.setValue(current_tile_id)
 
         # restore the extent in the views using a view with a valid layer (not empty)
-        if "extent" in yaml_config and yaml_config["extent"]:
+        if yaml_config.get("extent"):
             for view_widget in ThRasEDialog.view_widgets:
                 if view_widget.is_active and not view_widget.render_widget.canvas.extent().isEmpty():
                     view_widget.render_widget.canvas.setExtent(QgsRectangle(*yaml_config["extent"]))
@@ -609,7 +674,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             logs_list = []
             pixel_logs_data = reg_cfg.get("pixel_logs")
             if isinstance(pixel_logs_data, str) and reg_cfg.get("pixel_logs_encoding") == "gzip+base64+json":
-                import base64, gzip, json
+                import base64
+                import gzip
+                import json
+
                 try:
                     gz_bytes = base64.b64decode(pixel_logs_data.encode("ascii"))
                     json_bytes = gzip.decompress(gz_bytes)
@@ -621,15 +689,24 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
             # rebuild pixel_log_store
             from ThRasE.core.editing import Pixel, PixelLog
+
             LayerToEdit.current.pixel_log_store = {}
             for item in logs_list:
                 try:
                     pixel = Pixel(x=item["x"], y=item["y"])
-                    PixelLog(pixel, item["old_value"], item["new_value"], item.get("group_id"),
-                             datetime.fromisoformat(item.get("edit_date")), store=True)
+                    PixelLog(
+                        pixel,
+                        item["old_value"],
+                        item["new_value"],
+                        item.get("group_id"),
+                        datetime.fromisoformat(item.get("edit_date")),
+                        store=True,
+                    )
                 except Exception:
                     continue
-            self.registry_widget.total_pixels_modified = reg_cfg.get("pixel_logs_count", len(LayerToEdit.current.pixel_log_store))
+            self.registry_widget.total_pixels_modified = reg_cfg.get(
+                "pixel_logs_count", len(LayerToEdit.current.pixel_log_store)
+            )
 
             # registry visual settings
             if reg_cfg.get("tiles_color"):
@@ -668,6 +745,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if "ccd_plugin_config" in yaml_config:
             if self.ccd_plugin_available:
                 from CCD_Plugin.utils.config import restore_plugin_config
+
                 # restore the CCD plugin config
                 restore_plugin_config(self.ccd_plugin.id, yaml_config["ccd_plugin_config"])
                 # set the CCD plugin widget visible
@@ -676,8 +754,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     def keyPressEvent(self, event):
         # ignore esc key for close the main dialog
-        if not event.key() == Qt.Key.Key_Escape:
-            super(ThRasEDialog, self).keyPressEvent(event)
+        if event.key() != Qt.Key.Key_Escape:
+            super().keyPressEvent(event)
 
     def closeEvent(self, event):
         if self.isVisible():
@@ -685,9 +763,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             msg_box.setIcon(QMessageBox.Icon.Question)
             msg_box.setWindowTitle(self.tr("Close ThRasE"))
             msg_box.setTextFormat(Qt.TextFormat.RichText)
-            msg_box.setText("<p>{}</p>".format(
-                self.tr("Do you want to save the current configuration before exiting ThRasE?")
-            ))
+            msg_box.setText(
+                "<p>{}</p>".format(self.tr("Do you want to save the current configuration before exiting ThRasE?"))
+            )
 
             layer_to_edit = LayerToEdit.current
             if layer_to_edit and layer_to_edit.config_file:
@@ -700,7 +778,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                     pass
                 msg_box.setInformativeText(self.tr("<b>Current config file:</b> {0}").format(escape(config_path)))
 
-            msg_box.setStandardButtons(QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Close | QMessageBox.StandardButton.Cancel)
+            msg_box.setStandardButtons(
+                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Close | QMessageBox.StandardButton.Cancel
+            )
             msg_box.setDefaultButton(QMessageBox.StandardButton.Save)
             msg_box.setEscapeButton(QMessageBox.StandardButton.Cancel)
             button_box = msg_box.findChild(QDialogButtonBox)
@@ -740,13 +820,15 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     def open_layer_style_editor(self):
         layer = self.QCBox_LayerToEdit.currentLayer()
         if not layer:
-            self.MsgBar.pushMessage("First select a valid thematic layer to edit",
-                                    level=Qgis.MessageLevel.Warning, duration=10)
+            self.MsgBar.pushMessage(
+                "First select a valid thematic layer to edit", level=Qgis.MessageLevel.Warning, duration=10
+            )
             return
         style_editor_dlg = StyleEditorDialog(layer, iface.mapCanvas(), self)
         # reload recode pixel table when Apply is clicked
         style_editor_dlg.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(
-            lambda: self.reload_recode_table() if LayerToEdit.current else None)
+            lambda: self.reload_recode_table() if LayerToEdit.current else None
+        )
         # reload recode pixel table when Ok is clicked
         if style_editor_dlg.exec():
             style_editor_dlg.apply()
@@ -755,7 +837,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     def enable_navigation_tool(self, checked):
         if not LayerToEdit.current:
-            self.MsgBar.pushMessage("First select a valid thematic layer to edit", level=Qgis.MessageLevel.Warning, duration=10)
+            self.MsgBar.pushMessage(
+                "First select a valid thematic layer to edit", level=Qgis.MessageLevel.Warning, duration=10
+            )
             with block_signals_to(self.QPBtn_EnableNavigation):
                 self.QPBtn_EnableNavigation.setChecked(False)
             return
@@ -791,9 +875,13 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 self.previousTile.setEnabled(False)
             # adjust navigation components in navigation dialog
             with block_signals_to(LayerToEdit.current.navigation_dialog.currentTile):
-                LayerToEdit.current.navigation_dialog.currentTile.setValue(LayerToEdit.current.navigation.current_tile.idx)
+                LayerToEdit.current.navigation_dialog.currentTile.setValue(
+                    LayerToEdit.current.navigation.current_tile.idx
+                )
             with block_signals_to(LayerToEdit.current.navigation_dialog.SliderNavigation):
-                LayerToEdit.current.navigation_dialog.SliderNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
+                LayerToEdit.current.navigation_dialog.SliderNavigation.setValue(
+                    LayerToEdit.current.navigation.current_tile.idx
+                )
             LayerToEdit.current.navigation_dialog.highlight()
 
     @pyqtSlot()
@@ -804,13 +892,19 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             # adjust navigation components
             self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             self.previousTile.setEnabled(True)
-            if LayerToEdit.current.navigation.current_tile.idx == len(LayerToEdit.current.navigation.tiles):  # last item
+            if LayerToEdit.current.navigation.current_tile.idx == len(
+                LayerToEdit.current.navigation.tiles
+            ):  # last item
                 self.nextTile.setEnabled(False)
             # adjust navigation components in navigation dialog
             with block_signals_to(LayerToEdit.current.navigation_dialog.currentTile):
-                LayerToEdit.current.navigation_dialog.currentTile.setValue(LayerToEdit.current.navigation.current_tile.idx)
+                LayerToEdit.current.navigation_dialog.currentTile.setValue(
+                    LayerToEdit.current.navigation.current_tile.idx
+                )
             with block_signals_to(LayerToEdit.current.navigation_dialog.SliderNavigation):
-                LayerToEdit.current.navigation_dialog.SliderNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
+                LayerToEdit.current.navigation_dialog.SliderNavigation.setValue(
+                    LayerToEdit.current.navigation.current_tile.idx
+                )
             LayerToEdit.current.navigation_dialog.highlight()
 
     @pyqtSlot()
@@ -827,11 +921,14 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     def open_current_tile_navigation_in_google_engine(self):
         # create temp file
         from ThRasE.thrase import ThRasE
+
         if ThRasE.tmp_dir is None:
             ThRasE.tmp_dir = tempfile.mkdtemp()
         kml_file = tempfile.mktemp(
-            prefix="TileNavigation_Num_{}_".format(LayerToEdit.current.navigation.current_tile.idx),
-            suffix=".kml", dir=ThRasE.tmp_dir)
+            prefix=f"TileNavigation_Num_{LayerToEdit.current.navigation.current_tile.idx}_",
+            suffix=".kml",
+            dir=ThRasE.tmp_dir,
+        )
         # convert coordinates
         crsSrc = QgsCoordinateReferenceSystem(LayerToEdit.current.qgs_layer.crs())
         crsDest = QgsCoordinateReferenceSystem(4326)  # WGS84
@@ -841,12 +938,15 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         xmin, ymin, xmax, ymax = polygon.toRectF().getCoords()
 
         # make file and save
-        description = "Navigation tile number: <b>{Num}</b>/{total_tiles}<br/>" \
-                      "Thematic editing: <em>{thematic_file}</em><br/>" \
-                      "ThRasE Qgis-plugin".format(
-                        Num=LayerToEdit.current.navigation.current_tile.idx,
-                        total_tiles=len(LayerToEdit.current.navigation.tiles),
-                        thematic_file=LayerToEdit.current.qgs_layer.name())
+        nav = LayerToEdit.current.navigation
+        tile_idx = nav.current_tile.idx
+        total_tiles = len(nav.tiles)
+        layer_name = LayerToEdit.current.qgs_layer.name()
+        description = (
+            f"Navigation tile number: <b>{tile_idx}</b>/{total_tiles}<br/>"
+            f"Thematic editing: <em>{layer_name}</em><br/>"
+            "ThRasE Qgis-plugin"
+        )
         kml_raw = """<?xml version="1.0" encoding="UTF-8"?>
             <kml xmlns="http://www.opengis.net/kml/2.2">
               <Document>
@@ -880,20 +980,28 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 </Placemark>
               </Document>
             </kml>
-            """.format(name="Tile Navigation Num {}".format(LayerToEdit.current.navigation.current_tile.idx),
-                       desc=description, kml_color="00000000",
-                       coord1="{},{}".format(xmin, ymin), coord2="{},{}".format(xmin, ymax),
-                       coord3="{},{}".format(xmax, ymax), coord4="{},{}".format(xmax, ymin), alt=1000)
-        outfile = open(kml_file, "w")
-        outfile.writelines(kml_raw)
-        outfile.close()
+            """.format(
+            name=f"Tile Navigation Num {LayerToEdit.current.navigation.current_tile.idx}",
+            desc=description,
+            kml_color="00000000",
+            coord1=f"{xmin},{ymin}",
+            coord2=f"{xmin},{ymax}",
+            coord3=f"{xmax},{ymax}",
+            coord4=f"{xmax},{ymin}",
+            alt=1000,
+        )
+        with open(kml_file, "w") as outfile:
+            outfile.writelines(kml_raw)
 
         open_file(kml_file)
 
     @pyqtSlot()
     def open_navigation_dialog(self):
         if LayerToEdit.current.navigation_dialog.isVisible():
-            LayerToEdit.current.navigation_dialog.setWindowState(LayerToEdit.current.navigation_dialog.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
+            LayerToEdit.current.navigation_dialog.setWindowState(
+                LayerToEdit.current.navigation_dialog.windowState() & ~Qt.WindowState.WindowMinimized
+                | Qt.WindowState.WindowActive
+            )
             LayerToEdit.current.navigation_dialog.raise_()
             LayerToEdit.current.navigation_dialog.activateWindow()
         else:
@@ -933,19 +1041,29 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             return
         # show warning for layer to edit different to tif format
         if layer_selected.source().split(".")[-1].lower() not in ["tif", "tiff"]:
-            quit_msg = "Use raster files different to GTiff (tif or tiff) format has not been fully tested. " \
-                       "GTiff files are recommended for editing.\n\n" \
-                       "Do you want to continue anyway?"
-            reply = QMessageBox.question(None, 'Thematic layer to edit in ThRasE',
-                                         quit_msg, QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+            quit_msg = (
+                "Use raster files different to GTiff (tif or tiff) format has not been fully tested. "
+                "GTiff files are recommended for editing.\n\n"
+                "Do you want to continue anyway?"
+            )
+            reply = QMessageBox.question(
+                None,
+                "Thematic layer to edit in ThRasE",
+                quit_msg,
+                QMessageBox.StandardButton.Yes,
+                QMessageBox.StandardButton.No,
+            )
             if reply == QMessageBox.StandardButton.No:
                 self.unset_thematic_layer_to_edit()
                 return
 
         # check if thematic layer to edit has data type as integer or byte
         if not is_integer_data_type(layer_selected, band=1):
-            self.MsgBar.pushMessage("Thematic layer to edit must be byte or integer as data type",
-                                    level=Qgis.MessageLevel.Warning, duration=10)
+            self.MsgBar.pushMessage(
+                "Thematic layer to edit must be byte or integer as data type",
+                level=Qgis.MessageLevel.Warning,
+                duration=10,
+            )
             self.unset_thematic_layer_to_edit()
             return
 
@@ -973,13 +1091,17 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 msgBox = QMessageBox()
                 msgBox.setTextFormat(Qt.TextFormat.RichText)
                 msgBox.setWindowTitle("ThRasE - How to handle the NoData value")
-                msgBox.setText("The '{}' has {} as NoData. ThRasE cannot edit values assigned as NoData, "
-                               "there are two possible options:".format(layer.name(), int(nodata)))
-                msgBox.setInformativeText("<ol style='list-style-position: inside;'>"
-                                          "<li style='margin-bottom: 8px;'>Unsets the NoData value for the thematic layer. The file will be "
-                                          "modified, but you can edit the NoData value afterward</li>"
-                                          "<li style='margin-bottom: 8px;'>Hides the NoData value in the recode table. The file will not be modified, "
-                                          "but you will not be able to view or edit the NoData value</li></ol>")
+                msgBox.setText(
+                    f"The '{layer.name()}' has {int(nodata)} as NoData. ThRasE cannot edit values assigned as NoData, "
+                    "there are two possible options:"
+                )
+                msgBox.setInformativeText(
+                    "<ol style='list-style-position: inside;'>"
+                    "<li style='margin-bottom: 8px;'>Unsets the NoData value for the thematic layer. The file will be "
+                    "modified, but you can edit the NoData value afterward</li>"
+                    "<li style='margin-bottom: 8px;'>Hides the NoData value in the recode table. The file will not be "
+                    "modified, but you will not be able to view or edit the NoData value</li></ol>"
+                )
                 unset_button = msgBox.addButton("1. Unset NoData", QMessageBox.ButtonRole.NoRole)
                 hide_button = msgBox.addButton("2. Hide NoData", QMessageBox.ButtonRole.NoRole)
                 msgBox.setStandardButtons(QMessageBox.StandardButton.Cancel)
@@ -1019,12 +1141,16 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         self.QCBox_band_LayerToEdit.setCurrentIndex(band_idx)
                     nodata = None
                     self.MsgBar.pushMessage(
-                        "DONE: The NoData value for the thematic layer '{}' was successfully unset".format(layer.name()),
-                        level=Qgis.MessageLevel.Success, duration=10)
+                        f"DONE: The NoData value for the thematic layer '{layer.name()}' was successfully unset",
+                        level=Qgis.MessageLevel.Success,
+                        duration=10,
+                    )
                 else:
                     self.MsgBar.pushMessage(
-                        "It was not possible to unset the NoData value for the thematic layer '{}'".format(layer.name()),
-                        level=Qgis.MessageLevel.Critical, duration=20)
+                        f"It was not possible to unset the NoData value for the thematic layer '{layer.name()}'",
+                        level=Qgis.MessageLevel.Critical,
+                        duration=20,
+                    )
                     return
 
         if (layer.id(), band) in LayerToEdit.instances:
@@ -1069,7 +1195,6 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if self.registry_widget.isVisible():
             self.registry_widget.setEnabled(True)
 
-
     @pyqtSlot()
     @error_handler
     def update_recode_pixel_table(self):
@@ -1087,7 +1212,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 elif float(new_value) == int(new_value) and int(new_value) != pixel["value"]:
                     pixel["new_value"] = int(new_value)
                     layer_to_edit.old_new_value[pixel["value"]] = pixel["new_value"]
-            except:
+            except Exception:
                 pass
             # assign the on state
             on = self.recodePixelTable.item(row_idx, 1)
@@ -1097,21 +1222,26 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 pixel["s/h"] = False
 
         # update pixel class visibility
-        pixel_class_visibility = [255 if self.recodePixelTable.item(row_idx, 1).checkState() == 2 else 0
-                                  for row_idx in range(len(layer_to_edit.pixels))]
-        layer_to_edit.symbology = [(row[0], row[1], (row[2][0], row[2][1], row[2][2], pcv))
-                                   for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility)]
+        pixel_class_visibility = [
+            255 if self.recodePixelTable.item(row_idx, 1).checkState() == 2 else 0
+            for row_idx in range(len(layer_to_edit.pixels))
+        ]
+        layer_to_edit.symbology = [
+            (row[0], row[1], (row[2][0], row[2][1], row[2][2], pcv))
+            for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility, strict=False)
+        ]
         apply_symbology(layer_to_edit.qgs_layer, layer_to_edit.band, layer_to_edit.symbology)
 
         # update table
         self.set_recode_pixel_table()
 
         # update classes to edit label
-        number_classes_to_edit = sum([1 if self.recodePixelTable.item(idx, 3).text() != "" else 0
-                                      for idx in range(len(layer_to_edit.pixels))])
-        self.QLbl_NumberClassesToEdit.setText("({} {} to edit)".format(number_classes_to_edit,
-                                                                       "class" if number_classes_to_edit == 1 else "classes"))
-
+        number_classes_to_edit = sum(
+            1 if self.recodePixelTable.item(idx, 3).text() != "" else 0 for idx in range(len(layer_to_edit.pixels))
+        )
+        self.QLbl_NumberClassesToEdit.setText(
+            "({} {} to edit)".format(number_classes_to_edit, "class" if number_classes_to_edit == 1 else "classes")
+        )
 
     @error_handler
     def set_recode_pixel_table(self):
@@ -1134,15 +1264,18 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             # add Header
             self.recodePixelTable.setHorizontalHeaderLabels(header)
             # insert items
-            for col_idx, header in enumerate(header):
+            for col_idx, _ in enumerate(header):
                 if col_idx == 0:  # color class
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
-                        item_table.setToolTip("Class color, click to edit.\n"
-                                              "INFO: editing the color is only temporary and does not affect the layer")
-                        item_table.setBackground(QColor(pixel["color"]["R"], pixel["color"]["G"],
-                                                        pixel["color"]["B"], pixel["color"]["A"]))
+                        item_table.setToolTip(
+                            "Class color, click to edit.\n"
+                            "INFO: editing the color is only temporary and does not affect the layer"
+                        )
+                        item_table.setBackground(
+                            QColor(pixel["color"]["R"], pixel["color"]["G"], pixel["color"]["B"], pixel["color"]["A"])
+                        )
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
                 if col_idx == 1:  # Show/Hide
                     for row_idx, pixel in enumerate(layer_to_edit.pixels):
@@ -1151,9 +1284,11 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() | Qt.ItemFlag.ItemIsEnabled)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                        item_table.setToolTip("Show/Hide the pixel class value.\n"
-                                              "INFO: It is only temporary and does not affect the layer.\n"
-                                              "WARNING: If the class is hidden it does not avoid being edited!")
+                        item_table.setToolTip(
+                            "Show/Hide the pixel class value.\n"
+                            "INFO: It is only temporary and does not affect the layer.\n"
+                            "WARNING: If the class is hidden it does not avoid being edited!"
+                        )
                         if pixel["s/h"]:
                             item_table.setCheckState(Qt.CheckState.Checked)
                         else:
@@ -1165,10 +1300,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         if label and label != str(pixel["value"]):
                             cell_text = "{} ({})".format(label, pixel["value"])
                             item_table = QTableWidgetItem(cell_text)
-                            item_table.setToolTip(f'Label: {label}\nPixel value: {pixel["value"]}')
+                            item_table.setToolTip(f"Label: {label}\nPixel value: {pixel['value']}")
                         else:
                             item_table = QTableWidgetItem(str(pixel["value"]))
-                            item_table.setToolTip(f'Pixel value: {pixel["value"]}')
+                            item_table.setToolTip(f"Pixel value: {pixel['value']}")
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsEditable)
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -1183,17 +1318,19 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         item_table.setFlags(item_table.flags() | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                        item_table.setToolTip("Set the new pixel value for this class.\n"
-                                              "WARNING: After each editing operation, the layer is saved on disk!")
+                        item_table.setToolTip(
+                            "Set the new pixel value for this class.\n"
+                            "WARNING: After each editing operation, the layer is saved on disk!"
+                        )
                         if pixel["new_value"] is not None and pixel["new_value"] != pixel["value"]:
                             font = QFont()
                             font.setBold(True)
                             item_table.setFont(font)
                         self.recodePixelTable.setItem(row_idx, col_idx, item_table)
                 if col_idx == 4:  # clear new value
-                    for row_idx, pixel in enumerate(layer_to_edit.pixels):
+                    for row_idx, _ in enumerate(layer_to_edit.pixels):
                         item_table = QTableWidgetItem()
-                        path = ':/plugins/thrase/icons/clear.svg'
+                        path = ":/plugins/thrase/icons/clear.svg"
                         icon = QIcon(path)
                         item_table.setIcon(icon)
                         item_table.setFlags(item_table.flags() & ~Qt.ItemFlag.ItemIsSelectable)
@@ -1226,17 +1363,21 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 with block_signals_to(self.recodePixelTable):
                     self.recodePixelTable.item(table_item.row(), 0).setBackground(color)
                 # update pixels variable
-                LayerToEdit.current.pixels[table_item.row()]["color"] = \
-                    {"R": color.red(), "G": color.green(), "B": color.blue(), "A": color.alpha()}
+                LayerToEdit.current.pixels[table_item.row()]["color"] = {
+                    "R": color.red(),
+                    "G": color.green(),
+                    "B": color.blue(),
+                    "A": color.alpha(),
+                }
                 # apply to layer
-                LayerToEdit.current.symbology[table_item.row()] = \
-                    LayerToEdit.current.symbology[table_item.row()][0:2] + \
-                    ((color.red(), color.green(), color.blue(), color.alpha()),)
+                LayerToEdit.current.symbology[table_item.row()] = (
+                    *LayerToEdit.current.symbology[table_item.row()][0:2],
+                    (color.red(), color.green(), color.blue(), color.alpha()),
+                )
                 self.update_recode_pixel_table()
         # clear the current new value for the row clicked
         elif table_item.column() == 4:
             self.recodePixelTable.item(table_item.row(), 3).setText("")
-
 
     @pyqtSlot()
     @error_handler
@@ -1257,14 +1398,17 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # restore new pixel values and visibility
         for new_item in LayerToEdit.current.pixels:
             if new_item["value"] in [i["value"] for i in old_pixels]:
-                old_item = next((i for i in old_pixels if i["value"] == new_item["value"]))
+                old_item = next(i for i in old_pixels if i["value"] == new_item["value"])
                 new_item["new_value"] = old_item["new_value"]
                 new_item["s/h"] = old_item["s/h"]
         self.setup_layer_to_edit()
         self.update_recode_pixel_table()
         # restore the opacity of all layer toolbars
-        [lt.update_layer_opacity() for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
-         for lt in lts]
+        [
+            lt.update_layer_opacity()
+            for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
+            for lt in lts
+        ]
 
     @pyqtSlot()
     @error_handler
@@ -1277,8 +1421,11 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # update pixel class visibility
         apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
         # restore the opacity of all layer toolbars
-        [lt.update_layer_opacity() for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
-         for lt in lts]
+        [
+            lt.update_layer_opacity()
+            for lts in [view_widget.layer_toolbars for view_widget in ThRasEDialog.view_widgets]
+            for lt in lts
+        ]
         # enable some components
         self.NavigationBlockWidget.setEnabled(True)
         [view_widget.widget_EditingToolbar.setEnabled(True) for view_widget in ThRasEDialog.view_widgets]
@@ -1287,7 +1434,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     @pyqtSlot()
     def open_autofill_dialog(self):
         if self.autofill_dialog.isVisible():
-            self.autofill_dialog.setWindowState(self.autofill_dialog.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
+            self.autofill_dialog.setWindowState(
+                self.autofill_dialog.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive
+            )
             self.autofill_dialog.raise_()
             self.autofill_dialog.activateWindow()
         else:
@@ -1299,12 +1448,12 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         quit_msg = (
             "This action applies the changes defined in the pixel recoding table to the entire thematic raster. "
             "This operation cannot be undone.\n\n"
-            'Target file: "{}"\n'.format(LayerToEdit.current.file_path)
+            f'Target file: "{LayerToEdit.current.file_path}"\n'
         )
 
         msg_box = QMessageBox(self)
         msg_box.setIcon(QMessageBox.Icon.Question)
-        msg_box.setWindowTitle('Applying changes to entire thematic raster')
+        msg_box.setWindowTitle("Applying changes to entire thematic raster")
         msg_box.setText(quit_msg)
         msg_box.setStandardButtons(QMessageBox.StandardButton.Apply | QMessageBox.StandardButton.Cancel)
         msg_box.setDefaultButton(QMessageBox.StandardButton.Cancel)
@@ -1315,7 +1464,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         record_checkbox.setChecked(False)
         record_checkbox.setEnabled(registry_enabled)
         # Set tooltip based on registry status
-        tooltip_base = ("<p>Add the changes that will be applied here to the ThRasE registry.</p>")
+        tooltip_base = "<p>Add the changes that will be applied here to the ThRasE registry.</p>"
         if registry_enabled:
             tooltip = f"<html><head/><body>{tooltip_base}</body></html>"
         else:
@@ -1331,12 +1480,17 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             status = LayerToEdit.current.edit_to_entire_thematic_raster(record_in_registry=record_in_registry)
             if status is not False and status > 0:
                 self.MsgBar.pushMessage(
-                    "DONE: Changes in the recoded pixels table were successfully applied to the entire thematic raster.",
-                    level=Qgis.MessageLevel.Success, duration=10)
+                    "DONE: Changes in the recoded pixels table were successfully applied"
+                    " to the entire thematic raster.",
+                    level=Qgis.MessageLevel.Success,
+                    duration=10,
+                )
             elif status is not False and status == 0:
                 self.MsgBar.pushMessage(
                     "No changes were applied: no pixels matched the recode criteria. Please check the recode table.",
-                    level=Qgis.MessageLevel.Info, duration=10)
+                    level=Qgis.MessageLevel.Info,
+                    duration=10,
+                )
 
     @pyqtSlot()
     def apply_from_classes_or_mask_dialog(self):
@@ -1344,14 +1498,18 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if not LayerToEdit.current.old_new_value:
             self.MsgBar.pushMessage(
                 "There are no changes to apply in the recode pixel table. Please set new pixel values first",
-                level=Qgis.MessageLevel.Warning, duration=10)
+                level=Qgis.MessageLevel.Warning,
+                duration=10,
+            )
             return
 
         self.apply_from_classes_or_mask.setup_gui()
         if self.apply_from_classes_or_mask.exec():
             self.MsgBar.pushMessage(
                 "DONE: Changes in recode pixels table were successfully applied within the selected mask",
-                level=Qgis.MessageLevel.Success, duration=10)
+                level=Qgis.MessageLevel.Success,
+                duration=10,
+            )
 
     @pyqtSlot()
     def save_thrase_config(self):
@@ -1394,9 +1552,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             tooltip = (
                 "<html><head/><body><p><span style='font-weight:600;'>Overwrite config file</span><br/>"
                 "Save the current ThRasE configuration to a YAML file for later restoration."
-                "</p><p><b>Current file:</b> {}{}"
+                f"</p><p><b>Current file:</b> {escape(config_path)}{escape(saved_suffix)}"
                 "</p></body></html>"
-            ).format(escape(config_path), escape(saved_suffix))
+            )
         else:
             tooltip = (
                 "<html><head/><body><p><span style='font-weight:600;'>Set up the config file</span><br/>"
@@ -1416,19 +1574,25 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             path, filename = os.path.split(layer_to_edit.file_path)
             suggested_filename = os.path.splitext(os.path.join(path, filename))[0] + "_thrase.yaml"
 
-        output_file, _ = QFileDialog.getSaveFileName(self, self.tr("Save the current configuration of the ThRasE plugin"),
-                                                  suggested_filename,
-                                                  self.tr("YAML files (*.yaml *.yml);;All files (*.*)"))
+        output_file, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Save the current configuration of the ThRasE plugin"),
+            suggested_filename,
+            self.tr("YAML files (*.yaml *.yml);;All files (*.*)"),
+        )
 
-        if output_file is None or output_file == '':
+        if output_file is None or output_file == "":
             return False
 
-        if not output_file.endswith(('.yaml', '.yml')):
+        if not output_file.endswith((".yaml", ".yml")):
             output_file += ".yaml"
 
         layer_to_edit.save_config(output_file)
-        self.MsgBar.pushMessage("DONE: Configuration file saved successfully in '{}'".format(output_file),
-                                level=Qgis.MessageLevel.Success, duration=10)
+        self.MsgBar.pushMessage(
+            f"DONE: Configuration file saved successfully in '{output_file}'",
+            level=Qgis.MessageLevel.Success,
+            duration=10,
+        )
         self.update_save_buttons_state()
         return True
 
@@ -1440,9 +1604,11 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.ccd_plugin_widget.setVisible(False)
             if self.ccd_plugin_available:
                 from CCD_Plugin.gui.CCD_Plugin_dockwidget import PickerCoordsOnMap
+
                 PickerCoordsOnMap.delete_markers()
 
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'init_dialog.ui'))
+
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "init_dialog.ui"))
 
 
 class InitDialog(QDialog, FORM_CLASS):

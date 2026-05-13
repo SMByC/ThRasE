@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -24,15 +23,15 @@ from pathlib import Path
 
 from qgis.core import Qgis
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtWidgets import QColorDialog, QFileDialog, QMessageBox, QWidget
 
 from ThRasE.core.editing import LayerToEdit
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
-FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, 'ui', 'registry_widget.ui'))
+FORM_CLASS, _ = uic.loadUiType(Path(plugin_folder, "ui", "registry_widget.ui"))
 
 
 class RegistryWidget(QWidget, FORM_CLASS):
@@ -46,7 +45,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
     def setup_gui(self):
         # initial state
         self.PixelLogGroups_Slider.setEnabled(False)
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group 0 of 0")
+        self.PixelLogGroups_Slider.setToolTip(
+            "Registry of pixel groups modified during edit actions over time:\nEdit group 0 of 0"
+        )
         self.PixelLogGroup_DetailText.setText("")
         self.previousTileGroup.setEnabled(False)
         self.nextTileGroup.setEnabled(False)
@@ -123,7 +124,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
 
     def set_empty_state(self):
         self.PixelLogGroups_Slider.setEnabled(False)
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group 0 of 0")
+        self.PixelLogGroups_Slider.setToolTip(
+            "Registry of pixel groups modified during edit actions over time:\nEdit group 0 of 0"
+        )
         self.PixelLogGroup_DetailText.setText("No modified pixels found in the registry")
         self.previousTileGroup.setEnabled(False)
         self.nextTileGroup.setEnabled(False)
@@ -146,7 +149,7 @@ class RegistryWidget(QWidget, FORM_CLASS):
         if color.isValid():
             # update the registry color
             LayerToEdit.current.registry.tiles_color = color
-            self.TilesColor.setStyleSheet("QToolButton{{background-color:{};}}".format(color.name()))
+            self.TilesColor.setStyleSheet(f"QToolButton{{background-color:{color.name()};}}")
 
             # update renderer with new color
             LayerToEdit.current.registry.update_color()
@@ -160,11 +163,15 @@ class RegistryWidget(QWidget, FORM_CLASS):
         registry = LayerToEdit.current.registry
         registry.set_current_group(idx_group)
         total_groups = len(registry.groups)
-        self.PixelLogGroups_Slider.setToolTip("Registry of pixel groups modified during edit actions over time:\nEdit group {} of {}".format(idx_group, total_groups))
+        self.PixelLogGroups_Slider.setToolTip(
+            f"Registry of pixel groups modified during edit actions over time:\n"
+            f"Edit group {idx_group} of {total_groups}"
+        )
         group = registry.current_group
         self.PixelLogGroup_DetailText.setText(
             "{} pixels modified: {} | Total: {} pixels modified".format(
-                len(group.tiles), group.edit_date.strftime("%d %b %Y, %H:%M:%S"), self.total_pixels_modified)
+                len(group.tiles), group.edit_date.strftime("%d %b %Y, %H:%M:%S"), self.total_pixels_modified
+            )
         )
         # enable/disable nav buttons
         self.previousTileGroup.setEnabled(idx_group > 1)
@@ -231,7 +238,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
         # update controls state
         self.PixelLogGroups_Slider.setEnabled(enabled and self.total_pixels_modified > 0)
         self.previousTileGroup.setEnabled(enabled and self.PixelLogGroups_Slider.value() > 1)
-        self.nextTileGroup.setEnabled(enabled and self.PixelLogGroups_Slider.value() < len(LayerToEdit.current.registry.groups))
+        self.nextTileGroup.setEnabled(
+            enabled and self.PixelLogGroups_Slider.value() < len(LayerToEdit.current.registry.groups)
+        )
         self.showAll.setEnabled(enabled)
         self.autoCenter.setEnabled(enabled)
         self.TilesColor.setEnabled(enabled)
@@ -240,17 +249,23 @@ class RegistryWidget(QWidget, FORM_CLASS):
         self.PixelLogGroup_DetailText.setEnabled(enabled)
         # update registry button tooltip
         from ThRasE.thrase import ThRasE
+
         status = "ThRasE Registry is ENABLED." if enabled else "ThRasE Registry is DISABLED."
-        ThRasE.dialog.QPBtn_Registry.setToolTip(f"{status}\n\nOpen the registry tool to review pixel changes over time.")
+        ThRasE.dialog.QPBtn_Registry.setToolTip(
+            f"{status}\n\nOpen the registry tool to review pixel changes over time."
+        )
 
     @pyqtSlot()
     def export_registry_dialog(self):
         from ThRasE.thrase import ThRasE
+
         if not LayerToEdit.current:
             return
         # suggest filename near the raster
         layer_path = LayerToEdit.current.file_path or ""
-        base_dir = os.path.dirname(layer_path) if os.path.isdir(os.path.dirname(layer_path)) else os.path.expanduser("~")
+        base_dir = (
+            os.path.dirname(layer_path) if os.path.isdir(os.path.dirname(layer_path)) else os.path.expanduser("~")
+        )
         base_name = os.path.splitext(os.path.basename(layer_path))[0] or "thrase"
         suggested = os.path.join(base_dir, f"{base_name}_registry.gpkg")
 
@@ -266,21 +281,30 @@ class RegistryWidget(QWidget, FORM_CLASS):
         ok, msg, count = LayerToEdit.current.registry.export_registry(output_file)
 
         if ok:
-            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"DONE: Registry exported with {count} edited pixels to {output_file}"), level=Qgis.MessageLevel.Success, duration=10)
+            ThRasE.dialog.MsgBar.pushMessage(
+                self.tr(f"DONE: Registry exported with {count} edited pixels to {output_file}"),
+                level=Qgis.MessageLevel.Success,
+                duration=10,
+            )
         else:
-            ThRasE.dialog.MsgBar.pushMessage(self.tr(f"Export failed: {msg}"), level=Qgis.MessageLevel.Critical, duration=20)
+            ThRasE.dialog.MsgBar.pushMessage(
+                self.tr(f"Export failed: {msg}"), level=Qgis.MessageLevel.Critical, duration=20
+            )
 
     @pyqtSlot()
     def delete_registry(self):
         from ThRasE.thrase import ThRasE
+
         if not LayerToEdit.current:
             return
         # confirm action to delete entire registry
         reply = QMessageBox.warning(
             self,
             self.tr("Delete registry"),
-            self.tr("Are you sure you want to delete the entire registry for this layer? "
-                    "This action does not undo the changes made in the layer."),
+            self.tr(
+                "Are you sure you want to delete the entire registry for this layer? "
+                "This action does not undo the changes made in the layer."
+            ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -290,4 +314,6 @@ class RegistryWidget(QWidget, FORM_CLASS):
         LayerToEdit.current.pixel_log_store = {}
         LayerToEdit.current.registry.delete()
         self.set_empty_state()
-        ThRasE.dialog.MsgBar.pushMessage(self.tr("DONE: Registry cleared"), level=Qgis.MessageLevel.Success, duration=10)
+        ThRasE.dialog.MsgBar.pushMessage(
+            self.tr("DONE: Registry cleared"), level=Qgis.MessageLevel.Success, duration=10
+        )

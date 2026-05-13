@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,16 +17,17 @@
  *                                                                         *
  ***************************************************************************/
 """
-import numpy as np
+
 import multiprocessing
 import xml.etree.ElementTree as ET
 from random import randrange
-from osgeo import gdal
 
+import numpy as np
+from osgeo import gdal
+from qgis.core import QgsPalettedRasterRenderer
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QMessageBox, QProgressDialog, QApplication
-from qgis.core import QgsPalettedRasterRenderer
+from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QProgressDialog
 
 from ThRasE.utils.qgis_utils import get_source_from
 from ThRasE.utils.system_utils import wait_process
@@ -43,10 +43,11 @@ def mask(input_list, boolean_mask):
         boolean_mask (list): The boolean mask list
 
     Examples:
-        >>> mask(['A','B','C','D'], [1,0,1,0])
+        >>> mask(["A", "B", "C", "D"], [1, 0, 1, 0])
         ['A', 'C']
     """
-    return [i for i, b in zip(input_list, boolean_mask) if b]
+    return [i for i, b in zip(input_list, boolean_mask, strict=False) if b]
+
 
 # --------------------------------------------------------------------------
 # symbology utils
@@ -102,8 +103,11 @@ def auto_symbology_classification_render(layer, band):
     # fill categories
     categories = []
     for unique_value in unique_values:
-        categories.append(QgsPalettedRasterRenderer.Class(
-            unique_value, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)), str(unique_value)))
+        categories.append(
+            QgsPalettedRasterRenderer.Class(
+                unique_value, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)), str(unique_value)
+            )
+        )
 
     renderer = QgsPalettedRasterRenderer(layer.dataProvider(), band, categories)
     layer.setRenderer(renderer)
@@ -117,21 +121,32 @@ def get_xml_style(layer, band):
     xml_style = ET.fromstring(xml_style_str)
 
     # for singleband_pseudocolor
-    xml_style_items = xml_style.findall('pipe/rasterrenderer[@band="{}"]/rastershader/colorrampshader/item'.format(band))
+    xml_style_items = xml_style.findall(f'pipe/rasterrenderer[@band="{band}"]/rastershader/colorrampshader/item')
     if not xml_style_items:
         # for unique values
-        xml_style_items = xml_style.findall('pipe/rasterrenderer[@band="{}"]/colorPalette/paletteEntry'.format(band))
+        xml_style_items = xml_style.findall(f'pipe/rasterrenderer[@band="{band}"]/colorPalette/paletteEntry')
 
-    check_int_values = [int(float(xml_item.get("value"))) == float(xml_item.get("value")) for xml_item in xml_style_items]
+    check_int_values = [
+        int(float(xml_item.get("value"))) == float(xml_item.get("value")) for xml_item in xml_style_items
+    ]
 
     if not xml_style_items or False in check_int_values:
-        msg = "The selected layer \"{layer}\"{band} doesn't have an appropriate symbology for ThRasE, " \
-              "it must be set with unique/exact colors-values. " \
-              "<a href='https://smbyc.github.io/ThRasE/#thematic-raster-to-edit'>" \
-              "See more</a>.<br/><br/>" \
-              "Allow ThRasE apply an automatic classification symbology to this layer{band}?" \
-            .format(layer=layer.name(), band=" in the band {}".format(band) if layer.bandCount() > 1 else "")
-        reply = QMessageBox.question(None, 'Reading the symbology layer style...', msg, QMessageBox.StandardButton.Apply, QMessageBox.StandardButton.Cancel)
+        msg = (
+            'The selected layer "{layer}"{band} doesn\'t have an appropriate symbology for ThRasE, '
+            "it must be set with unique/exact colors-values. "
+            "<a href='https://smbyc.github.io/ThRasE/#thematic-raster-to-edit'>"
+            "See more</a>.<br/><br/>"
+            "Allow ThRasE apply an automatic classification symbology to this layer{band}?".format(
+                layer=layer.name(), band=f" in the band {band}" if layer.bandCount() > 1 else ""
+            )
+        )
+        reply = QMessageBox.question(
+            None,
+            "Reading the symbology layer style...",
+            msg,
+            QMessageBox.StandardButton.Apply,
+            QMessageBox.StandardButton.Cancel,
+        )
         if reply == QMessageBox.StandardButton.Apply:
             auto_symbology_classification_render(layer, band)
             return get_xml_style(layer, band)
@@ -149,14 +164,15 @@ def get_pixel_values(layer, band):
         pixel_values.append(int(item_xml.get("value")))
     return pixel_values
 
+
 # --------------------------------------------------------------------------
 # pixel count utils
 
 
-def chunks(l, n):
-    """generate the sub-list of chunks of n-sizes from list l"""
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+def chunks(lst, n):
+    """generate the sub-list of chunks of n-sizes from list lst"""
+    for i in range(0, len(lst), n):
+        yield lst[i : i + n]
 
 
 def pixel_count_in_chunk(args):
@@ -194,8 +210,9 @@ def get_pixel_count_by_pixel_values(layer, band, pixel_values=None):
     # compute and merge all parallel process returns in one result
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
         imap_it = pool.imap(pixel_count_in_chunk, input_data)
-        pixel_counts = np.sum([proc for proc in imap_it], axis=0).tolist()
-        return dict(zip(pixel_values, pixel_counts))
+        pixel_counts = np.sum(list(imap_it), axis=0).tolist()
+        return dict(zip(pixel_values, pixel_counts, strict=False))
+
 
 # --------------------------------------------------------------------------
 # GDAL metadata copy utils

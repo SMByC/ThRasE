@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  ThRasE
@@ -18,8 +17,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-import pytest
 
+import pytest
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 
 from ThRasE.core.editing import LayerToEdit
@@ -47,6 +46,7 @@ def setup_pixels(plugin, thrase_dialog):
     LayerToEdit.current = lte
     # stub the dialog methods called at the end of apply_autofill
     from ThRasE.thrase import ThRasE
+
     ThRasE.dialog.set_recode_pixel_table = lambda: None
     ThRasE.dialog.update_recode_pixel_table = lambda: None
     return lte
@@ -55,6 +55,7 @@ def setup_pixels(plugin, thrase_dialog):
 # ---------------------------------------------------------------------------
 # Tests for check_condition
 # ---------------------------------------------------------------------------
+
 
 class TestCheckCondition:
     def test_wildcard(self, autofill_dialog):
@@ -86,6 +87,7 @@ class TestCheckCondition:
 # Tests for check_value
 # ---------------------------------------------------------------------------
 
+
 class TestCheckValue:
     def test_empty_string(self, autofill_dialog):
         assert autofill_dialog.check_value("") is True
@@ -109,6 +111,7 @@ class TestCheckValue:
 # ---------------------------------------------------------------------------
 # Tests for apply_autofill
 # ---------------------------------------------------------------------------
+
 
 class TestApplyAutofill:
     def _set_autofill_rows(self, dialog, rows):
@@ -168,10 +171,13 @@ class TestApplyAutofill:
 
     def test_later_rules_overwrite_earlier(self, autofill_dialog, setup_pixels):
         """Rules are applied sequentially; later rules overwrite earlier ones."""
-        self._set_autofill_rows(autofill_dialog, [
-            ("*", "10"),       # first: set all to 10
-            ("V == 35", "99"), # then: override pixel 35 to 99
-        ])
+        self._set_autofill_rows(
+            autofill_dialog,
+            [
+                ("*", "10"),  # first: set all to 10
+                ("V == 35", "99"),  # then: override pixel 35 to 99
+            ],
+        )
         autofill_dialog.apply_autofill()
 
         for pixel in LayerToEdit.current.pixels:
