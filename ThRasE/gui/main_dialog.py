@@ -1228,7 +1228,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         ]
         layer_to_edit.symbology = [
             (row[0], row[1], (row[2][0], row[2][1], row[2][2], pcv))
-            for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility, strict=False)
+            for row, pcv in zip(layer_to_edit.symbology, pixel_class_visibility, strict=True)
         ]
         apply_symbology(layer_to_edit.qgs_layer, layer_to_edit.band, layer_to_edit.symbology)
 

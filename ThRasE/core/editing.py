@@ -494,7 +494,7 @@ class LayerToEdit:
 
                 group_id = uuid.uuid4()
                 for row_idx, col_idx, old_val, new_val in zip(
-                    row_indices, col_indices, old_values, new_values, strict=False
+                    row_indices, col_indices, old_values, new_values, strict=True
                 ):
                     x_coord = xmin + (float(col_idx) + 0.5) * ps_x
                     y_coord = ymax - (float(row_idx) + 0.5) * ps_y

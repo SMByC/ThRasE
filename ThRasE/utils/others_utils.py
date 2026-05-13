@@ -46,7 +46,7 @@ def mask(input_list, boolean_mask):
         >>> mask(["A", "B", "C", "D"], [1, 0, 1, 0])
         ['A', 'C']
     """
-    return [i for i, b in zip(input_list, boolean_mask, strict=False) if b]
+    return [i for i, b in zip(input_list, boolean_mask, strict=True) if b]
 
 
 # --------------------------------------------------------------------------
@@ -211,7 +211,7 @@ def get_pixel_count_by_pixel_values(layer, band, pixel_values=None):
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
         imap_it = pool.imap(pixel_count_in_chunk, input_data)
         pixel_counts = np.sum(list(imap_it), axis=0).tolist()
-        return dict(zip(pixel_values, pixel_counts, strict=False))
+        return dict(zip(pixel_values, pixel_counts, strict=True))
 
 
 # --------------------------------------------------------------------------
