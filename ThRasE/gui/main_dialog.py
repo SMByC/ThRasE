@@ -38,7 +38,6 @@ from qgis.core import (
     Qgis,
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
-    QgsMapLayerProxyModel,
     QgsPointXY,
     QgsProject,
     QgsRectangle,
@@ -208,7 +207,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
         # ######### setup layer to edit ######### #
         self.QCBox_LayerToEdit.setCurrentIndex(-1)
-        self.QCBox_LayerToEdit.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
+        self.QCBox_LayerToEdit.setFilters(Qgis.LayerFilter.RasterLayer)
         # tool buttons
         self.QPBtn_LayerStyle.setDisabled(True)
         self.QPBtn_ReloadRecodeTable.setDisabled(True)

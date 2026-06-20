@@ -27,7 +27,6 @@ from subprocess import call
 from qgis.core import (
     Qgis,
     QgsColorRampShader,
-    QgsMapLayer,
     QgsPalettedRasterRenderer,
     QgsPointXY,
     QgsProject,
@@ -262,10 +261,10 @@ class StyleEditorDialog(QDialog, FORM_CLASS):
 
         self.setWindowTitle(f"{self.layer.name()} - Style Editor")
 
-        if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
+        if self.layer.type() == Qgis.LayerType.Vector:
             self.StyleEditorWidget = QgsRendererPropertiesDialog(self.layer, QgsStyle(), True, parent)
 
-        if self.layer.type() == QgsMapLayer.LayerType.RasterLayer:
+        if self.layer.type() == Qgis.LayerType.Raster:
             self.StyleEditorWidget = QgsRendererRasterPropertiesWidget(self.layer, canvas, parent)
 
         self.scrollArea.setWidget(self.StyleEditorWidget)
@@ -305,7 +304,7 @@ def apply_symbology(rlayer, rband, symbology):
         False,
     )
     if layer_toolbar:
-        if rlayer.type() == QgsMapLayer.LayerType.VectorLayer:
+        if rlayer.type() == Qgis.LayerType.Vector:
             rlayer.setOpacity(layer_toolbar.opacity / 100.0)
         else:
             rlayer.renderer().setOpacity(layer_toolbar.opacity / 100.0)
@@ -370,7 +369,7 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
         color_ramp_items.sort(key=lambda x: x.value)
         # Create new color ramp shader with Exact Interpolation
         new_color_ramp_shader = QgsColorRampShader()
-        new_color_ramp_shader.setColorRampType(QgsColorRampShader.Type.Exact)
+        new_color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
         new_color_ramp_shader.setColorRampItemList(color_ramp_items)
         # Set Equal Interval mode by defining min/max values
         if color_ramp_items:

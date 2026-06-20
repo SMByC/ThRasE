@@ -31,9 +31,6 @@ from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.utils.qgis_utils import unload_layer
 
-# Initialize Qt resources from file resources.py
-from .resources_rc import *  # noqa: F403
-
 
 class ThRasE:
     """QGIS Plugin Implementation."""

@@ -26,11 +26,9 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsFeature,
-    QgsMapLayerProxyModel,
     QgsProject,
     QgsRectangle,
     QgsUnitTypes,
-    QgsWkbTypes,
 )
 from qgis.gui import QgsMapTool, QgsMapToolPan, QgsRubberBand
 from qgis.PyQt import uic
@@ -75,7 +73,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.QCBox_BuildNavType.currentTextChanged.connect(self.set_navigation_type_tool)
         # set properties to QgsMapLayerComboBox
         self.QCBox_VectorFile.setCurrentIndex(-1)
-        self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.VectorLayer)
+        self.QCBox_VectorFile.setFilters(Qgis.LayerFilter.VectorLayer)
         # handle connect layer selection with render canvas
         self.QCBox_VectorFile.currentIndexChanged.connect(
             lambda: self.render_over_thematic(self.QCBox_VectorFile.currentLayer())
@@ -232,21 +230,21 @@ class NavigationDialog(QDialog, FORM_CLASS):
         if nav_type == "polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
-            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
+            self.QCBox_VectorFile.setFilters(Qgis.LayerFilter.PolygonLayer)
             self.QCBox_VectorFile.setToolTip(
                 "Select a polygon vector file to use as the\nbase for building the navigation tiles"
             )
         if nav_type == "points":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
-            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PointLayer)
+            self.QCBox_VectorFile.setFilters(Qgis.LayerFilter.PointLayer)
             self.QCBox_VectorFile.setToolTip(
                 "Select a point vector file to use as the\nbase for building the navigation tiles"
             )
         if nav_type == "centroid of polygons":
             self.NavTiles_widgetFile.setVisible(True)
             self.NavTiles_widgetAOI.setHidden(True)
-            self.QCBox_VectorFile.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
+            self.QCBox_VectorFile.setFilters(Qgis.LayerFilter.PolygonLayer)
             self.QCBox_VectorFile.setToolTip(
                 "Select a polygon vector file to use as the\n"
                 "base for building the navigation tiles\n"
@@ -266,7 +264,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
     def clear_all_aoi_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.aoi_drawn:
-            rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            rubber_band.reset(Qgis.GeometryType.Polygon)
         self.aoi_drawn = []
         if isinstance(self.render_widget.canvas.mapTool(), AOIPickerTool):
             self.render_widget.canvas.mapTool().finish()
@@ -444,7 +442,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
         # unhighlight the before tile (rubber band)
         if self.highlight_tile:
-            self.highlight_tile.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            self.highlight_tile.reset(Qgis.GeometryType.Polygon)
 
         self.highlight_tile = tile.create(self.render_widget.canvas, line_width=6, rbs_in="highlight")
 
@@ -501,22 +499,22 @@ class AOIPickerTool(QgsMapTool):
         color.setAlpha(40)
         # create the main polygon rubber band
         self.rubber_band = QgsRubberBand(
-            self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry
+            self.navigation_dialog.render_widget.canvas, Qgis.GeometryType.Polygon
         )
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(3)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
         self.aux_rubber_band = QgsRubberBand(
-            self.navigation_dialog.render_widget.canvas, QgsWkbTypes.GeometryType.PolygonGeometry
+            self.navigation_dialog.render_widget.canvas, Qgis.GeometryType.Polygon
         )
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(3)
 
     def finish(self):
         if self.rubber_band:
-            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            self.rubber_band.reset(Qgis.GeometryType.Polygon)
         if self.aux_rubber_band:
-            self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            self.aux_rubber_band.reset(Qgis.GeometryType.Polygon)
         self.rubber_band = None
         self.aux_rubber_band = None
         self.navigation_dialog.AOI_Picker.setChecked(False)
@@ -527,7 +525,7 @@ class AOIPickerTool(QgsMapTool):
 
     def define_polygon(self):
         # clean the aux rubber band
-        self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+        self.aux_rubber_band.reset(Qgis.GeometryType.Polygon)
         self.aux_rubber_band = None
         # adjust the color
         color = QColor("red")
@@ -587,6 +585,6 @@ class AOIPickerTool(QgsMapTool):
             self.aux_rubber_band.removeLastPoint()
         # delete and finish
         if event.key() == Qt.Key.Key_Escape:
-            self.rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
-            self.aux_rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            self.rubber_band.reset(Qgis.GeometryType.Polygon)
+            self.aux_rubber_band.reset(Qgis.GeometryType.Polygon)
             self.finish()

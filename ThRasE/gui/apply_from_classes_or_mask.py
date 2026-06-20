@@ -26,7 +26,7 @@ from shutil import move
 
 import numpy as np
 from osgeo import gdal, ogr, osr
-from qgis.core import Qgis, QgsFillSymbol, QgsMapLayer, QgsMapLayerProxyModel, QgsSingleSymbolRenderer, QgsWkbTypes
+from qgis.core import Qgis, QgsFillSymbol, QgsSingleSymbolRenderer
 from qgis.gui import QgsMapToolPan
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt, pyqtSlot
@@ -88,7 +88,7 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         self.QCBox_LayerForMaskingBand.clear()
         # accept raster layers AND polygon vector layers as mask sources
         self.QCBox_LayerForMasking.setFilters(
-            QgsMapLayerProxyModel.Filter.RasterLayer | QgsMapLayerProxyModel.Filter.PolygonLayer
+            Qgis.LayerFilter.RasterLayer | Qgis.LayerFilter.PolygonLayer
         )
         # hide the thematic layer being edited so it can't be chosen as its own mask
         self.QCBox_LayerForMasking.setExceptedLayerList([LayerToEdit.current.qgs_layer])
@@ -227,10 +227,10 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
             self._set_mask_mode(None)
             return
 
-        if layer.type() == QgsMapLayer.LayerType.RasterLayer:
+        if layer.type() == Qgis.LayerType.Raster:
             self._setup_raster_mask(layer)
-        elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
-            if layer.geometryType() != QgsWkbTypes.GeometryType.PolygonGeometry:
+        elif layer.type() == Qgis.LayerType.Vector:
+            if layer.geometryType() != Qgis.GeometryType.Polygon:
                 self.MsgBar.pushMessage(
                     "Only polygon vector layers are supported as a mask", level=Qgis.MessageLevel.Critical, duration=20
                 )

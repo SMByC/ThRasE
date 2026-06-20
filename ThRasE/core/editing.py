@@ -39,7 +39,7 @@ except ImportError:
 
 import itertools
 
-from qgis.core import Qgis, QgsGeometry, QgsPointXY, QgsRaster, QgsRasterBlock
+from qgis.core import Qgis, QgsGeometry, QgsPointXY, QgsRasterBlock
 from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
@@ -129,12 +129,12 @@ class LayerToEdit:
         return self.qgs_layer.extent()
 
     def get_pixel_value_from_xy(self, x, y):
-        return self.data_provider.identify(QgsPointXY(x, y), QgsRaster.IdentifyFormat.IdentifyFormatValue).results()[
+        return self.data_provider.identify(QgsPointXY(x, y), Qgis.RasterIdentifyFormat.Value).results()[
             self.band
         ]
 
     def get_pixel_value_from_pnt(self, point):
-        return self.data_provider.identify(point, QgsRaster.IdentifyFormat.IdentifyFormatValue).results()[self.band]
+        return self.data_provider.identify(point, Qgis.RasterIdentifyFormat.Value).results()[self.band]
 
     def setup_pixel_table(self, force_update=False, nodata=None):
         if self.pixels is None or force_update is True:

@@ -21,7 +21,7 @@
 import os
 from pathlib import Path
 
-from qgis.core import QgsMapLayer
+from qgis.core import Qgis
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QWidget
@@ -135,7 +135,7 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
         self.layer = layer
         self.enable()
         self.render_widget.update_render_layers()
-        if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
+        if self.layer.type() == Qgis.LayerType.Vector:
             self.layerOpacity.setValue(int(self.layer.opacity() * 100))
         else:
             self.layerOpacity.setValue(int(self.layer.renderer().opacity() * 100))
@@ -161,7 +161,7 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
             opacity = self.layerOpacity.value()
 
         if self.layer:
-            if self.layer.type() == QgsMapLayer.LayerType.VectorLayer:
+            if self.layer.type() == Qgis.LayerType.Vector:
                 self.layer.setOpacity(opacity / 100.0)
             else:
                 self.layer.renderer().setOpacity(opacity / 100.0)

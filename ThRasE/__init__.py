@@ -35,6 +35,8 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
+    # Register icons under :/plugins/thrase/ before the plugin class is imported
+    from . import resources_rc  # noqa: F401
     from .thrase import ThRasE
 
     return ThRasE(iface)

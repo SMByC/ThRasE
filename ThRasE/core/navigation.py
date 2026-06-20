@@ -20,7 +20,7 @@
 
 from math import ceil
 
-from qgis.core import QgsGeometry, QgsPointXY, QgsRectangle, QgsWkbTypes
+from qgis.core import Qgis, QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.gui import QgsRubberBand
 from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtGui import QColor
@@ -269,12 +269,12 @@ class Navigation:
         if rbs_in == "main_dialog":
             for tile in self.tiles:
                 for rubber_band in tile.rbs_in_main_dialog:
-                    rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+                    rubber_band.reset(Qgis.GeometryType.Polygon)
                 tile.rbs_in_main_dialog = []
         if rbs_in == "nav_dialog":
             for tile in self.tiles:
                 for rubber_band in tile.rbs_in_nav_dialog:
-                    rubber_band.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+                    rubber_band.reset(Qgis.GeometryType.Polygon)
                 tile.rbs_in_nav_dialog = []
 
     def delete(self):
@@ -284,7 +284,7 @@ class Navigation:
         self.clear(rbs_in="main_dialog")
         self.clear(rbs_in="nav_dialog")
         if LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.highlight_tile:
-            LayerToEdit.current.navigation_dialog.highlight_tile.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
+            LayerToEdit.current.navigation_dialog.highlight_tile.reset(Qgis.GeometryType.Polygon)
         self.is_valid = False
         self.current_tile = None
         self.tiles = []
