@@ -36,7 +36,7 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     # Register icons under :/plugins/thrase/ before the plugin class is imported
-    from . import resources_rc  # noqa: F401
+    from . import resources  # noqa: F401
     from .thrase import ThRasE
 
     return ThRasE(iface)

@@ -28,6 +28,18 @@ ThRasE is available from the official QGIS Plugin Repository. To install it:
 
 **Compatibility:** ThRasE supports QGIS 3.36+ and QGIS 4.x
 
+## Packaging
+
+Package directly with qgis-plugin-ci. The tracked `ThRasE/resources.py` module
+provides QGIS 3.36+ and QGIS 4 / Qt6-compatible resources, while
+`ThRasE/resources.qrc` remains the icon source:
+
+```bash
+qgis-plugin-ci package -c 26.7
+```
+
+The `-c` option allows uncommitted changes during packaging.
+
 ## Citation
 
 Please cite it as:
