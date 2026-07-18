@@ -377,7 +377,7 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
         color_ramp_items.sort(key=lambda x: x.value)
         # Create new color ramp shader with Exact Interpolation
         new_color_ramp_shader = QgsColorRampShader()
-        new_color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
+        new_color_ramp_shader.setColorRampType(QgsColorRampShader.Type.Exact)
         new_color_ramp_shader.setColorRampItemList(color_ramp_items)
         # Set Equal Interval mode by defining min/max values
         if color_ramp_items:

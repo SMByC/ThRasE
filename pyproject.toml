@@ -28,12 +28,12 @@ Issues = "https://github.com/SMByC/ThRasE/issues"
 "QGIS Plugin" = "https://plugins.qgis.org/plugins/ThRasE/"
 
 [project.optional-dependencies]
-# uv pip sync pyproject.toml --extra docs
+# uv sync --extra docs
 docs = [
   "jupyter-book<2",
   "jupytext",
 ]
-# uv pip sync pyproject.toml --extra test
+# uv sync --extra test
 test = [
   "pytest",
   "pytest-qgis",

@@ -917,11 +917,12 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
         if ThRasE.tmp_dir is None:
             ThRasE.tmp_dir = tempfile.mkdtemp()
-        kml_file = tempfile.mktemp(
+        kml_fd, kml_file = tempfile.mkstemp(
             prefix=f"TileNavigation_Num_{LayerToEdit.current.navigation.current_tile.idx}_",
             suffix=".kml",
             dir=ThRasE.tmp_dir,
         )
+        os.close(kml_fd)
         # convert coordinates
         crsSrc = QgsCoordinateReferenceSystem(LayerToEdit.current.qgs_layer.crs())
         crsDest = QgsCoordinateReferenceSystem(4326)  # WGS84

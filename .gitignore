@@ -37,3 +37,7 @@ uv.lock
 # Temporary files
 *.log
 *.tmp
+
+# AI
+AGENTS.md
+codemap.md
