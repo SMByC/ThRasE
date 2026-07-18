@@ -19,11 +19,10 @@
 """
 
 import os
-import platform
 from math import isnan
 from pathlib import Path
-from subprocess import call
 
+from osgeo import gdal
 from qgis.core import (
     Qgis,
     QgsColorRampShader,
@@ -239,13 +238,20 @@ def get_nodata_value(layer, band=1):
 
 
 def unset_the_nodata_value(layer):
-    cmd = [
-        "gdal_edit" if platform.system() == "Windows" else "gdal_edit.py",
-        f'"{get_source_from(layer)}"',
-        "-unsetnodata",
-    ]
-    return_code = call(" ".join(cmd), shell=True)
-    return return_code
+    dataset = None
+    try:
+        dataset = gdal.Open(get_source_from(layer), gdal.GA_Update)
+        if dataset is None:
+            return 1
+
+        for band_number in range(1, dataset.RasterCount + 1):
+            if dataset.GetRasterBand(band_number).DeleteNoDataValue() != gdal.CE_None:
+                return 1
+        return 0
+    except Exception:
+        return 1
+    finally:
+        dataset = None
 
 
 # plugin path
@@ -321,7 +327,7 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
 
     Parameters:
         renderer: QgsRasterRenderer or QgsSingleBandPseudoColorRenderer
-        new_value: float or int - The value to add to the symbology
+        new_value: int - The value to add to the symbology; floats are converted to integers
         new_color: QColor or str - The color to associate with the value (QColor object or color name/hex)
         new_label: str, optional - Label for the new value (defaults to "Value {new_value}")
 
@@ -330,6 +336,8 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
     """
     if not renderer:
         return None
+
+    new_value = int(new_value)
 
     # Convert color to QColor if string
     if isinstance(new_color, str):
