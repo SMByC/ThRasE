@@ -39,7 +39,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Autofill the &quot;New Value&quot; column based on conditions, optionally using the &quot;Pixel Value&quot; (V) in both columns. The &quot;Condition&quot; column accepts any valid Python expression (e.g., "V&gt;3", "V&lt;=8", "and", "or"). Rules are applied sequentially, with later rules overwriting earlier ones.
+      <string>Autofill the &quot;New Value&quot; column using expressions with V or v (the pixel value), numeric arithmetic and comparisons, and/or/not, in/not in numeric lists, tuples, or sets, abs(), conditional expressions, and integer bitwise operators. Rules are applied sequentially, with later rules overwriting earlier ones.
 
 Special variables:
       V = pixel value

@@ -82,6 +82,26 @@ class TestCheckCondition:
     def test_equality(self, autofill_dialog):
         assert autofill_dialog.check_condition("V == 35") is True
 
+    @pytest.mark.parametrize(
+        "expression",
+        ["V in (1, 2, 3)", "V in (-1, +1)", "V not in [4, 5]", "V & 1 == 0", "abs(V) >= 0", "V if V else None"],
+    )
+    def test_supported_safe_expression_features(self, autofill_dialog, expression):
+        assert autofill_dialog.check_condition(expression) is True
+
+    @pytest.mark.parametrize(
+        "expression",
+        [
+            "__import__('os').system('touch /tmp/pwned')",
+            "V.__class__",
+            "globals()['__builtins__']",
+            "'V > 3'",
+            "unknown_name + 1",
+        ],
+    )
+    def test_rejects_unsafe_expression_syntax(self, autofill_dialog, expression):
+        assert autofill_dialog.check_condition(expression) is False
+
 
 # ---------------------------------------------------------------------------
 # Tests for check_value
@@ -106,6 +126,10 @@ class TestCheckValue:
 
     def test_invalid_expression(self, autofill_dialog):
         assert autofill_dialog.check_value("not_a_valid + ??") is False
+
+    @pytest.mark.parametrize("expression", ["__import__('os')", "V[0]", "V.real", "[V, 1]", "{'V': 1}"])
+    def test_rejects_unsafe_value_syntax(self, autofill_dialog, expression):
+        assert autofill_dialog.check_value(expression) is False
 
 
 # ---------------------------------------------------------------------------
@@ -208,3 +232,14 @@ class TestApplyAutofill:
 
         for pixel in LayerToEdit.current.pixels:
             assert pixel["new_value"] is None
+
+    def test_runtime_error_is_transactional(self, autofill_dialog, setup_pixels):
+        """A failing pixel must not commit results from earlier pixels or rules."""
+        for pixel in LayerToEdit.current.pixels:
+            pixel["new_value"] = 77
+
+        self._set_autofill_rows(autofill_dialog, [("*", "10 / V")])
+        autofill_dialog.apply_autofill()
+
+        for pixel in LayerToEdit.current.pixels:
+            assert pixel["new_value"] == 77
