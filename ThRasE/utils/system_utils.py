@@ -147,6 +147,20 @@ class LegacyLoader(SafeLoader):
     pass
 
 
+def load_legacy_yaml(stream):
+    """Load a legacy configuration using only the registered safe constructors.
+
+    This mirrors PyYAML's loader lifecycle without using its convenience loader
+    API. The loader is always disposed, including when construction raises an
+    error.
+    """
+    loader = LegacyLoader(stream)
+    try:
+        return loader.get_single_data()
+    finally:
+        loader.dispose()
+
+
 def _normalize_pairs(items):
     """Normalize a sequence or dict into a list of (key, value) tuples."""
     normalized = []

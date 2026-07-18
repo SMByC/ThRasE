@@ -28,12 +28,6 @@ from pathlib import Path
 from typing import ClassVar
 
 import yaml
-
-try:
-    from yaml import CSafeLoader as SafeLoader
-except ImportError:
-    from yaml import SafeLoader
-
 from qgis.core import (
     Qgis,
     QgsCoordinateReferenceSystem,
@@ -83,7 +77,7 @@ from ThRasE.utils.qgis_utils import (
     unset_the_nodata_value,
     valid_file_selected_in,
 )
-from ThRasE.utils.system_utils import LegacyLoader, block_signals_to, error_handler, open_file, wait_process
+from ThRasE.utils.system_utils import block_signals_to, error_handler, load_legacy_yaml, open_file, wait_process
 
 # plugin path
 plugin_folder = os.path.dirname(os.path.dirname(__file__))
@@ -364,12 +358,12 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if yaml_file_path != "" and os.path.isfile(yaml_file_path) and os.access(yaml_file_path, os.R_OK):
             try:
                 with open(yaml_file_path, encoding="utf-8") as yaml_file:
-                    yaml_config = yaml.load(yaml_file, Loader=SafeLoader)
+                    yaml_config = yaml.safe_load(yaml_file)
                     return yaml_config
             except yaml.constructor.ConstructorError:
                 # Support legacy YAML files that store ordered mappings and tuples
                 with open(yaml_file_path, encoding="utf-8") as yaml_file:
-                    yaml_config = yaml.load(yaml_file, Loader=LegacyLoader)
+                    yaml_config = load_legacy_yaml(yaml_file)
                     return yaml_config
             except Exception as err:
                 msg = f"Error while read the yaml file ThRasE configuration:\n\n{err}"
