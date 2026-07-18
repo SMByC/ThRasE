@@ -695,7 +695,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         datetime.fromisoformat(item.get("edit_date")),
                         store=True,
                     )
-                except Exception:
+                except (KeyError, TypeError, ValueError, OverflowError):
                     continue
             self.registry_widget.total_pixels_modified = reg_cfg.get(
                 "pixel_logs_count", len(LayerToEdit.current.pixel_log_store)
@@ -794,16 +794,23 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         event.ignore()
                         return
 
-        # disconnect signals for combo boxes
+        # Disconnect each signal independently: a missing/already-destroyed signal
+        # must not prevent teardown of the remaining widgets.
         try:
             self.QCBox_LayerToEdit.layerChanged.disconnect()
-            self.QCBox_band_LayerToEdit.currentIndexChanged.disconnect()
-            # self.QCBox_RenderFile.layerChanged
-            for view_widget in ThRasEDialog.view_widgets:
-                for layer_toolbar in view_widget.layer_toolbars:
-                    layer_toolbar.QCBox_RenderFile.layerChanged.disconnect()
-        except Exception:
+        except (TypeError, RuntimeError):
             pass
+        try:
+            self.QCBox_band_LayerToEdit.currentIndexChanged.disconnect()
+        except (TypeError, RuntimeError):
+            pass
+        # self.QCBox_RenderFile.layerChanged
+        for view_widget in ThRasEDialog.view_widgets:
+            for layer_toolbar in view_widget.layer_toolbars:
+                try:
+                    layer_toolbar.QCBox_RenderFile.layerChanged.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
 
         # close
         self.closingPlugin.emit()
@@ -1206,7 +1213,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 elif float(new_value) == int(new_value) and int(new_value) != pixel["value"]:
                     pixel["new_value"] = int(new_value)
                     layer_to_edit.old_new_value[pixel["value"]] = pixel["new_value"]
-            except Exception:
+            except (ValueError, OverflowError, TypeError):
                 pass
             # assign the on state
             on = self.recodePixelTable.item(row_idx, 1)

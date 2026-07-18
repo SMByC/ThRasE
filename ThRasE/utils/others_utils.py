@@ -219,10 +219,10 @@ def get_pixel_count_by_pixel_values(layer, band, pixel_values=None):
 
 
 def safe_call(method, *args):
-    """Safely call a GDAL method, ignoring exceptions"""
+    """Call a GDAL method, ignoring expected binding failures."""
     try:
         method(*args)
-    except Exception:
+    except RuntimeError:
         pass
 
 

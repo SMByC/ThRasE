@@ -95,20 +95,20 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         # dispatch when the user picks a layer from the combobox
         try:
             self.QCBox_LayerForMasking.layerChanged.disconnect()
-        except TypeError:
+        except (TypeError, RuntimeError):
             pass
         self.QCBox_LayerForMasking.layerChanged.connect(self.select_mask_layer)
         # refresh the classes table when the raster mask band changes
         try:
             self.QCBox_LayerForMaskingBand.currentIndexChanged.disconnect()
-        except TypeError:
+        except (TypeError, RuntimeError):
             pass
         self.QCBox_LayerForMaskingBand.currentIndexChanged.connect(self.setup_raster_mask_classes)
         # browse button: open a file dialog to load a mask (raster or polygon vector);
         # the layer is loaded hidden from the legend and removed on dialog close.
         try:
             self.QCBox_BrowseLayerForMasking.clicked.disconnect()
-        except TypeError:
+        except (TypeError, RuntimeError):
             pass
         self.QCBox_BrowseLayerForMasking.clicked.connect(
             lambda: browse_dialog_to_load_file(
@@ -128,13 +128,13 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
         # toggle raster class selection via the table (raster mode only)
         try:
             self.PixelTable.itemClicked.disconnect()
-        except TypeError:
+        except (TypeError, RuntimeError):
             pass
         self.PixelTable.itemClicked.connect(self.table_item_clicked)
         # Apply button
         try:
             self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.disconnect()
-        except TypeError:
+        except (TypeError, RuntimeError):
             pass
         self.DialogButtons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(lambda: self.apply())
         # registry checkbox (tooltip reflects whether the registry is available)
@@ -795,7 +795,7 @@ class ApplyFromClassesOrMask(QDialog, FORM_CLASS):
                 continue
             try:
                 wkb = bytes(geom.asWkb())
-            except Exception:
+            except (RuntimeError, ValueError, TypeError):
                 continue
             ogr_geom = ogr.CreateGeometryFromWkb(wkb)
             if ogr_geom is None:
