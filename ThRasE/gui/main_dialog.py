@@ -332,12 +332,20 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
         # ######### load settings from file ######### #
         if settings_type == "load":
-            self.restore_config(yaml_file_path, yaml_config)
+            if not self._restore_loaded_settings(yaml_file_path, yaml_config):
+                return False
 
         # install event filter on all QComboBox to block wheel events
         for combo in self.findChildren(QComboBox):
             combo.installEventFilter(self)
 
+        return True
+
+    def _restore_loaded_settings(self, yaml_file_path, yaml_config):
+        """Restore loaded settings and close only after the wait cursor is restored."""
+        if self.restore_config(yaml_file_path, yaml_config) is False:
+            self.close()
+            return False
         return True
 
     def eventFilter(self, obj, event):
@@ -382,6 +390,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     @wait_process
     def restore_config(self, yaml_file_path, yaml_config):
+        # Restoration performs compatibility migrations below.  Keep the caller's
+        # parsed YAML untouched so it can safely be reused by callers/tests.
+        yaml_config = deepcopy(yaml_config)
+
         def get_restore_path(_path):
             """check if the file path exists or try using relative path to the yml file"""
             if _path is None:
@@ -438,34 +450,64 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
         current_labels = {p["value"]: p.get("label", "") for p in current_pixels}
         saved_labels = {p["value"]: p.get("label", "") for p in saved_pixels}
-        labels_differ = current_labels != saved_labels
+        # Whitespace-only labels are equivalent to empty labels for the legacy
+        # merge decision, but the original label text must be preserved.
+        saved_labels_empty = not any(label is not None and str(label).strip() for label in saved_labels.values())
+        labels_differ = not saved_labels_empty and current_labels != saved_labels
 
+        # Keep a pristine copy for the explicit "use layer symbology" choice.  The
+        # live pixels are updated with saved recode state below, so taking this
+        # snapshot afterwards would lose the original visibility state.
+        live_pixels_backup = deepcopy(current_pixels)
         use_current_symbology = False
         if labels_differ and thematic_layer:
             msg_box = QMessageBox(self)
             msg_box.setIcon(QMessageBox.Icon.Question)
             msg_box.setWindowTitle("ThRasE - Symbology labels")
             msg_box.setText(
-                "The class labels in the current layer symbology are different "
-                "from those in the saved configuration file.\n\n"
-                "Which symbology do you want to use for the recode pixel table?"
+                f'The class labels for the thematic map "{thematic_layer.name()}" differ from those in the saved '
+                "configuration file.\n\nChoose which symbology to use for the recode pixel table."
             )
             btn_from_layer = msg_box.addButton("Use symbology from layer", QMessageBox.ButtonRole.AcceptRole)
             btn_from_config = msg_box.addButton("Use symbology from config file", QMessageBox.ButtonRole.RejectRole)
+            btn_cancel = msg_box.addButton(QMessageBox.StandardButton.Cancel)
             msg_box.setDefaultButton(btn_from_config)
+            msg_box.setEscapeButton(btn_cancel)
             msg_box.exec()
-            use_current_symbology = msg_box.clickedButton() == btn_from_layer
+            clicked_button = msg_box.clickedButton()
+            if clicked_button not in (btn_from_layer, btn_from_config):
+                return False
+            use_current_symbology = clicked_button == btn_from_layer
 
-        if use_current_symbology:
+        if saved_labels_empty:
+            # An empty label set is a valid older/incomplete saved symbology, not
+            # a request to discard its colors, order, recode state, or backup.
+            # Use current labels only where the saved class still exists in the
+            # currently loaded layer.
+            merged_saved_pixels = deepcopy(saved_pixels)
+            for pixel in merged_saved_pixels:
+                pixel["label"] = current_labels.get(pixel["value"], "")
+            LayerToEdit.current.pixels = merged_saved_pixels
+            backup_from_config = "recode_pixel_table_backup" in yaml_config
+            merged_saved_backup = deepcopy(yaml_config.get("recode_pixel_table_backup", saved_pixels))
+            if not backup_from_config:
+                for pixel in merged_saved_backup:
+                    pixel["new_value"] = None
+            for pixel in merged_saved_backup:
+                pixel["label"] = current_labels.get(pixel["value"], "")
+            LayerToEdit.current.pixels_backup = merged_saved_backup
+            LayerToEdit.current.setup_symbology()
+        elif use_current_symbology:
             # Keep the current QGIS symbology/labels but restore new_value and s/h from saved config
             saved_by_value = {p["value"]: p for p in saved_pixels}
-            for pixel in current_pixels:
+            merged_current_pixels = deepcopy(current_pixels)
+            for pixel in merged_current_pixels:
                 saved = saved_by_value.get(pixel["value"])
                 if saved:
                     pixel["new_value"] = saved["new_value"]
                     pixel["s/h"] = saved["s/h"]
-            LayerToEdit.current.pixels = current_pixels
-            LayerToEdit.current.pixels_backup = deepcopy(current_pixels)
+            LayerToEdit.current.pixels = merged_current_pixels
+            LayerToEdit.current.pixels_backup = live_pixels_backup
             # reset new_value in the backup
             for pixel in LayerToEdit.current.pixels_backup:
                 pixel["new_value"] = None
@@ -473,8 +515,22 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         else:
             if "symbology" in yaml_config:
                 LayerToEdit.current.symbology = yaml_config["symbology"]
-            LayerToEdit.current.pixels = saved_pixels
-            LayerToEdit.current.pixels_backup = yaml_config["recode_pixel_table_backup"]
+            else:
+                # Legacy configurations have no saved renderer.  Rebuild it from
+                # the restored pixels so the layer renderer matches the table.
+                LayerToEdit.current.pixels = deepcopy(saved_pixels)
+                LayerToEdit.current.setup_symbology()
+            if "symbology" in yaml_config:
+                LayerToEdit.current.pixels = deepcopy(saved_pixels)
+
+            # Some legacy configurations also lack the pixel-table backup.  It
+            # represents the same classes in their original (not recoded) state.
+            if "recode_pixel_table_backup" in yaml_config:
+                LayerToEdit.current.pixels_backup = deepcopy(yaml_config["recode_pixel_table_backup"])
+            else:
+                LayerToEdit.current.pixels_backup = deepcopy(saved_pixels)
+                for pixel in LayerToEdit.current.pixels_backup:
+                    pixel["new_value"] = None
         self.set_recode_pixel_table()
         self.update_recode_pixel_table()
 
@@ -1419,6 +1475,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         LayerToEdit.current.setup_symbology()
         # restore table
         self.set_recode_pixel_table()
+        # Rebuild the recode lookup after restoring the table values.
+        self.update_recode_pixel_table()
         # update pixel class visibility
         apply_symbology(LayerToEdit.current.qgs_layer, LayerToEdit.current.band, LayerToEdit.current.symbology)
         # restore the opacity of all layer toolbars
