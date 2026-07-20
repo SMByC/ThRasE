@@ -63,6 +63,7 @@ from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.navigation_dialog import NavigationDialog
 from ThRasE.gui.view_widget import ViewWidget, ViewWidgetMulti, ViewWidgetSingle
+from ThRasE.utils.kml_utils import write_google_earth_kml
 from ThRasE.utils.qgis_utils import (
     StyleEditorDialog,
     add_color_value_to_symbology,
@@ -128,7 +129,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.nextTile.clicked.connect(self.go_to_next_tile)
         self.currentTileKeepVisible.clicked.connect(self.current_tile_keep_visible)
         # open in Google Earth
-        self.QPBtn_OpenInGE.clicked.connect(self.open_current_tile_navigation_in_google_engine)
+        self.QPBtn_OpenInGE.clicked.connect(self.open_current_tile_navigation_in_google_earth)
 
         # ######### registry widget ######### #
         self.registry_widget.setVisible(False)
@@ -974,7 +975,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     @error_handler
-    def open_current_tile_navigation_in_google_engine(self):
+    def open_current_tile_navigation_in_google_earth(self):
         # create temp file
         from ThRasE.thrase import ThRasE
 
@@ -994,61 +995,27 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         polygon = transform.transformBoundingBox(LayerToEdit.current.navigation.current_tile.extent)
         xmin, ymin, xmax, ymax = polygon.toRectF().getCoords()
 
-        # make file and save
+        # Two-stage escaping for the KML description (see _write_google_earth_kml).
+        # Stage 1: HTML-escape the only untrusted input (layer name), then
+        # construct description_html with trusted <b>/<em>/<br/> tags.
+        # Stage 2 (inside _write_google_earth_kml): XML-text-escape the complete
+        # description_html before interpolation into <description>.
         nav = LayerToEdit.current.navigation
         tile_idx = nav.current_tile.idx
         total_tiles = len(nav.tiles)
-        layer_name = LayerToEdit.current.qgs_layer.name()
-        description = (
+
+        # Stage 1a — HTML-escape the untrusted layer name for safe use in HTML.
+        layer_name_html_safe = escape(LayerToEdit.current.qgs_layer.name(), quote=True)
+
+        # Stage 1b — build description HTML with trusted formatting tags.
+        description_html = (
             f"Navigation tile number: <b>{tile_idx}</b>/{total_tiles}<br/>"
-            f"Thematic editing: <em>{layer_name}</em><br/>"
+            f"Thematic editing: <em>{layer_name_html_safe}</em><br/>"
             "ThRasE Qgis-plugin"
         )
-        kml_raw = """<?xml version="1.0" encoding="UTF-8"?>
-            <kml xmlns="http://www.opengis.net/kml/2.2">
-              <Document>
-                <Style id="transBluePoly">
-                  <LineStyle>
-                    <width>1.5</width>
-                  </LineStyle>
-                  <PolyStyle>
-                    <color>{kml_color}</color>
-                  </PolyStyle>
-                </Style>
-                <Placemark>
-                  <name>{name}</name>
-                  <description>{desc}</description>
-                  <styleUrl>#transBluePoly</styleUrl>
-                  <Polygon>
-                    <extrude>1</extrude>
-                    <altitudeMode>relativeToGround</altitudeMode>
-                    <outerBoundaryIs>
-                      <LinearRing>
-                        <coordinates>
-                         {coord1},{alt}
-                         {coord2},{alt}
-                         {coord3},{alt}
-                         {coord4},{alt}
-                         {coord1},{alt}
-                        </coordinates>
-                      </LinearRing>
-                    </outerBoundaryIs>
-                  </Polygon>
-                </Placemark>
-              </Document>
-            </kml>
-            """.format(
-            name=f"Tile Navigation Num {LayerToEdit.current.navigation.current_tile.idx}",
-            desc=description,
-            kml_color="00000000",
-            coord1=f"{xmin},{ymin}",
-            coord2=f"{xmin},{ymax}",
-            coord3=f"{xmax},{ymax}",
-            coord4=f"{xmax},{ymin}",
-            alt=1000,
-        )
-        with open(kml_file, "w") as outfile:
-            outfile.writelines(kml_raw)
+        placemark_name = f"Tile Navigation Num {tile_idx}"
+
+        write_google_earth_kml(kml_file, placemark_name, description_html, xmin, ymin, xmax, ymax)
 
         open_file(kml_file)
 

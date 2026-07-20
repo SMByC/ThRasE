@@ -20,7 +20,7 @@
 
 import functools
 import os
-import subprocess
+import subprocess  # nosec B404
 import sys
 import traceback
 from collections import OrderedDict
@@ -35,7 +35,6 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QPushButton
 from qgis.utils import iface
-
 
 def error_handler(func):
     @functools.wraps(func)
@@ -102,18 +101,21 @@ def wait_process(func):
 
 
 def open_file(filename):
-    """Open a file with the standard application"""
+    """Open a generated absolute local KML file with the standard application."""
     filename = os.path.abspath(filename)
 
     if sys.platform == "linux" or sys.platform == "linux2":
         # Linux
-        subprocess.call(["xdg-open", filename])
+        # Generated absolute local KML path, passed without a shell.
+        subprocess.call(["xdg-open", filename])  # nosec B603 B607
     elif sys.platform == "darwin":
         # OS X
-        subprocess.call(["open", filename])
+        # Generated absolute local KML path, passed without a shell.
+        subprocess.call(["open", filename])  # nosec B603 B607
     elif sys.platform == "win32":
         # Windows
-        os.startfile(filename)
+        # Windows registered-association opener for a generated absolute local KML path.
+        os.startfile(filename)  # nosec B606
 
 
 class block_signals_to:

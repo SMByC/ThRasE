@@ -19,7 +19,7 @@
 """
 
 import multiprocessing
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 from random import randrange
 
 import numpy as np
@@ -105,7 +105,10 @@ def auto_symbology_classification_render(layer, band):
     for unique_value in unique_values:
         categories.append(
             QgsPalettedRasterRenderer.Class(
-                unique_value, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)), str(unique_value)
+                unique_value,
+                # Cosmetic random RGB only
+                QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)),  # nosec B311
+                str(unique_value),
             )
         )
 
@@ -115,10 +118,11 @@ def auto_symbology_classification_render(layer, band):
 
 
 def get_xml_style(layer, band):
+    """Extract style items from QGIS-provided serialized layer XML."""
     current_style = layer.styleManager().currentStyle()
     layer_style = layer.styleManager().style(current_style)
     xml_style_str = layer_style.xmlData()
-    xml_style = ET.fromstring(xml_style_str)
+    xml_style = ET.fromstring(xml_style_str)  # nosec B314
 
     # for singleband_pseudocolor
     xml_style_items = xml_style.findall(f'pipe/rasterrenderer[@band="{band}"]/rastershader/colorrampshader/item')

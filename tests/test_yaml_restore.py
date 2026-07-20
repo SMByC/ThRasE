@@ -1,7 +1,9 @@
 from copy import deepcopy
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from qgis.core import QgsCoordinateReferenceSystem, QgsRectangle
 
 from ThRasE.core.editing import LayerToEdit
 from ThRasE.gui import main_dialog
@@ -302,3 +304,74 @@ def test_loaded_settings_cancellation_lifecycle(monkeypatch, restore_result):
     assert result is (restore_result is not False)
     assert restore_calls == [("settings.yaml", {"test": True})]
     assert close_calls == ([True] if restore_result is False else [])
+
+
+@pytest.mark.parametrize(
+    "layer_name",
+    [
+        "Land & Water",
+        "</description><NetworkLink>evil</NetworkLink>",
+        "</em><script>alert(1)</script>",
+        "<img src=x onerror=alert(1)>",
+        "ampersand & more",
+        "Caf\u00e9 \u2013 r\u00e9sum\u00e9",
+    ],
+)
+def test_google_earth_kml_escapes_layer_name_in_xml_and_html(monkeypatch, tmp_path, layer_name):
+    """Generated raw KML must be well-formed and injection-safe.
+
+    The two-stage escaping (HTML then XML-text) ensures the layer name can
+    never break out of the <description> element, while trusted <b>/<em>/<br/>
+    formatting tags survive the XML round-trip.
+    """
+    import xml.etree.ElementTree as ET
+
+    from ThRasE.thrase import ThRasE
+
+    tile = SimpleNamespace(idx=1, extent=QgsRectangle(0, 0, 1, 1))
+    layer = SimpleNamespace(
+        name=lambda: layer_name,
+        crs=lambda: QgsCoordinateReferenceSystem("EPSG:4326"),
+    )
+    current = SimpleNamespace(
+        navigation=SimpleNamespace(current_tile=tile, tiles=[tile]),
+        qgs_layer=layer,
+    )
+    LayerToEdit.current = current
+    ThRasE.tmp_dir = str(tmp_path)
+    opened = []
+    monkeypatch.setattr(main_dialog, "open_file", opened.append)
+
+    main_dialog.ThRasEDialog.open_current_tile_navigation_in_google_earth.__wrapped__(SimpleNamespace())
+
+    kml_path = opened[0]
+    kml_text = Path(kml_path).read_text(encoding="utf-8")
+
+    # Parse the KML — must be well-formed XML.
+    kml_ns = "http://www.opengis.net/kml/2.2"
+    root = ET.fromstring(kml_text)
+    desc_elem = root.find(f".//{{{kml_ns}}}description")
+    assert desc_elem is not None, "Could not find a KML <description> element"
+
+    # The <description> must have no child elements — text content only.
+    assert len(desc_elem) == 0, "Description element contains child XML elements"
+
+    desc_text = desc_elem.text or ""
+
+    # Trusted formatting tags survive the round-trip (XML-escaped in the
+    # source, restored by the parser).
+    assert "<b>1</b>" in desc_text, "expected <b>1</b> in description text"
+    assert "<em>" in desc_text, "expected <em> in description text"
+    assert "<br/>" in desc_text, "expected <br/> in description text"
+
+    # Malicious payloads must NOT appear as unescaped HTML/XML tags.
+    for dangerous in ("</description>", "<NetworkLink>", "<script>", "<img "):
+        assert dangerous not in desc_text, f"unescaped '{dangerous}' in description text"
+
+    # The layer name text survives, but its dangerous characters are encoded.
+    if "&" in layer_name:
+        assert "&amp;" in desc_text
+    if ">" in layer_name:
+        assert "&gt;" in desc_text
+    if "Café" in layer_name:
+        assert "Café" in desc_text

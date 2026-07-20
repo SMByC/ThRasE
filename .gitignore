@@ -41,3 +41,5 @@ uv.lock
 # AI
 AGENTS.md
 codemap.md
+.opencode
+.slim

@@ -71,8 +71,6 @@ def edit_layer(func):
         # set layer for edit
         if not LayerToEdit.current.data_provider.isEditable():
             if not LayerToEdit.current.data_provider.setEditable(True):
-                from ThRasE.thrase import ThRasE
-
                 ThRasE.dialog.MsgBar.pushMessage(
                     "The current thematic raster cannot be edited due to layer restrictions or permission issues",
                     level=Qgis.MessageLevel.Critical,
