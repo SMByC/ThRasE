@@ -36,6 +36,7 @@ from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QPushButton
 from qgis.utils import iface
 
+
 def error_handler(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -149,20 +150,6 @@ class LegacyLoader(SafeLoader):
     pass
 
 
-def load_legacy_yaml(stream):
-    """Load a legacy configuration using only the registered safe constructors.
-
-    This mirrors PyYAML's loader lifecycle without using its convenience loader
-    API. The loader is always disposed, including when construction raises an
-    error.
-    """
-    loader = LegacyLoader(stream)
-    try:
-        return loader.get_single_data()
-    finally:
-        loader.dispose()
-
-
 def _normalize_pairs(items):
     """Normalize a sequence or dict into a list of (key, value) tuples."""
     normalized = []
@@ -216,5 +203,20 @@ LegacyLoader.add_constructor("tag:yaml.org,2002:python/tuple", construct_python_
 LegacyLoader.add_constructor("tag:yaml.org,2002:python/object/apply:collections.OrderedDict", construct_ordered_dict)
 LegacyLoader.add_constructor("tag:yaml.org,2002:map", construct_yaml_map)
 LegacyLoader.add_constructor("tag:yaml.org,2002:omap", construct_yaml_omap)
+
+
+def load_yaml(stream, loader_cls=SafeLoader):
+    """Load a YAML document using only the registered safe constructors.
+
+    This mirrors PyYAML's loader lifecycle without using its convenience loader
+    API, preferring the C-accelerated safe loader when available. The loader is
+    always disposed, including when construction raises an error.
+    """
+    loader = loader_cls(stream)
+    try:
+        return loader.get_single_data()
+    finally:
+        loader.dispose()
+
 
 # --------------------------------------------------------------------------
