@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/plugins/thrase/icons">
+        <file>thrase.svg</file>
+        <file>about.svg</file>
+        <file>close.svg</file>
+        <file>mouse_pixel_value.svg</file>
+        <file>pixel_picker.svg</file>
+        <file>line_picker.svg</file>
+        <file>polygon_picker.svg</file>
+        <file>freehand_picker.svg</file>
+        <file>undo.svg</file>
+        <file>redo.svg</file>
+        <file>trash.svg</file>
+        <file>run_nav.svg</file>
+        <file>next.svg</file>
+        <file>previous.svg</file>
+        <file>current_tile.svg</file>
+        <file>layer_properties.svg</file>
+        <file>render_view_config.svg</file>
+        <file>editing_toolbar.svg</file>
+        <file>layer_toolbar.svg</file>
+        <file>restore.svg</file>
+        <file>run_whole_image.svg</file>
+        <file>run_external_class.svg</file>
+        <file>nav_horizontal.svg</file>
+        <file>nav_vertical.svg</file>
+        <file>visible.svg</file>
+        <file>save.svg</file>
+        <file>save_as.svg</file>
+        <file>zoom_to_layer.svg</file>
+        <file>open_in_ge.svg</file>
+        <file>autofill.svg</file>
+        <file>clear.svg</file>
+        <file>navigation.svg</file>
+        <file>ccd_plugin.svg</file>
+        <file>registry.svg</file>
+        <file>export.svg</file>
+        <file>center.svg</file>
+        <file>auto_clear.svg</file>
+    </qresource>
+</RCC>
