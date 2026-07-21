@@ -20,7 +20,7 @@
 
 import functools
 import os
-import subprocess  # nosec B404
+import subprocess  # nosec B404 - used only to open files with the OS default application
 import sys
 import traceback
 from collections import OrderedDict

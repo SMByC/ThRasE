@@ -19,7 +19,7 @@
 """
 
 import multiprocessing
-import xml.etree.ElementTree as ET  # nosec B405
+import xml.etree.ElementTree as ET  # nosec B405 - parses only QGIS-generated style XML, not untrusted input
 from random import randrange
 
 import numpy as np
