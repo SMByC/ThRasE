@@ -30,3 +30,11 @@ Enable the highlight feature to visualize your editing progress across the map. 
 ```{note}
 While the registry is enabled (by default), ThRasE will save the registry in the configuration file (YAML) and restore it when loaded. The registry can grow over time for large edits. If it makes ThRasE slow down, consider disabling the registry or using different editing sessions. You can restart the registry by clearing it.
 ```
+
+The registry has no size limit: when a global edit is asked to record its changes, every changed pixel is added to it.
+A very large registry uses more memory, takes longer to display, and makes the configuration file larger and slower to
+save, so a global edit that records its changes counts the pixels it would change first, with one read of the raster
+and before anything is copied. If that number is very large, ThRasE asks for confirmation: continuing recodes the
+raster and records every changed pixel, and cancelling leaves the raster untouched. Even when the changes are not
+recorded, the entries already in the registry are updated to match the edited raster, so they never show outdated
+values.
