@@ -259,6 +259,7 @@ def test_restore_recode_table_rebuilds_old_new_value(monkeypatch):
         old_new_value={1: 99, 2: 88},
     )
     LayerToEdit.current = restored
+
     class _Item:
         def __init__(self, text, checked=True):
             self._text = text

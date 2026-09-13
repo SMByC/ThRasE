@@ -101,9 +101,23 @@ def _validate_tree(tree):
 
     check_complexity(tree)
     allowed_nodes = (
-        ast.Expression, ast.Constant, ast.Name, ast.BinOp, ast.UnaryOp, ast.BoolOp,
-        ast.Compare, ast.IfExp, ast.Call, ast.Tuple, ast.List, ast.Set, ast.Load,
-        ast.operator, ast.unaryop, ast.boolop, ast.cmpop,
+        ast.Expression,
+        ast.Constant,
+        ast.Name,
+        ast.BinOp,
+        ast.UnaryOp,
+        ast.BoolOp,
+        ast.Compare,
+        ast.IfExp,
+        ast.Call,
+        ast.Tuple,
+        ast.List,
+        ast.Set,
+        ast.Load,
+        ast.operator,
+        ast.unaryop,
+        ast.boolop,
+        ast.cmpop,
     )
     for node in ast.walk(tree):
         if not isinstance(node, allowed_nodes):
@@ -116,8 +130,7 @@ def _validate_tree(tree):
             if type(node.value) in (int, float):
                 _check_number(node.value)
         if isinstance(node, ast.Call) and not (
-            isinstance(node.func, ast.Name) and node.func.id == "abs"
-            and len(node.args) == 1 and not node.keywords
+            isinstance(node.func, ast.Name) and node.func.id == "abs" and len(node.args) == 1 and not node.keywords
         ):
             raise ValueError("unsupported call")
         if isinstance(node, ast.operator) and type(node) not in _BINARY_OPERATORS:

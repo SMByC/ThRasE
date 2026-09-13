@@ -58,8 +58,7 @@ def write_google_earth_kml(path, placemark_name, description, xmin, ymin, xmax, 
     # Coordinate string — all values come from QGIS CRS transforms so they
     # are already trusted numerics.
     coord_text = (
-        f"\n{xmin},{ymin},1000\n{xmin},{ymax},1000\n"
-        f"{xmax},{ymax},1000\n{xmax},{ymin},1000\n{xmin},{ymin},1000\n"
+        f"\n{xmin},{ymin},1000\n{xmin},{ymax},1000\n{xmax},{ymax},1000\n{xmax},{ymin},1000\n{xmin},{ymin},1000\n"
     )
 
     kml_template = (
@@ -77,7 +76,7 @@ def write_google_earth_kml(path, placemark_name, description, xmin, ymin, xmax, 
         "    <Placemark>\n"
         f"      <name>{placemark_name_xml_safe}</name>\n"
         f"      <description>{description_xml_safe}</description>\n"
-        '      <styleUrl>#transBluePoly</styleUrl>\n'
+        "      <styleUrl>#transBluePoly</styleUrl>\n"
         "      <Polygon>\n"
         "        <extrude>1</extrude>\n"
         "        <altitudeMode>relativeToGround</altitudeMode>\n"

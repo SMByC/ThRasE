@@ -755,15 +755,11 @@ class PickerPolygonTool(QgsMapTool):
         color = self.view_widget.polygons_color
         color.setAlpha(70)
         # create the main polygon rubber band
-        self.rubber_band = QgsRubberBand(
-            self.view_widget.render_widget.canvas, Qgis.GeometryType.Polygon
-        )
+        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, Qgis.GeometryType.Polygon)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(4)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
-        self.aux_rubber_band = QgsRubberBand(
-            self.view_widget.render_widget.canvas, Qgis.GeometryType.Polygon
-        )
+        self.aux_rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, Qgis.GeometryType.Polygon)
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(4)
 
@@ -891,9 +887,7 @@ class PickerFreehandTool(QgsMapTool):
         color = self.view_widget.freehand_color
         color.setAlpha(140)
         # create the main freehand rubber band
-        self.rubber_band = QgsRubberBand(
-            self.view_widget.render_widget.canvas, Qgis.GeometryType.Polygon
-        )
+        self.rubber_band = QgsRubberBand(self.view_widget.render_widget.canvas, Qgis.GeometryType.Polygon)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(4)
         self.drawing = False
