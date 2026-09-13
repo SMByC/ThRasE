@@ -572,6 +572,7 @@ def test_numpy_working_allocations_stay_within_memory_budget(tmp_path):
 
 
 def test_stage_temporarily_bounds_gdal_block_cache(tmp_path):
+    """A stripped raster never needs more than the quarter-budget cache it starts with."""
     source = _create_raster(tmp_path / "source.tif", [np.ones((64, 64), dtype=np.uint8)])
     memory_budget = 1024 * 1024
     previous_limit = gdal.GetCacheMax()
@@ -584,6 +585,39 @@ def test_stage_temporarily_bounds_gdal_block_cache(tmp_path):
     try:
         assert observed_limits
         assert max(observed_limits) <= memory_budget // 4
+        assert gdal.GetCacheMax() == previous_limit
+    finally:
+        discard_staged(result)
+
+
+def test_stage_caches_a_whole_block_row_of_a_tiled_raster(tmp_path):
+    """A cache smaller than one row of blocks decompresses the same blocks again for every window.
+
+    Windows are rows of pixels, but GDAL only ever reads and writes whole blocks, so
+    a tiled raster needs room for the blocks a window spans.  Measured on a
+    20000-pixel-wide Int32 raster with 256-pixel blocks, staging took twice as long
+    when the quarter-budget cache alone could not hold one block row.
+    """
+    source = _create_raster(
+        tmp_path / "tiled.tif",
+        [np.ones((256, 1280), dtype=np.uint8)],
+        creation_options=["TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256", "COMPRESS=DEFLATE"],
+    )
+    memory_budget = 1024 * 1024
+    block_row_bytes = 1280 * 256
+    assert block_row_bytes > memory_budget // 4  # the quarter-budget cache alone would thrash
+    previous_limit = gdal.GetCacheMax()
+    observed_limits = []
+
+    result = stage_recode(
+        RecodeRequest(str(source), 1, ((1, 2),), memory_budget_bytes=memory_budget),
+        progress_callback=lambda _value: observed_limits.append(gdal.GetCacheMax()),
+    )
+    try:
+        assert observed_limits
+        assert min(observed_limits) >= block_row_bytes
+        # the cache and the working arrays share the budget, so it never takes more than half
+        assert max(observed_limits) <= memory_budget // 2
         assert gdal.GetCacheMax() == previous_limit
     finally:
         discard_staged(result)

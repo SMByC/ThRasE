@@ -76,10 +76,12 @@ This operation cannot be undone, so use with caution.
 
 ## Advanced settings
 
-The default processing-memory budget is 64 MiB. Window sizing reserves half of this budget for allocation overhead, and
-ThRasE temporarily limits GDAL's shared block cache to at most one quarter of the budget while staging. QGIS, Python, and
-already-loaded plugin data still have their own baseline memory use. Advanced users can change the budget from the QGIS
-Python console; the value is read when an operation starts:
+The default processing-memory budget is 64 MiB, which is enough for rasters of any size: raising it was measured to
+make no meaningful difference to the time an edit takes, while the memory it uses grows with it. Window sizing reserves
+half of the budget for the working arrays, and ThRasE temporarily limits GDAL's shared block cache to the remainder
+while it works, never taking more than the budget in total. QGIS, Python, and already-loaded plugin data still have
+their own baseline memory use. Advanced users can change the budget from the QGIS Python console; the value is read
+when an operation starts:
 
 ```python
 from qgis.PyQt.QtCore import QSettings

@@ -277,23 +277,44 @@ def _check_cancelled(is_cancelled: CancellationCallback) -> None:
 
 
 def _with_bounded_gdal_cache(operation):
-    """Cap GDAL's shared block cache to a quarter of the request budget while staging."""
+    """Bound GDAL's shared block cache for one request, and always restore it.
+
+    The cache starts at a quarter of the request budget, which is all a stripped
+    raster needs.  A tiled raster needs more, so :func:`_use_block_aware_cache`
+    raises it once the block size of the raster is known.
+    """
 
     @functools.wraps(operation)
     def bounded(request: RecodeRequest, *args, **kwargs):
         with _GDAL_CACHE_LOCK:
             previous_limit = gdal.GetCacheMax()
             transaction_limit = max(1, request.memory_budget_bytes // 4)
-            limited = transaction_limit < previous_limit
-            if limited:
+            if transaction_limit < previous_limit:
                 gdal.SetCacheMax(transaction_limit)
             try:
                 return operation(request, *args, **kwargs)
             finally:
-                if limited:
-                    gdal.SetCacheMax(previous_limit)
+                gdal.SetCacheMax(previous_limit)
 
     return bounded
+
+
+def _use_block_aware_cache(band, raster_width: int, itemsize: int, request: RecodeRequest) -> None:
+    """Let GDAL hold a whole row of raster blocks when the budget allows it.
+
+    Windows are rows of pixels, but GDAL only ever reads and writes whole blocks.
+    When the cache cannot hold the blocks a window spans, a tiled raster
+    decompresses the same block again for every window that touches it, which
+    costs far more than the cache would: a 20000-pixel-wide Int32 raster with
+    256-pixel blocks needed one block row of cache to run, and took twice as long
+    without it.  The floor stays within half the budget, so the working arrays and
+    the cache together stay inside it.
+    """
+    block_height = max(1, band.GetBlockSize()[1])
+    block_row_bytes = raster_width * block_height * itemsize
+    floor = min(request.memory_budget_bytes // 2, block_row_bytes * 3 // 2)
+    if gdal.GetCacheMax() < floor:
+        gdal.SetCacheMax(floor)
 
 
 def _check_gdal_status(status, message: str) -> None:
@@ -1153,6 +1174,7 @@ def count_recode_changes(
 
         # Working arrays per cell: original, recoded copy, changed mask, mask values.
         bytes_per_cell = 2 * dtype.itemsize + 1 + (mask_reader.itemsize + 1 if mask_reader is not None else 0)
+        _use_block_aware_cache(source_band, source_dataset.RasterXSize, dtype.itemsize, request)
         window_width, window_height = _window_shape(
             request, source_dataset.RasterXSize, source_dataset.RasterYSize, bytes_per_cell
         )
@@ -1255,6 +1277,7 @@ def _stage_in_directory(
 
         # Working arrays per cell: original, recoded/expected, read-back, two boolean masks, mask values.
         bytes_per_cell = 3 * dtype.itemsize + 2 + (mask_reader.itemsize + 1 if mask_reader is not None else 0)
+        _use_block_aware_cache(source_band, source_dataset.RasterXSize, dtype.itemsize, request)
         window_width, window_height = _window_shape(
             request, source_dataset.RasterXSize, source_dataset.RasterYSize, bytes_per_cell
         )
