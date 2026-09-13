@@ -27,8 +27,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
@@ -39,10 +39,10 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -61,6 +61,7 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'about';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="icon" href="_static/thrase.svg"/>
     <link rel="author" title="About these documents" href="#" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -70,20 +71,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -109,7 +116,47 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
     </header>
   
 
@@ -326,7 +373,7 @@
 <h1>About Us<a class="headerlink" href="#about-us" title="Link to this heading">#</a></h1>
 <p>ThRasE was developed by the Forest and Carbon Monitoring System (SMByC) at the Institute of Hydrology, Meteorology and Environmental Studies (IDEAM) in Colombia. SMByC is responsible for measuring and ensuring the accuracy of Colombia’s official national forest figures, a critical task that requires rigorous quality control and transparent methodologies.</p>
 <p>We identified the need for a dedicated tool that could support systematic and rigorous quality assurance of our thematic products, particularly for forest monitoring and deforestation quantification. This need drove the development of ThRasE as an integrated solution for manual post-classification correction with full traceability and reproducibility.</p>
-<p>ThRasE is an official component of our Digital Image Processing Protocol for Quantifying Deforestation in Colombia <span id="id1">[<a class="reference internal" href="references.html#id14" title="G. Galindo, O. J. Espejo, J. C. Rubiano, L. K. Vergara, and E. Cabrera. Protocolo de procesamiento digital de imágenes para la cuantificación de la deforestación en Colombia. V 2.0. 2014. URL: https://www.ideam.gov.co/sites/default/files/archivos/protocolo_de_pdi_para_la_cuantificacion_de_la_deforestacion_en_colombia_v2_1.pdf.">17</a>]</span>, where it plays a central role in our quality assurance workflows. We use ThRasE to conduct systematic reviews of land cover classifications, correct misclassifications through expert visual interpretation of satellite imagery, and ensure our forest monitoring products meet the accuracy standards required for national reporting.</p>
+<p>ThRasE is an official component of our Digital Image Processing Protocol for Quantifying Deforestation in Colombia <span class="bibtex-citation" id="id1">[<a class="reference internal" href="references.html#id14" title="G. Galindo, O. J. Espejo, J. C. Rubiano, L. K. Vergara, and E. Cabrera. Protocolo de procesamiento digital de imágenes para la cuantificación de la deforestación en Colombia. V 2.0. 2014. URL: https://www.ideam.gov.co/sites/default/files/archivos/protocolo_de_pdi_para_la_cuantificacion_de_la_deforestacion_en_colombia_v2_1.pdf.">17</a>]</span>, where it plays a central role in our quality assurance workflows. We use ThRasE to conduct systematic reviews of land cover classifications, correct misclassifications through expert visual interpretation of satellite imagery, and ensure our forest monitoring products meet the accuracy standards required for national reporting.</p>
 <p>Author and developer: <em>Xavier C. Llano</em> <em><a class="reference external" href="mailto:xavier&#46;corredor&#46;llano&#37;&#52;&#48;gmail&#46;com">xavier<span>&#46;</span>corredor<span>&#46;</span>llano<span>&#64;</span>gmail<span>&#46;</span>com</a></em><br />
 Theoretical support, testing, and product verification: SMByC-PDI group</p>
 </section>
@@ -429,8 +476,8 @@ By SMByC, IDEAM Colombia
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
 
   <footer class="bd-footer">
   </footer>

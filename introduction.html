@@ -27,8 +27,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
@@ -39,10 +39,10 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -61,6 +61,7 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'introduction';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="icon" href="_static/thrase.svg"/>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -69,20 +70,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -108,7 +115,47 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
     </header>
   
 
@@ -320,7 +367,7 @@
                 <h2> Contents </h2>
             </div>
             <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#when-and-why-use-thrase">When and Why Use ThRasE?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#who-is-thrase-for">Who Is ThRasE For?</a></li>
@@ -346,7 +393,7 @@
 <section id="when-and-why-use-thrase">
 <h2>When and Why Use ThRasE?<a class="headerlink" href="#when-and-why-use-thrase" title="Link to this heading">#</a></h2>
 <p>Thematic maps are essential tools that translate complex spatial data into actionable insights, but their reliability depends on rigorous quality assurance. Automated classification methods, while powerful, inevitably introduce errors. Satellite-based classifications can produce errors of omission or commission, scale mismatches, or temporal misalignments with ground conditions. These limitations don’t undermine the value of thematic maps, but they highlight the critical importance of quality assurance.</p>
-<p>Post-classification correction serves as a widely adopted final step to refine misclassifications and improve map quality <span id="id1">[]</span>. A common approach involves integrating ancillary data and knowledge-based rules to resolve misclassifications, reduce commission errors, and enhance overall accuracy <span id="id2">[<a class="reference internal" href="references.html#id4" title="Ramita Manandhar, Inakwu OA Odeh, and Tiho Ancev. Improving the Accuracy of Land Use and Land Cover Classification of Landsat Data Using Post-Classification Enhancement. Remote Sensing, 1(3):330–344, 2009. doi:10.3390/rs1030330.">1</a>, <a class="reference internal" href="references.html#id5" title="Amee K Thakkar, Venkappayya R Desai, Ajay Patel, and Madhukar B Potdar. Post-classification corrections in improving the classification of Land Use/Land Cover of arid region using RS and GIS: the case of Arjuni watershed, Gujarat, India. The Egyptian Journal of Remote Sensing and Space Science, 20(1):79–89, 2017. doi:10.1016/j.ejrs.2016.11.006.">2</a>]</span>. These corrections rely on manual editing or semi-automated techniques guided by expert knowledge and reference data.</p>
+<p>Post-classification correction serves as a widely adopted final step to refine misclassifications and improve map quality <span class="bibtex-citation" id="id1">[]</span>. A common approach involves integrating ancillary data and knowledge-based rules to resolve misclassifications, reduce commission errors, and enhance overall accuracy <span class="bibtex-citation" id="id2">[<a class="reference internal" href="references.html#id4" title="Ramita Manandhar, Inakwu OA Odeh, and Tiho Ancev. Improving the Accuracy of Land Use and Land Cover Classification of Landsat Data Using Post-Classification Enhancement. Remote Sensing, 1(3):330–344, 2009. doi:10.3390/rs1030330.">1</a>, <a class="reference internal" href="references.html#id5" title="Amee K Thakkar, Venkappayya R Desai, Ajay Patel, and Madhukar B Potdar. Post-classification corrections in improving the classification of Land Use/Land Cover of arid region using RS and GIS: the case of Arjuni watershed, Gujarat, India. The Egyptian Journal of Remote Sensing and Space Science, 20(1):79–89, 2017. doi:10.1016/j.ejrs.2016.11.006.">2</a>]</span>. These corrections rely on manual editing or semi-automated techniques guided by expert knowledge and reference data.</p>
 <p>ThRasE addresses this need by providing a dedicated environment for manual post-classification work with integrated editing tools, systematic inspection capabilities, and modification tracking in a single workspace.</p>
 </section>
 <section id="who-is-thrase-for">
@@ -358,7 +405,7 @@
 <li><p><strong>Environmental monitoring teams</strong> conducting systematic reviews of forest maps or other environmental datasets where accuracy is critical for decision-making</p></li>
 <li><p><strong>Research teams</strong> who need to manually refine classification results, annotate training data, or validate model outputs with expert knowledge</p></li>
 </ul>
-<p>ThRasE has been adopted by research teams, monitoring programs, and mapping projects worldwide for diverse applications including manual post-processing to correct land-use/land-cover misclassifications via photo-interpretation of satellite image mosaics <span id="id3">[<a class="reference internal" href="references.html#id10" title="Améline Vallet, Stéphane Dupuy, Matthieu Verlynde, and Raffaele Gaetano. Generating high-resolution land use and land cover maps for the greater Mariño watershed in 2019 with machine learning. Scientific Data, 11(1):915, 2024. doi:10.1038/s41597-024-03750-x.">3</a>, <a class="reference internal" href="references.html#id23" title="Maxwell John Rayner. Synergies and trade-offs in ecosystem services across the Upper Welland catchment. PhD thesis, University of Leicester, 10 2022. doi:10.25392/leicester.data.21324360.v1.">4</a>]</span>; knowledge-based manual correction of misclassifications and residual errors <span id="id4">[<a class="reference internal" href="references.html#id16" title="Max Rayner, Heiko Balzter, Laurence Jones, Mick Whelan, and Chris Stoate. Effects of improved land-cover mapping on predicted ecosystem service outcomes in a lowland river catchment. Ecological Indicators, 133:108463, 2021. doi:10.1016/j.ecolind.2021.108463.">5</a>, <a class="reference internal" href="references.html#id18" title="Bruno Senterre, Emma Mederic, and Gregory Berke. Flora and vegetation of Assomption Island (Seychelles). Technical Report, Island Conservation Society (ICS), Pointe Larue, PO Box, 2023. URL: https://www.researchgate.net/profile/Bruno-Senterre/publication/378943939_Flora_and_vegetation_of_Assomption_Island_Seychelles/links/65f2f44fc05fd2688010af87/Flora-and-vegetation-of-Assomption-Island-Seychelles.pdf.">6</a>, <a class="reference internal" href="references.html#id22" title="Evelina Bladh. Urban Tree Mapping using airborne LiDAR: analysing vegetation changes between 2010, 2017, and 2022 A Gothenburg case study. Master's thesis, University of Gothenburg, 2024. URL: https://hdl.handle.net/2077/81972.">7</a>]</span>; manual classification/reclassification of pixels for land-cover reconstruction to reconcile multi-date imagery <span id="id5">[<a class="reference internal" href="references.html#id17" title="Budhi Gunawan, Oekan Soekotjo Abdoellah, Firman Hadi, Gianrico Juan Alifi, Riky Novalia Suhendi, Inas Yaumi Aisharya, and Wahyu Gunawan. From Laborers to Coffee Farmers: Collaborative Forest Management in West Java, Indonesia. Sustainability, 15(9):7722, 2023. doi:10.3390/su15097722.">8</a>]</span>; annotation of historical aerial imagery for model calibration and fine-tuning <span id="id6">[<a class="reference internal" href="references.html#id15" title="Harold N Eyster, Kai MA Chan, Morgan E Fletcher, and Brian Beckage. Space-for-time substitutions exaggerate urban bird–habitat ecological relationships. Journal of Animal Ecology, 93(12):1854–1867, 2024. doi:10.1111/1365-2656.14194.">9</a>]</span>; as a validation/visual QA step <span id="id7">[<a class="reference internal" href="references.html#id19" title="Annisa Dira Hariyanto, Adipandang Yudono, and Agus Dwi Wicaksono. Comparison of Land Cover Change Prediction Models: A Case Study in Kedungkandang District, Malang City. Geoplanning: Journal of Geomatics and Planning, 11(1):85–98, 2024. doi:10.14710/geoplanning.11.1.85-98.">10</a>]</span>; refinement of agricultural maps <span id="id8">[<a class="reference internal" href="references.html#id20" title="Laju Gandharum, Djoko Mulyo Hartono, Heri Sadmono, Hartanto Sanjaya, Lena Sumargana, Anindita Diah Kusumawardhani, Fauziah Alhasanah, Dionysius Bryan Sencaki, and Nugraheni Setyaningrum. Advancing Land Use Modeling with Rice Cropping Intensity: A Geospatial Study on the Shrinking Paddy Fields in Indonesia. Geographies, 5(3):31, 2025. doi:10.3390/geographies5030031.">11</a>, <a class="reference internal" href="references.html#id21" title="Max Rayner, Mick Whelan, Chris Stoate, John Szczur, Heiko Balzter, and Laurence Jones. Historical Declines in Semi-Natural Habitat Across an Agricultural Landscape Drive Modelled Losses in Wild Bee Abundance. SSRN, 2021. doi:10.2139/ssrn.3969794.">12</a>]</span>; among other applications <span id="id9">[<a class="reference internal" href="references.html#id24" title="Annisa Dira Hariyanto, Adipandang Yudono, and Agus Dwi Wicaksono. Land Cover Change Simulation Based on Cellular Automata Using Artificial Neural Network Model Transition in Kedungkandang District, Malang City. In International Conference on Indonesian Architecture and Planning, 489–507. Springer, 2022. doi:10.1007/978-981-99-1403-6_33.">13</a>, <a class="reference internal" href="references.html#id25" title="Stéphane Dupuy, Camille Lelong, Raffaele Gaetano, and Alexandre Villers. BIOTAMAYA. Rapport méthodologique pour la production de carte d'occupation du sol-Mayotte en 2023. Technical Report, CIRAD-ES-UMR TETIS, 2024. URL: https://agritrop.cirad.fr/608783/.">14</a>, <a class="reference internal" href="references.html#id26" title="Fabrício Mendes Queiroga. Interferência das Autoestradas na Conectividade Funcional da Paisagem para os Anfíbios do Peloponeso na Grécia. Master's thesis, Universidade do Porto (Portugal), 2020. URL: https://www.proquest.com/openview/3196c3f5fe613c35ed5267983a56a3dc.">15</a>, <a class="reference internal" href="references.html#id27" title="Alan Nunes Machado, Kylner Costa, and Flávio Wachholz. SENSORIAMENTO REMOTO APLICADO À PRÁTICA DE CAMPO NOENSINO DE HIDROGRAFIA E GEOMORFOLOGIA FLUVIAL:UMA ANÁLISE DO ARQUIPÉLAGO DE ANAVILHANAS (AMAZONAS-BRASIL), pages 103-112. Editora Científica, 02 2024. URL: https://www.researchgate.net/publication/380423681_SENSORIAMENTO_REMOTO_APLICADO_A_PRATICA_DE_CAMPO_NO_ENSINO_DE_HIDROGRAFIA_E_GEOMORFOLOGIA_FLUVIAL_UMA_ANALISE_DO_ARQUIPELAGO_DE_ANAVILHANAS_AMAZONAS-BRASIL.">16</a>]</span>.</p>
+<p>ThRasE has been adopted by research teams, monitoring programs, and mapping projects worldwide for diverse applications including manual post-processing to correct land-use/land-cover misclassifications via photo-interpretation of satellite image mosaics <span class="bibtex-citation" id="id3">[<a class="reference internal" href="references.html#id10" title="Améline Vallet, Stéphane Dupuy, Matthieu Verlynde, and Raffaele Gaetano. Generating high-resolution land use and land cover maps for the greater Mariño watershed in 2019 with machine learning. Scientific Data, 11(1):915, 2024. doi:10.1038/s41597-024-03750-x.">3</a>, <a class="reference internal" href="references.html#id23" title="Maxwell John Rayner. Synergies and trade-offs in ecosystem services across the Upper Welland catchment. PhD thesis, University of Leicester, 10 2022. doi:10.25392/leicester.data.21324360.v1.">4</a>]</span>; knowledge-based manual correction of misclassifications and residual errors <span class="bibtex-citation" id="id4">[<a class="reference internal" href="references.html#id16" title="Max Rayner, Heiko Balzter, Laurence Jones, Mick Whelan, and Chris Stoate. Effects of improved land-cover mapping on predicted ecosystem service outcomes in a lowland river catchment. Ecological Indicators, 133:108463, 2021. doi:10.1016/j.ecolind.2021.108463.">5</a>, <a class="reference internal" href="references.html#id18" title="Bruno Senterre, Emma Mederic, and Gregory Berke. Flora and vegetation of Assomption Island (Seychelles). Technical Report, Island Conservation Society (ICS), Pointe Larue, PO Box, 2023. URL: https://www.researchgate.net/profile/Bruno-Senterre/publication/378943939_Flora_and_vegetation_of_Assomption_Island_Seychelles/links/65f2f44fc05fd2688010af87/Flora-and-vegetation-of-Assomption-Island-Seychelles.pdf.">6</a>, <a class="reference internal" href="references.html#id22" title="Evelina Bladh. Urban Tree Mapping using airborne LiDAR: analysing vegetation changes between 2010, 2017, and 2022 A Gothenburg case study. Master's thesis, University of Gothenburg, 2024. URL: https://hdl.handle.net/2077/81972.">7</a>]</span>; manual classification/reclassification of pixels for land-cover reconstruction to reconcile multi-date imagery <span class="bibtex-citation" id="id5">[<a class="reference internal" href="references.html#id17" title="Budhi Gunawan, Oekan Soekotjo Abdoellah, Firman Hadi, Gianrico Juan Alifi, Riky Novalia Suhendi, Inas Yaumi Aisharya, and Wahyu Gunawan. From Laborers to Coffee Farmers: Collaborative Forest Management in West Java, Indonesia. Sustainability, 15(9):7722, 2023. doi:10.3390/su15097722.">8</a>]</span>; annotation of historical aerial imagery for model calibration and fine-tuning <span class="bibtex-citation" id="id6">[<a class="reference internal" href="references.html#id15" title="Harold N Eyster, Kai MA Chan, Morgan E Fletcher, and Brian Beckage. Space-for-time substitutions exaggerate urban bird–habitat ecological relationships. Journal of Animal Ecology, 93(12):1854–1867, 2024. doi:10.1111/1365-2656.14194.">9</a>]</span>; as a validation/visual QA step <span class="bibtex-citation" id="id7">[<a class="reference internal" href="references.html#id19" title="Annisa Dira Hariyanto, Adipandang Yudono, and Agus Dwi Wicaksono. Comparison of Land Cover Change Prediction Models: A Case Study in Kedungkandang District, Malang City. Geoplanning: Journal of Geomatics and Planning, 11(1):85–98, 2024. doi:10.14710/geoplanning.11.1.85-98.">10</a>]</span>; refinement of agricultural maps <span class="bibtex-citation" id="id8">[<a class="reference internal" href="references.html#id20" title="Laju Gandharum, Djoko Mulyo Hartono, Heri Sadmono, Hartanto Sanjaya, Lena Sumargana, Anindita Diah Kusumawardhani, Fauziah Alhasanah, Dionysius Bryan Sencaki, and Nugraheni Setyaningrum. Advancing Land Use Modeling with Rice Cropping Intensity: A Geospatial Study on the Shrinking Paddy Fields in Indonesia. Geographies, 5(3):31, 2025. doi:10.3390/geographies5030031.">11</a>, <a class="reference internal" href="references.html#id21" title="Max Rayner, Mick Whelan, Chris Stoate, John Szczur, Heiko Balzter, and Laurence Jones. Historical Declines in Semi-Natural Habitat Across an Agricultural Landscape Drive Modelled Losses in Wild Bee Abundance. SSRN, 2021. doi:10.2139/ssrn.3969794.">12</a>]</span>; among other applications <span class="bibtex-citation" id="id9">[<a class="reference internal" href="references.html#id24" title="Annisa Dira Hariyanto, Adipandang Yudono, and Agus Dwi Wicaksono. Land Cover Change Simulation Based on Cellular Automata Using Artificial Neural Network Model Transition in Kedungkandang District, Malang City. In International Conference on Indonesian Architecture and Planning, 489–507. Springer, 2022. doi:10.1007/978-981-99-1403-6_33.">13</a>, <a class="reference internal" href="references.html#id25" title="Stéphane Dupuy, Camille Lelong, Raffaele Gaetano, and Alexandre Villers. BIOTAMAYA. Rapport méthodologique pour la production de carte d'occupation du sol-Mayotte en 2023. Technical Report, CIRAD-ES-UMR TETIS, 2024. URL: https://agritrop.cirad.fr/608783/.">14</a>, <a class="reference internal" href="references.html#id26" title="Fabrício Mendes Queiroga. Interferência das Autoestradas na Conectividade Funcional da Paisagem para os Anfíbios do Peloponeso na Grécia. Master's thesis, Universidade do Porto (Portugal), 2020. URL: https://www.proquest.com/openview/3196c3f5fe613c35ed5267983a56a3dc.">15</a>, <a class="reference internal" href="references.html#id27" title="Alan Nunes Machado, Kylner Costa, and Flávio Wachholz. SENSORIAMENTO REMOTO APLICADO À PRÁTICA DE CAMPO NOENSINO DE HIDROGRAFIA E GEOMORFOLOGIA FLUVIAL:UMA ANÁLISE DO ARQUIPÉLAGO DE ANAVILHANAS (AMAZONAS-BRASIL), pages 103-112. Editora Científica, 02 2024. URL: https://www.researchgate.net/publication/380423681_SENSORIAMENTO_REMOTO_APLICADO_A_PRATICA_DE_CAMPO_NO_ENSINO_DE_HIDROGRAFIA_E_GEOMORFOLOGIA_FLUVIAL_UMA_ANALISE_DO_ARQUIPELAGO_DE_ANAVILHANAS_AMAZONAS-BRASIL.">16</a>]</span>.</p>
 </section>
 <div class="toctree-wrapper compound">
 </div>
@@ -459,8 +506,8 @@ By SMByC, IDEAM Colombia
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
 
   <footer class="bd-footer">
   </footer>

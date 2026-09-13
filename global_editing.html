@@ -27,8 +27,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
@@ -39,10 +39,10 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -61,6 +61,7 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'global_editing';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="icon" href="_static/thrase.svg"/>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -70,20 +71,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -109,7 +116,47 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
     </header>
   
 
@@ -319,9 +366,10 @@
                 <h2> Contents </h2>
             </div>
             <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#apply-to-entire-thematic-raster">Apply to Entire Thematic Raster</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#apply-within-selected-classes">Apply Within Selected Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#apply-within-classes-or-mask">Apply Within Classes or Mask</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-settings">Advanced settings</a></li>
 </ul>
             </nav>
         </div>
@@ -338,7 +386,40 @@
 <a class="reference internal image-reference" href="_images/global_editing_tools.webp"><img alt="_images/global_editing_tools.webp" class="align-center" src="_images/global_editing_tools.webp" style="width: 60%;" />
 </a>
 <br>
-ThRasE provides two powerful global editing options that allow you to apply changes to multiple areas simultaneously.
+ThRasE provides two global editing tools that apply the recode pixel table to many areas at once: to the entire
+thematic raster, or only within the areas of a mask.
+<p>Global edits run on a background QGIS task and process the raster in bounded windows, so memory use stays within the
+configured budget whatever the raster size. When the changes are to be recorded in the registry, ThRasE first counts
+the pixels the edit would change, with one read of the raster and before any of the work below starts, and asks for
+confirmation if that number is very large.</p>
+<p>The original raster is left untouched while ThRasE writes the edited values into a staging copy beside it, reads every
+edited window back from disk to verify it, and clears the statistics, histograms, and overviews the edit invalidated.
+You can cancel during this phase, although cancellation waits for the active GDAL operation to return. Cancellation is
+disabled only for the short final step that releases the matching QGIS providers, swaps the files, and reconnects every
+layer using them. Nothing is copied in that final step: the original files are moved into a hidden backup, the edited
+copy takes their place, and the move is undone if QGIS cannot reload the result. The backup is deleted once the edited
+raster is in use, and file permissions and the layer’s NoData and resampling settings are kept.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Global editing supports local GeoTIFF (<code class="docutils literal notranslate"><span class="pre">GTiff</span></code>) and Erdas Imagine (<code class="docutils literal notranslate"><span class="pre">HFA</span></code>) rasters whose associated files are stored
+beside the main raster. Remote rasters, subdatasets, Cloud Optimized GeoTIFFs, lossy-compressed rasters, legacy
+<code class="docutils literal notranslate"><span class="pre">PIXELTYPE=SIGNEDBYTE</span></code> rasters, and other GDAL drivers must first be converted to a standard local GeoTIFF or HFA file.
+Packed <code class="docutils literal notranslate"><span class="pre">NBITS</span></code> rasters are accepted only when every old and new class fits their effective bit range.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The staging copy needs free space beside the raster roughly equal to the size of the raster’s files, plus the
+processing-memory budget and room for compression growth of the edited band when the raster is compressed. Existing
+overviews/pyramids and cached statistics are removed after a successful edit because they were computed from the old
+values; rebuild overviews afterwards if they are needed. Color tables, category names, and raster attribute table
+classes are keyed by pixel value and are kept; only their pixel-count and histogram columns are dropped.</p>
+</div>
+<p>A hidden lock file beside the raster prevents two ThRasE sessions from editing the same file at once, and the staging
+and backup directories are named after the raster (<code class="docutils literal notranslate"><span class="pre">.&lt;name&gt;.thrase-stage-…</span></code> and <code class="docutils literal notranslate"><span class="pre">.&lt;name&gt;.thrase-backup-…</span></code>). A finished
+edit leaves none of them behind. If QGIS or the operating system terminates during an edit, or if another program wrote
+to the old file after the swap, these files remain: opening ThRasE lists them, and further global edits on that raster
+are refused until they have been checked and removed. If the raster itself is missing after a crash, move the files from
+the backup directory back beside it.</p>
 <section id="apply-to-entire-thematic-raster">
 <h2>Apply to Entire Thematic Raster<a class="headerlink" href="#apply-to-entire-thematic-raster" title="Link to this heading">#</a></h2>
 <p>This option applies the changes defined in the pixel recoding table to the entire thematic raster.</p>
@@ -347,15 +428,36 @@ ThRasE provides two powerful global editing options that allow you to apply chan
 <p>This operation cannot be undone, so use with caution.</p>
 </div>
 </section>
-<section id="apply-within-selected-classes">
-<h2>Apply Within Selected Classes<a class="headerlink" href="#apply-within-selected-classes" title="Link to this heading">#</a></h2>
+<section id="apply-within-classes-or-mask">
+<h2>Apply Within Classes or Mask<a class="headerlink" href="#apply-within-classes-or-mask" title="Link to this heading">#</a></h2>
 <a class="reference internal image-reference" href="_images/global_editing_classes.webp"><img alt="_images/global_editing_classes.webp" class="align-center" src="_images/global_editing_classes.webp" style="width: 60%;" />
 </a>
 <br>
-<p>ThRasE enables you to apply recode pixel table changes selectively within areas defined by selected classes from another categorical raster file. This capability is crucial when corrections need to respect existing spatial boundaries or land management units. For example, you might need to reclassify forest types only within protected areas, correct agricultural classes exclusively in irrigated zones, or refine land cover classifications within specific administrative boundaries. This feature applies more precise and contextually appropriate post-classification corrections to the entire thematic raster.</p>
+<p>ThRasE enables you to apply recode pixel table changes selectively within areas defined by selected classes of another categorical raster file, or within the polygons of a vector layer. This capability is crucial when corrections need to respect existing spatial boundaries or land management units. For example, you might need to reclassify forest types only within protected areas, correct agricultural classes exclusively in irrigated zones, or refine land cover classifications within specific administrative boundaries. This feature applies more precise and contextually appropriate post-classification corrections to the entire thematic raster.</p>
+<p>You can define the mask in two ways:</p>
+<ul class="simple">
+<li><p><strong>Classes of another raster</strong> — choose a categorical raster and tick the classes whose areas you want to edit. It must
+have the same projection and pixel size as your thematic map and share its pixel grid, but its extent can be smaller,
+larger, or shifted.</p></li>
+<li><p><strong>Polygons of a vector layer</strong> — choose a polygon layer and the changes are applied inside its polygons. A pixel is
+edited only when its centre falls inside a polygon.</p></li>
+</ul>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>The categorical raster file used to define constraint areas must match the projection and pixel size of your thematic map, but its extents can be different. This operation cannot be undone, so use with caution.</p>
+<p>The mask must use the same projection as your thematic map, and a raster mask must also match its pixel size and grid.
+This operation cannot be undone, so use with caution.</p>
+</div>
+</section>
+<section id="advanced-settings">
+<h2>Advanced settings<a class="headerlink" href="#advanced-settings" title="Link to this heading">#</a></h2>
+<p>The default processing-memory budget is 64 MiB. Window sizing reserves half of this budget for allocation overhead, and
+ThRasE temporarily limits GDAL’s shared block cache to at most one quarter of the budget while staging. QGIS, Python, and
+already-loaded plugin data still have their own baseline memory use. Advanced users can change the budget from the QGIS
+Python console; the value is read when an operation starts:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qgis.PyQt.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">QSettings</span>
+
+<span class="n">QSettings</span><span class="p">()</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s2">"ThRasE/global_edit_memory_mib"</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+</pre></div>
 </div>
 </section>
 </section>
@@ -458,8 +560,8 @@ By SMByC, IDEAM Colombia
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
 
   <footer class="bd-footer">
   </footer>
