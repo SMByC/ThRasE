@@ -222,7 +222,7 @@ class TestEditingTools:
         LayerToEdit.current = lte_to_test
 
         # Apply to entire thematic raster edit (processes all pixels at once using GDAL)
-        LayerToEdit.current.edit_to_entire_thematic_raster()
+        assert LayerToEdit.current.edit_to_entire_thematic_raster() == 640
 
         # Reload the layer to ensure we're reading the updated file
         layer_data_to_edit.reload()
@@ -320,6 +320,9 @@ class TestEditingTools:
 
         # Apply changes
         dialog.apply()
+        from ThRasE.thrase import ThRasE
+
+        assert ThRasE.dialog.raster_recode_controller.last_result.changed_count == 408
 
         # Reload the layer to ensure we're reading the updated file
         layer_data_to_edit.reload()
@@ -409,6 +412,9 @@ class TestEditingTools:
 
         # Apply changes (mask = rasterized polygons with the pixel-center rule)
         dialog.apply()
+        from ThRasE.thrase import ThRasE
+
+        assert ThRasE.dialog.raster_recode_controller.last_result.changed_count == 289
 
         # Reload the layer to ensure we're reading the updated file
         layer_data_to_edit.reload()

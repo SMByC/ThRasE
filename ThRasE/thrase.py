@@ -22,11 +22,13 @@ import os.path
 import shutil
 from pathlib import Path
 
+from qgis.core import Qgis, QgsProject
 from qgis.PyQt.QtCore import QCoreApplication, QLocale, QSettings, Qt, QTranslator
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.utils import iface
 
+from ThRasE.core.raster_recode import find_transaction_leftovers
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.main_dialog import ThRasEDialog
 from ThRasE.utils.qgis_utils import unload_layer
@@ -109,10 +111,34 @@ class ThRasE:
 
     # --------------------------------------------------------------------------
 
+    def report_transaction_leftovers(self):
+        """Warn about files an unfinished global edit left beside a loaded raster.
+
+        They block further global edits on that raster until they are checked and
+        removed, so the warning stays until the user dismisses it.
+        """
+        leftovers = []
+        for layer in QgsProject.instance().mapLayers().values():
+            source = layer.source().split("|", maxsplit=1)[0]
+            if source and not source.startswith("/vsi") and "://" not in source:
+                leftovers.extend(find_transaction_leftovers(source))
+        if leftovers:
+            self.iface.messageBar().pushMessage(
+                "ThRasE unfinished global edit",
+                "Files from an unfinished global edit remain beside a loaded raster and block further global edits "
+                "on it. Check that the raster is intact, then remove them: " + ", ".join(sorted(set(leftovers))),
+                level=Qgis.MessageLevel.Warning,
+                duration=0,
+            )
+
     def run(self):
         """Run method that loads and starts the plugin"""
 
         if not self.pluginIsActive:
+            # Only when the plugin opens: the warning does not expire on its own, so
+            # repeating it every time the already-open dialog is raised would stack
+            # copies of it in the message bar.
+            self.report_transaction_leftovers()
             self.pluginIsActive = True
 
             # dialog may not exist if:
@@ -150,6 +176,9 @@ class ThRasE:
         """Cleanup necessary items here when plugin is closed"""
         from ThRasE.core.editing import LayerToEdit
 
+        # A running global edit never reaches this point: the dialog refuses to close
+        # until the edit has stopped, so `closingPlugin` is not emitted before then.
+
         # restore the recode pixel table to original (if was changed) of the thematic raster to edit
         if LayerToEdit.current:
             ThRasE.dialog.restore_recode_table()
@@ -180,13 +209,13 @@ class ThRasE:
             ThRasE.dialog.autofill_dialog.close()
             ThRasE.dialog.autofill_dialog = None
 
+        if hasattr(ThRasE.dialog, "apply_from_classes_or_mask"):
+            mask_dialog = ThRasE.dialog.apply_from_classes_or_mask
+            mask_dialog.cleanup_mask_state(remove_owned_layers=True)
+            mask_dialog.close()
+
         self.removes_temporary_files()
 
-        # remove this statement if dialog is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
-        # when closing the docked window:
-        ThRasE.dialog.close()
         ThRasE.dialog = None
 
         # reset some variables
@@ -195,25 +224,22 @@ class ThRasE:
         LayerToEdit.instances = {}
         LayerToEdit.current = None
 
-        from qgis.utils import reloadPlugin
-
-        reloadPlugin("ThRasE - Thematic Raster Editor")
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        self.removes_temporary_files()
+        if ThRasE.dialog:
+            if not ThRasE.dialog.raster_recode_controller.shutdown():
+                raise RuntimeError("ThRasE cannot be unloaded while a global edit is being finalized")
+            ThRasE.dialog.closing_for_unload = True
+            ThRasE.dialog.close()
+        else:
+            self.removes_temporary_files()
         # Remove the plugin menu item and icon
         self.iface.removePluginMenu(self.menu_name_plugin, self.dockable_action)
         self.iface.removePluginMenu(self.menu_name_plugin, self.about_action)
         self.iface.removeToolBarIcon(self.dockable_action)
 
-        if ThRasE.dialog:
-            ThRasE.dialog.close()
-
     @staticmethod
     def removes_temporary_files():
-        if not ThRasE.dialog:
-            return
         # unload all layers instances from Qgis saved in tmp dir
         try:
             d = ThRasE.tmp_dir

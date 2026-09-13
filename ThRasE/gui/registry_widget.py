@@ -78,6 +78,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
         if not LayerToEdit.current.registry.enabled:
             return
 
+        # A false status only means there is nothing to display, which happens for
+        # sessions restored from a configuration written before edits were grouped.
+        # Real rebuild failures raise from Registry.update() itself.
         status = LayerToEdit.current.registry.update()
         total_groups = len(LayerToEdit.current.registry.groups)
 

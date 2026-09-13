@@ -25,12 +25,10 @@ import uuid
 from collections import OrderedDict
 from copy import deepcopy
 from datetime import datetime
-from shutil import move
 from typing import ClassVar
 
 import numpy as np
 import yaml
-from osgeo import gdal
 
 try:
     from yaml import CSafeDumper as SafeDumper
@@ -43,9 +41,16 @@ from qgis.core import Qgis, QgsGeometry, QgsPointXY, QgsRasterBlock
 from qgis.PyQt.QtCore import Qt
 
 from ThRasE.core.navigation import Navigation
+from ThRasE.core.raster_recode import (
+    RasterRecodeRecoveryError,
+    RecodeRequest,
+    RecodeStatus,
+    discard_staged,
+    stage_recode,
+)
 from ThRasE.core.registry import Registry
-from ThRasE.utils.others_utils import copy_band_metadata, copy_dataset_metadata, get_xml_style
-from ThRasE.utils.qgis_utils import apply_symbology, get_source_from
+from ThRasE.utils.others_utils import get_xml_style
+from ThRasE.utils.qgis_utils import apply_symbology, commit_and_reconcile, get_source_from
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 
@@ -127,9 +132,7 @@ class LayerToEdit:
         return self.qgs_layer.extent()
 
     def get_pixel_value_from_xy(self, x, y):
-        return self.data_provider.identify(QgsPointXY(x, y), Qgis.RasterIdentifyFormat.Value).results()[
-            self.band
-        ]
+        return self.data_provider.identify(QgsPointXY(x, y), Qgis.RasterIdentifyFormat.Value).results()[self.band]
 
     def get_pixel_value_from_pnt(self, point):
         return self.data_provider.identify(point, Qgis.RasterIdentifyFormat.Value).results()[self.band]
@@ -416,107 +419,160 @@ class LayerToEdit:
 
     @wait_process
     def edit_to_entire_thematic_raster(self, record_in_registry=False):
-        """Edit the entire thematic raster with the new values using gdal"""
+        """Synchronously recode the raster through the bounded-memory engine.
+
+        The dialog runs global edits through the cancellable task controller.
+        This method is the same sequence without a task, for callers that need it
+        to finish before they continue; it records every changed pixel when asked
+        to, without the size confirmation the dialogs show.
+        """
         from ThRasE.thrase import ThRasE
 
-        edited_pixels_count = 0
-        row_indices = col_indices = None
-        old_values = new_values = None
-
+        registry_pixels = tuple(self.pixel_log_store)
         try:
-            # read
-            ds_in = gdal.Open(self.file_path, gdal.GA_ReadOnly)
-            if ds_in is None:
-                raise RuntimeError(f"Unable to open raster {self.file_path}")
-            num_bands = ds_in.RasterCount
-            src_band = ds_in.GetRasterBand(self.band)
-            data_array = src_band.ReadAsArray().astype(int)
-            new_data_array = deepcopy(data_array)
-
-            # apply changes
-            for old_value, new_value in self.old_new_value.items():
-                new_data_array[data_array == old_value] = new_value
-
-            # compute which pixels actually changed
-            row_indices, col_indices = np.nonzero(new_data_array != data_array)
-            edited_pixels_count = int(row_indices.size)
-            if edited_pixels_count:
-                old_values = data_array[row_indices, col_indices]
-                new_values = new_data_array[row_indices, col_indices]
-
-            # create file
-            fn, ext = os.path.splitext(self.file_path)
-            fn_out = fn + "_tmp" + ext
-            driver_name = ds_in.GetDriver().ShortName
-            driver = gdal.GetDriverByName(driver_name)
-            if driver is None:
-                raise RuntimeError(f"GDAL driver '{driver_name}' is not available")
-
-            (x, y) = new_data_array.shape
-            ds_out = None
-            create_copy_used = False
-            if driver.GetMetadataItem("DCAP_CREATECOPY") == "YES":
-                ds_out = driver.CreateCopy(fn_out, ds_in)
-                if ds_out is not None:
-                    create_copy_used = True
-
-            if ds_out is None:
-                ds_out = driver.Create(fn_out, y, x, num_bands, src_band.DataType)
-                if ds_out is None:
-                    raise RuntimeError(f"Failed to create output raster {fn_out}")
-
-            src_band_i = dst_band_i = None
-            for band_index in range(1, num_bands + 1):
-                src_band_i = ds_in.GetRasterBand(band_index)
-                dst_band_i = ds_out.GetRasterBand(band_index)
-                if band_index == self.band:
-                    dst_band_i.WriteArray(new_data_array)
-                elif not create_copy_used:
-                    dst_band_i.WriteArray(src_band_i.ReadAsArray())
-                copy_band_metadata(src_band_i, dst_band_i)
-            del src_band_i, dst_band_i
-
-            ds_out.SetGeoTransform(ds_in.GetGeoTransform())
-            ds_out.SetProjection(ds_in.GetProjection())
-            copy_dataset_metadata(ds_in, ds_out)
-
-            ds_out.FlushCache()
-            del ds_out, driver, src_band, ds_in
-            move(fn_out, self.file_path)
-
-            # record the changes in ThRasE registry
-            if record_in_registry and edited_pixels_count:
-                ps_x = self.qgs_layer.rasterUnitsPerPixelX()
-                ps_y = self.qgs_layer.rasterUnitsPerPixelY()
-                xmin, _ymin, _xmax, ymax = self.bounds
-
-                group_id = uuid.uuid4()
-                for row_idx, col_idx, old_val, new_val in zip(
-                    row_indices, col_indices, old_values, new_values, strict=True
-                ):
-                    x_coord = xmin + (float(col_idx) + 0.5) * ps_x
-                    y_coord = ymax - (float(row_idx) + 0.5) * ps_y
-                    PixelLog(Pixel(x=x_coord, y=y_coord), int(old_val), int(new_val), group_id, store=True)
-
-            del new_data_array, data_array
-            if old_values is not None:
-                del old_values, new_values
-            if row_indices is not None:
-                del row_indices, col_indices
-        except Exception as e:
-            ThRasE.dialog.MsgBar.pushMessage(f"ERROR: {e}", level=Qgis.MessageLevel.Critical, duration=20)
+            request = RecodeRequest(
+                source_path=self.file_path,
+                band=self.band,
+                recode_pairs=tuple(self.old_new_value.items()),
+                collect_changes=record_in_registry,
+                registry_points=tuple((pixel.x(), pixel.y()) for pixel in registry_pixels),
+            )
+            result = stage_recode(request)
+        except Exception as error:
+            # A failed staging leaves nothing behind, so there is nothing to discard.
+            ThRasE.dialog.MsgBar.pushMessage(f"ERROR: {error}", level=Qgis.MessageLevel.Critical, duration=20)
             return False
 
-        if hasattr(self.qgs_layer, "setCacheImage"):
-            self.qgs_layer.setCacheImage(None)
-        self.qgs_layer.reload()
-        self.qgs_layer.triggerRepaint()
+        if result.status is RecodeStatus.NO_CHANGES:
+            edited_pixels_count = 0
+        else:
+            try:
+                outcome = commit_and_reconcile(
+                    result,
+                    self,
+                    record_changes=record_in_registry,
+                    registry_pixels=registry_pixels,
+                    registry_widget=ThRasE.dialog.registry_widget,
+                )
+            except Exception as error:
+                retained = discard_staged(result, keep_for_recovery=isinstance(error, RasterRecodeRecoveryError))
+                if retained:
+                    ThRasE.dialog.MsgBar.pushMessage(
+                        "Global edit files remain beside the raster and block further global edits until they are "
+                        "checked and removed: " + ", ".join(retained),
+                        level=Qgis.MessageLevel.Warning,
+                        duration=20,
+                    )
+                ThRasE.dialog.MsgBar.pushMessage(f"ERROR: {error}", level=Qgis.MessageLevel.Critical, duration=20)
+                return False
+
+            if outcome.recovery_error is not None:
+                ThRasE.dialog.MsgBar.pushMessage(
+                    f"ERROR: {outcome.recovery_error}", level=Qgis.MessageLevel.Critical, duration=20
+                )
+                return False
+            if outcome.cleanup_error is not None:
+                ThRasE.dialog.MsgBar.pushMessage(
+                    "The global edit succeeded, but its temporary files could not be removed: "
+                    f"{outcome.cleanup_error}. Remaining files: " + ", ".join(outcome.leftovers),
+                    level=Qgis.MessageLevel.Warning,
+                    duration=20,
+                )
+            if outcome.retained_backups:
+                ThRasE.dialog.MsgBar.pushMessage(
+                    "The original raster was kept because another program wrote to it after the global edit. Check "
+                    "it and remove it manually to allow further global edits: " + ", ".join(outcome.retained_backups),
+                    level=Qgis.MessageLevel.Warning,
+                    duration=20,
+                )
+            if outcome.registry_error is not None:
+                ThRasE.dialog.MsgBar.pushMessage(
+                    f"The raster was edited, but the registry could not be updated: {outcome.registry_error}",
+                    level=Qgis.MessageLevel.Warning,
+                    duration=20,
+                )
+            edited_pixels_count = outcome.edited_count
 
         ThRasE.dialog.editing_status.setText(f"{edited_pixels_count} pixels edited!")
-        if record_in_registry and edited_pixels_count:
-            ThRasE.dialog.registry_widget.update_registry()
 
         return edited_pixels_count
+
+    def store_global_edit_changes(self, changes, geotransform):
+        """Store bounded worker change records in one registry group."""
+        group_id = uuid.uuid4()
+        previous_store = self.pixel_log_store
+        updated_store = previous_store.copy()
+        for change in changes:
+            x_coord = geotransform[0] + (change.column + 0.5) * geotransform[1] + (change.row + 0.5) * geotransform[2]
+            y_coord = geotransform[3] + (change.column + 0.5) * geotransform[4] + (change.row + 0.5) * geotransform[5]
+            pixel_log = PixelLog(
+                Pixel(x=x_coord, y=y_coord),
+                change.old_value,
+                change.new_value,
+                group_id,
+                store=False,
+            )
+            existing = updated_store.get(pixel_log.pixel)
+            if existing is None:
+                updated_store[pixel_log.pixel] = pixel_log
+            elif existing.old_value == pixel_log.new_value:
+                del updated_store[pixel_log.pixel]
+            else:
+                updated_store[existing.pixel] = PixelLog(
+                    existing.pixel,
+                    existing.old_value,
+                    pixel_log.new_value,
+                    group_id,
+                    edit_date=pixel_log.edit_date,
+                    store=False,
+                )
+        self.pixel_log_store = updated_store
+        try:
+            registry_updated = self.registry.update()
+            if updated_store and not registry_updated:
+                raise RuntimeError("Unable to rebuild the pixel registry")
+        except Exception:
+            self.pixel_log_store = previous_store
+            raise
+
+    def reconcile_registry(self, current_values=None, pixels=None):
+        """Keep existing registry entries consistent after an unlogged edit."""
+        previous_store = self.pixel_log_store
+        reconciled_store = {}
+        if current_values is None:
+            pixels = tuple(previous_store)
+            current_values = tuple(self.get_pixel_value_from_pnt(pixel.qgs_point) for pixel in pixels)
+        elif pixels is None or len(current_values) != len(pixels):
+            raise RuntimeError("The registry reconciliation result does not match the requested pixels")
+        for pixel, current_value in zip(pixels, current_values, strict=True):
+            pixel_log = previous_store.get(pixel)
+            if pixel_log is None:
+                raise RuntimeError("The pixel registry changed before it could be reconciled")
+            if current_value is None:
+                reconciled_store[pixel] = pixel_log
+                continue
+            current_value = int(current_value)
+            if current_value == pixel_log.old_value:
+                continue
+            if current_value == pixel_log.new_value:
+                reconciled_store[pixel] = pixel_log
+            else:
+                reconciled_store[pixel] = PixelLog(
+                    pixel,
+                    pixel_log.old_value,
+                    current_value,
+                    pixel_log.group_id,
+                    edit_date=pixel_log.edit_date,
+                    store=False,
+                )
+        self.pixel_log_store = reconciled_store
+        try:
+            registry_updated = self.registry.update()
+            if reconciled_store and not registry_updated:
+                raise RuntimeError("Unable to rebuild the pixel registry")
+        except Exception:
+            self.pixel_log_store = previous_store
+            raise
 
     @wait_process
     def save_config(self, file_out):

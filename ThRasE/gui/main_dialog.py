@@ -52,16 +52,19 @@ from qgis.PyQt.QtWidgets import (
     QGridLayout,
     QLabel,
     QMessageBox,
+    QStyle,
     QTableWidgetItem,
     QWidget,
 )
 from qgis.utils import iface
 
 from ThRasE.core.editing import LayerToEdit
+from ThRasE.core.raster_recode import RecodeRequest
 from ThRasE.gui.about_dialog import AboutDialog
 from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
 from ThRasE.gui.autofill_dialog import AutoFill
 from ThRasE.gui.navigation_dialog import NavigationDialog
+from ThRasE.gui.raster_recode_task import RasterRecodeController
 from ThRasE.gui.view_widget import ViewWidget, ViewWidgetMulti, ViewWidgetSingle
 from ThRasE.utils.kml_utils import write_google_earth_kml
 from ThRasE.utils.qgis_utils import (
@@ -71,6 +74,7 @@ from ThRasE.utils.qgis_utils import (
     browse_dialog_to_load_file,
     get_nodata_value,
     get_source_from,
+    global_edit_memory_budget,
     is_integer_data_type,
     load_and_select_layer_in,
     load_layer,
@@ -114,6 +118,13 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         #
         self.grid_rows = None
         self.grid_columns = None
+        self.raster_recode_controller = RasterRecodeController(self)
+        self._global_edit_widget_states = {}
+        self.close_after_global_edit_cancel = False
+        self.closing_for_unload = False
+        # Set when the user already answered the save prompt for a close that a
+        # running global edit deferred, so the deferred close does not ask again.
+        self.close_confirmed = False
         # flags
         self.setWindowFlags(
             self.windowFlags() | Qt.WindowType.WindowMinimizeButtonHint | Qt.WindowType.WindowMaximizeButtonHint
@@ -248,7 +259,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QPBtn_AutoFill.clicked.connect(self.open_autofill_dialog)
         self.QGBox_GlobalEditTools.setHidden(True)
         self.QPBtn_ApplyToEntireThematicRaster.clicked.connect(self.apply_to_entire_thematic_raster)
-        self.apply_from_classes_or_mask = ApplyFromClassesOrMask()
+        self.apply_from_classes_or_mask = ApplyFromClassesOrMask(parent=self)
         self.QPBtn_ApplyFromClassesOrMask.clicked.connect(self.apply_from_classes_or_mask_dialog)
         self.SaveConfig.clicked.connect(self.save_thrase_config)
         self.SaveAsConfig.clicked.connect(self.file_dialog_save_thrase_config)
@@ -814,49 +825,102 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if event.key() != Qt.Key.Key_Escape:
             super().keyPressEvent(event)
 
+    def _confirm_close(self):
+        """Ask whether to save the configuration before closing; False cancels the close."""
+        layer_to_edit = LayerToEdit.current
+        if not self.isVisible() or self.closing_for_unload or layer_to_edit is None:
+            return True
+
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Question)
+        msg_box.setWindowTitle(self.tr("Close ThRasE"))
+        msg_box.setTextFormat(Qt.TextFormat.RichText)
+        msg_box.setText(
+            "<p>{}</p>".format(self.tr("Do you want to save the current configuration before exiting ThRasE?"))
+        )
+
+        if layer_to_edit.config_file:
+            config_path = layer_to_edit.config_file
+            try:
+                if os.path.exists(config_path):
+                    saved_at = datetime.fromtimestamp(os.path.getmtime(config_path))
+                    config_path += " ({})".format(saved_at.strftime("%d %b %Y, %H:%M:%S"))
+            except OSError:
+                pass
+            msg_box.setInformativeText(self.tr("<b>Current config file:</b> {0}").format(escape(config_path)))
+
+        msg_box.setStandardButtons(
+            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Close | QMessageBox.StandardButton.Cancel
+        )
+        msg_box.setDefaultButton(QMessageBox.StandardButton.Save)
+        msg_box.setEscapeButton(QMessageBox.StandardButton.Cancel)
+        button_box = msg_box.findChild(QDialogButtonBox)
+        if button_box:
+            button_box.button(QDialogButtonBox.StandardButton.Save).setText(self.tr("Save and close"))
+            button_box.button(QDialogButtonBox.StandardButton.Close).setText(self.tr("Close"))
+            button_box.button(QDialogButtonBox.StandardButton.Cancel).setText(self.tr("Cancel"))
+
+        reply = msg_box.exec()
+        if reply == QMessageBox.StandardButton.Cancel:
+            return False
+        if reply == QMessageBox.StandardButton.Save:
+            return self.save_thrase_config()
+        return True
+
+    def _ready_to_close(self):
+        """Answer whether the dialog can close now, after asking the user what is needed.
+
+        A close is refused while a global edit is being finalized, and deferred
+        until a cancelled edit has stopped; the deferred close is remembered in
+        `close_after_global_edit_cancel` and `close_confirmed` so it neither asks again
+        nor closes without asking.
+        """
+        controller = self.raster_recode_controller
+        if not controller.active:
+            if not self.close_confirmed and not self._confirm_close():
+                return False
+            self._forget_deferred_close()
+            return True
+
+        if controller.committing:
+            QMessageBox.information(
+                self,
+                self.tr("Global edit"),
+                self.tr("The global edit is being finalized. Wait for it to finish before closing ThRasE."),
+            )
+            return False
+
+        reply = QMessageBox.question(
+            self,
+            self.tr("Cancel global edit"),
+            self.tr("A global edit is running. Cancel it and close ThRasE?"),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        # Closing has to wait for the worker to stop, so ask about saving now: the
+        # deferred close then runs without asking the user a second time.
+        if reply != QMessageBox.StandardButton.Yes or not self._confirm_close():
+            return False
+        # Both prompts run their own event loop, so the edit may have finished while one
+        # of them was open.  There is nothing left to wait for then, and a deferred close
+        # left behind would later close the dialog without asking, so it closes now.
+        if not controller.active:
+            self._forget_deferred_close()
+            return True
+        self.close_confirmed = True
+        self.close_after_global_edit_cancel = True
+        controller.cancel()
+        return False
+
+    def _forget_deferred_close(self):
+        """Drop a pending deferred close so it cannot apply to a later close."""
+        self.close_confirmed = False
+        self.close_after_global_edit_cancel = False
+
     def closeEvent(self, event):
-        if self.isVisible():
-            msg_box = QMessageBox(self)
-            msg_box.setIcon(QMessageBox.Icon.Question)
-            msg_box.setWindowTitle(self.tr("Close ThRasE"))
-            msg_box.setTextFormat(Qt.TextFormat.RichText)
-            msg_box.setText(
-                "<p>{}</p>".format(self.tr("Do you want to save the current configuration before exiting ThRasE?"))
-            )
-
-            layer_to_edit = LayerToEdit.current
-            if layer_to_edit and layer_to_edit.config_file:
-                config_path = layer_to_edit.config_file
-                try:
-                    if os.path.exists(config_path):
-                        saved_at = datetime.fromtimestamp(os.path.getmtime(config_path))
-                        config_path += " ({})".format(saved_at.strftime("%d %b %Y, %H:%M:%S"))
-                except OSError:
-                    pass
-                msg_box.setInformativeText(self.tr("<b>Current config file:</b> {0}").format(escape(config_path)))
-
-            msg_box.setStandardButtons(
-                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Close | QMessageBox.StandardButton.Cancel
-            )
-            msg_box.setDefaultButton(QMessageBox.StandardButton.Save)
-            msg_box.setEscapeButton(QMessageBox.StandardButton.Cancel)
-            button_box = msg_box.findChild(QDialogButtonBox)
-            if button_box:
-                button_box.button(QDialogButtonBox.StandardButton.Save).setText(self.tr("Save and close"))
-                button_box.button(QDialogButtonBox.StandardButton.Close).setText(self.tr("Close"))
-                button_box.button(QDialogButtonBox.StandardButton.Cancel).setText(self.tr("Cancel"))
-
-            if layer_to_edit is not None:
-                reply = msg_box.exec()
-
-                if reply == QMessageBox.StandardButton.Cancel:
-                    event.ignore()
-                    return
-
-                if reply == QMessageBox.StandardButton.Save:
-                    if not self.save_thrase_config():
-                        event.ignore()
-                        return
+        if not self._ready_to_close():
+            event.ignore()
+            return
 
         # Disconnect each signal independently: a missing/already-destroyed signal
         # must not prevent teardown of the remaining widgets.
@@ -1070,26 +1134,28 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.MsgBar.pushMessage("Thematic layer to edit is not valid", level=Qgis.MessageLevel.Warning, duration=10)
             self.unset_thematic_layer_to_edit()
             return
-        # show warning for layer to edit different to tif format
-        if layer_selected.source().split(".")[-1].lower() not in ["tif", "tiff"]:
+        # GTiff and HFA are the formats supported by transactional global editing.
+        if layer_selected.source().split(".")[-1].lower() not in ["tif", "tiff", "img"]:
             quit_msg = (
-                "Use raster files different to GTiff (tif or tiff) format has not been fully tested. "
-                "GTiff files are recommended for editing.\n\n"
+                "Only GTiff (tif or tiff) and Erdas Imagine (img) files are supported by the global editing tools, "
+                "and other formats have not been fully tested. GTiff files are recommended for editing.\n\n"
                 "Do you want to continue anyway?"
             )
             reply = QMessageBox.question(
                 None,
                 "Thematic layer to edit in ThRasE",
                 quit_msg,
-                QMessageBox.StandardButton.Yes,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
-            if reply == QMessageBox.StandardButton.No:
+            if reply != QMessageBox.StandardButton.Yes:
                 self.unset_thematic_layer_to_edit()
                 return
 
-        # check if thematic layer to edit has data type as integer or byte
-        if not is_integer_data_type(layer_selected, band=1):
+        # At least one selectable band must contain scalar integer values.
+        if not any(
+            is_integer_data_type(layer_selected, band=band) for band in range(1, layer_selected.bandCount() + 1)
+        ):
             self.MsgBar.pushMessage(
                 "Thematic layer to edit must be byte or integer as data type",
                 level=Qgis.MessageLevel.Warning,
@@ -1108,7 +1174,20 @@ class ThRasEDialog(QDialog, FORM_CLASS):
     @error_handler
     def setup_layer_to_edit(self, nodata_action=None):
         layer = self.QCBox_LayerToEdit.currentLayer()
+        if layer is None or not self.QCBox_band_LayerToEdit.currentText():
+            return
         band = int(self.QCBox_band_LayerToEdit.currentText())
+        if not is_integer_data_type(layer, band=band):
+            self.MsgBar.pushMessage(
+                f"Band {band} must use a scalar integer data type",
+                level=Qgis.MessageLevel.Warning,
+                duration=10,
+            )
+            LayerToEdit.current = None
+            [view_widget.widget_EditingToolbar.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
+            self.QGBox_GlobalEditTools.setEnabled(False)
+            self.update_save_buttons_state()
+            return
         nodata = get_nodata_value(layer, band)
 
         # check if nodata is set, to handle it: unset or hide in recode table
@@ -1477,53 +1556,101 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def apply_to_entire_thematic_raster(self):
-        # first prompt
-        quit_msg = (
+        layer_to_edit = LayerToEdit.current
+        if not layer_to_edit or not layer_to_edit.old_new_value:
+            self.MsgBar.pushMessage(
+                "There are no changes to apply in the recode pixel table. Please set new pixel values first",
+                level=Qgis.MessageLevel.Warning,
+                duration=10,
+            )
+            return
+        # Dialog: use real widgets to preserve the checkbox's enabled state and tooltip.
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Applying changes to entire thematic raster")
+        layout = QGridLayout(dialog)
+        layout.setColumnStretch(1, 1)
+        layout.setRowStretch(4, 1)
+        icon = QLabel(dialog)
+        icon.setPixmap(dialog.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxQuestion).pixmap(32, 32))
+        icon.setFixedSize(icon.sizeHint())
+        layout.addWidget(icon, 0, 0, 4, 1, Qt.AlignmentFlag.AlignTop)
+        message = QLabel(
             "This action applies the changes defined in the pixel recoding table to the entire thematic raster. "
-            "This operation cannot be undone.\n\n"
-            f'Target file: "{LayerToEdit.current.file_path}"\n'
+            "This operation cannot be undone.",
+            dialog,
         )
+        message.setTextFormat(Qt.TextFormat.PlainText)
+        message.setWordWrap(True)
+        layout.addWidget(message, 0, 1)
 
-        msg_box = QMessageBox(self)
-        msg_box.setIcon(QMessageBox.Icon.Question)
-        msg_box.setWindowTitle("Applying changes to entire thematic raster")
-        msg_box.setText(quit_msg)
-        msg_box.setStandardButtons(QMessageBox.StandardButton.Apply | QMessageBox.StandardButton.Cancel)
-        msg_box.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        # Target file: allow long path segments to wrap at the available dialog width.
+        layout.addWidget(QLabel("Target file:", dialog), 1, 1)
+        target_file = QLabel("\u200b".join(layer_to_edit.file_path), dialog)
+        target_file.setTextFormat(Qt.TextFormat.PlainText)
+        target_file.setWordWrap(True)
+        target_file.setIndent(target_file.fontMetrics().horizontalAdvance("    "))
+        target_file.setContentsMargins(0, 0, 0, 12)
+        target_file.setToolTip(f"<p>{escape(layer_to_edit.file_path)}</p>")
+        layout.addWidget(target_file, 2, 1)
 
-        # registry
-        registry_enabled = LayerToEdit.current.registry.enabled if LayerToEdit.current else False
-        record_checkbox = QCheckBox("Record the changes in the registry")
+        # Registry
+        registry_enabled = layer_to_edit.registry.enabled
+        record_checkbox = QCheckBox("Record the changes in the registry", dialog)
         record_checkbox.setChecked(False)
         record_checkbox.setEnabled(registry_enabled)
-        # Set tooltip based on registry status
-        tooltip_base = "<p>Add the changes that will be applied here to the ThRasE registry.</p>"
-        if registry_enabled:
-            tooltip = f"<html><head/><body>{tooltip_base}</body></html>"
-        else:
-            tooltip_notice = "<p><b>Registry is disabled:</b> enable it in the main dialog to store these edits.</p>"
-            tooltip = f"<html><head/><body>{tooltip_base}{tooltip_notice}</body></html>"
+        tooltip = "<p>Add the changes that will be applied here to the ThRasE registry.</p>"
+        if not registry_enabled:
+            tooltip += "<p><b>Registry is disabled:</b> enable it in the main dialog to store these edits.</p>"
         record_checkbox.setToolTip(tooltip)
-        msg_box.setCheckBox(record_checkbox)
+        layout.addWidget(record_checkbox, 3, 1)
 
-        reply = msg_box.exec()
+        # Buttons
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Apply | QDialogButtonBox.StandardButton.Cancel, dialog
+        )
+        buttons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        cancel_button = buttons.button(QDialogButtonBox.StandardButton.Cancel)
+        cancel_button.setDefault(True)
+        cancel_button.setFocus()
+        layout.addWidget(buttons, 5, 0, 1, 2)
+
+        reply = dialog.exec()
         record_in_registry = record_checkbox.isChecked() and registry_enabled
+        dialog.deleteLater()
 
-        if reply == QMessageBox.StandardButton.Apply:
-            status = LayerToEdit.current.edit_to_entire_thematic_raster(record_in_registry=record_in_registry)
-            if status is not False and status > 0:
+        if reply == QDialog.DialogCode.Accepted:
+            memory_budget_bytes = global_edit_memory_budget()
+            request = RecodeRequest(
+                source_path=layer_to_edit.file_path,
+                band=layer_to_edit.band,
+                recode_pairs=tuple(layer_to_edit.old_new_value.items()),
+                collect_changes=record_in_registry,
+                memory_budget_bytes=memory_budget_bytes,
+            )
+
+            def completed(_result):
                 self.MsgBar.pushMessage(
                     "DONE: Changes in the recoded pixels table were successfully applied"
                     " to the entire thematic raster.",
                     level=Qgis.MessageLevel.Success,
                     duration=10,
                 )
-            elif status is not False and status == 0:
+
+            def no_changes(_result):
                 self.MsgBar.pushMessage(
                     "No changes were applied: no pixels matched the recode criteria. Please check the recode table.",
                     level=Qgis.MessageLevel.Info,
                     duration=10,
                 )
+
+            self.raster_recode_controller.start(
+                request,
+                layer_to_edit,
+                parent=self,
+                on_success=completed,
+                on_no_changes=no_changes,
+            )
 
     @pyqtSlot()
     def apply_from_classes_or_mask_dialog(self):
@@ -1537,12 +1664,35 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             return
 
         self.apply_from_classes_or_mask.setup_gui()
-        if self.apply_from_classes_or_mask.exec():
-            self.MsgBar.pushMessage(
-                "DONE: Changes in recode pixels table were successfully applied within the selected mask",
-                level=Qgis.MessageLevel.Success,
-                duration=10,
-            )
+        self.apply_from_classes_or_mask.exec()
+
+    def set_global_edit_active(self, active):
+        """Disable controls that can invalidate a running raster-edit request."""
+        widgets = [
+            self.QCBox_LayerToEdit,
+            self.QCBox_band_LayerToEdit,
+            self.QPBtn_browseLayerToEdit,
+            self.QPBtn_LayerStyle,
+            self.QPBtn_ReloadRecodeTable,
+            self.QPBtn_RestoreRecodeTable,
+            self.QPBtn_AutoFill,
+            self.QGBox_GlobalEditTools,
+            self.recodePixelTable,
+            self.SaveConfig,
+            self.SaveAsConfig,
+        ]
+        widgets.extend(view_widget.widget_EditingToolbar for view_widget in ThRasEDialog.view_widgets)
+        if active:
+            self._global_edit_widget_states = {widget: widget.isEnabled() for widget in widgets}
+            for widget in widgets:
+                widget.setEnabled(False)
+            return
+        for widget, was_enabled in self._global_edit_widget_states.items():
+            try:
+                widget.setEnabled(was_enabled)
+            except RuntimeError:
+                pass
+        self._global_edit_widget_states = {}
 
     @pyqtSlot()
     def save_thrase_config(self):

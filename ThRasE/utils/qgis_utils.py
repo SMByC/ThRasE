@@ -19,6 +19,9 @@
 """
 
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor, wait
+from dataclasses import dataclass
 from math import isnan
 from pathlib import Path
 
@@ -31,16 +34,41 @@ from qgis.core import (
     QgsProject,
     QgsProviderRegistry,
     QgsRasterLayer,
+    QgsRasterRange,
     QgsRasterShader,
     QgsSingleBandPseudoColorRenderer,
     QgsStyle,
     QgsVectorLayer,
 )
-from qgis.gui import QgsMapLayerComboBox, QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget
+from qgis.gui import QgsMapCanvas, QgsMapLayerComboBox, QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget
 from qgis.PyQt import uic
+from qgis.PyQt.QtCore import QEventLoop, QSettings
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog
+from qgis.PyQt.QtWidgets import QApplication, QDialog, QDialogButtonBox, QFileDialog
 from qgis.utils import iface
+
+
+@dataclass
+class ReleasedRasterLayer:
+    """State needed to reconnect a raster layer after replacing its file."""
+
+    layer: QgsRasterLayer
+    source: str
+    name: str
+    provider_type: str
+    renderer: object | None
+    user_nodata: tuple[tuple[QgsRasterRange, ...], ...]
+    use_source_nodata: tuple[bool, ...]
+    provider_resampling_enabled: bool | None
+    zoomed_in_resampling: object | None
+    zoomed_out_resampling: object | None
+    provider_dpi: int | None
+
+
+@dataclass
+class ReleasedRasterResources:
+    layers: tuple[ReleasedRasterLayer, ...]
+    canvases: tuple[tuple[QgsMapCanvas, bool], ...]
 
 
 def is_integer_data_type(layer, band=1):
@@ -53,7 +81,7 @@ def is_integer_data_type(layer, band=1):
         type_name = Qgis.DataType(data_type).name
     except ValueError:
         return False
-    return "Int" in type_name or "Byte" in type_name
+    return type_name in {"Byte", "Int8", "UInt16", "Int16", "UInt32", "Int32", "UInt64", "Int64"}
 
 
 def get_source_from(item):
@@ -109,7 +137,11 @@ def add_layer(layer, add_to_legend=True):
 
 
 def browse_dialog_to_load_file(parent, combo_box, dialog_title, file_filters, msg_bar=None, add_to_legend=True):
-    """Open a file dialog, load the chosen file into QGIS and select it in `combo_box`."""
+    """Open a file dialog, load the chosen file into QGIS and select it in `combo_box`.
+
+    Returns the loaded layer, or None when the dialog was cancelled or the file
+    could not be loaded, so the caller can keep track of the layers it added.
+    """
     file_path, _ = QFileDialog.getOpenFileName(parent, dialog_title, "", file_filters)
     if file_path != "" and os.path.isfile(file_path):
         qgslayer = load_and_select_layer_in(file_path, combo_box, add_to_legend=add_to_legend)
@@ -117,6 +149,8 @@ def browse_dialog_to_load_file(parent, combo_box, dialog_title, file_filters, ms
             (msg_bar or iface.messageBar()).pushMessage(
                 f"Could not load the layer: {file_path}", level=Qgis.MessageLevel.Warning, duration=10
             )
+        return qgslayer
+    return None
 
 
 RASTER_EXTENSIONS = (".tif", ".tiff", ".vrt", ".img", ".jp2", ".asc", ".nc", ".hdf", ".ecw", ".dt2")
@@ -216,18 +250,327 @@ def unload_layer(source):
             QgsProject.instance().removeMapLayer(layer_loaded.id())
 
 
-def remove_layers_hidden_from_legend():
-    """Remove from the QGIS project every layer that is not present in the
-    legend (layer tree).
+def _refresh_layer_to_edit_providers(layers, *, released=False):
+    """Keep cached provider references from retaining a replaced GDAL dataset."""
+    try:
+        from ThRasE.core.editing import LayerToEdit
+    except ImportError:
+        return
+    layer_ids = {layer.id() for layer in layers}
+    for instance_key, layer_to_edit in list(LayerToEdit.instances.items()):
+        try:
+            layer_id = layer_to_edit.qgs_layer.id()
+        except RuntimeError:
+            del LayerToEdit.instances[instance_key]
+            continue
+        if layer_id in layer_ids:
+            layer_to_edit.data_provider = None if released else layer_to_edit.qgs_layer.dataProvider()
 
-    This is intended to clean up layers that were added with
-    `add_to_legend=False`.
+
+def _map_canvases():
+    canvases = []
+    try:
+        canvases.append(iface.mapCanvas())
+    except (AttributeError, RuntimeError):
+        pass
+    canvases.extend(widget for widget in QApplication.allWidgets() if isinstance(widget, QgsMapCanvas))
+    unique_canvases = []
+    seen = set()
+    for canvas in canvases:
+        if canvas is None or id(canvas) in seen:
+            continue
+        seen.add(id(canvas))
+        unique_canvases.append(canvas)
+    return tuple(unique_canvases)
+
+
+def _freeze_raster_canvases(existing_states=None, *, timeout_ms=5_000):
+    unique_canvases = _map_canvases()
+
+    original_states = {id(canvas): frozen for canvas, frozen in existing_states or ()}
+    states = []
+    try:
+        for canvas in unique_canvases:
+            states.append((canvas, original_states.get(id(canvas), canvas.isFrozen())))
+            canvas.freeze(True)
+            canvas.stopRendering()
+        deadline = time.monotonic() + timeout_ms / 1000
+        while any(canvas.isDrawing() for canvas, _frozen in states):
+            if time.monotonic() >= deadline:
+                raise RuntimeError("Timed out while stopping active QGIS raster rendering")
+            QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents, 25)
+    except Exception:
+        _restore_raster_canvases(states)
+        raise
+    return tuple(states)
+
+
+def _restore_raster_canvases(states):
+    for canvas, was_frozen in states:
+        try:
+            canvas.freeze(was_frozen)
+        except RuntimeError:
+            pass
+
+
+def _release_raster_layer_states(states):
+    layers = [state.layer for state in states]
+    _refresh_layer_to_edit_providers(layers, released=True)
+    for state in states:
+        state.layer.setDataSource("", state.name, state.provider_type, False)
+
+
+def _same_local_file(first, second):
+    try:
+        return os.path.samefile(first, second)
+    except OSError:
+        first_path = os.path.normcase(os.path.realpath(os.path.abspath(first)))
+        second_path = os.path.normcase(os.path.realpath(os.path.abspath(second)))
+        return first_path == second_path
+
+
+def release_raster_layers_for_source(source, additional_layers=()):
+    """Release every matching QGIS GDAL provider so files can be replaced on Windows."""
+    candidates = list(QgsProject.instance().mapLayers().values()) + list(additional_layers)
+    for canvas in _map_canvases():
+        try:
+            candidates.extend(canvas.layers())
+        except RuntimeError:
+            continue
+    states = []
+    seen = set()
+    for layer in candidates:
+        if layer is None or layer.id() in seen or layer.type() != Qgis.LayerType.Raster:
+            continue
+        seen.add(layer.id())
+        layer_source = get_source_from(layer)
+        if not layer_source or not os.path.isfile(layer_source):
+            continue
+        if not _same_local_file(layer_source, source):
+            continue
+        renderer = layer.renderer()
+        provider = layer.dataProvider()
+        user_nodata = tuple(
+            tuple(QgsRasterRange(value_range) for value_range in provider.userNoDataValues(band))
+            for band in range(1, layer.bandCount() + 1)
+        )
+        use_source_nodata = tuple(provider.useSourceNoDataValue(band) for band in range(1, layer.bandCount() + 1))
+        provider_resampling_enabled = (
+            provider.isProviderResamplingEnabled() if hasattr(provider, "isProviderResamplingEnabled") else None
+        )
+        zoomed_in_resampling = (
+            provider.zoomedInResamplingMethod() if hasattr(provider, "zoomedInResamplingMethod") else None
+        )
+        zoomed_out_resampling = (
+            provider.zoomedOutResamplingMethod() if hasattr(provider, "zoomedOutResamplingMethod") else None
+        )
+        provider_dpi = provider.dpi() if hasattr(provider, "dpi") else None
+        states.append(
+            ReleasedRasterLayer(
+                layer=layer,
+                source=layer.source(),
+                name=layer.name(),
+                provider_type=layer.providerType() or "gdal",
+                renderer=renderer.clone() if renderer is not None else None,
+                user_nodata=user_nodata,
+                use_source_nodata=use_source_nodata,
+                provider_resampling_enabled=provider_resampling_enabled,
+                zoomed_in_resampling=zoomed_in_resampling,
+                zoomed_out_resampling=zoomed_out_resampling,
+                provider_dpi=provider_dpi,
+            )
+        )
+
+    canvas_states = _freeze_raster_canvases()
+    resources = ReleasedRasterResources(tuple(states), canvas_states)
+    try:
+        _release_raster_layer_states(states)
+    except Exception as error:
+        try:
+            restore_released_raster_layers(resources)
+        except Exception:
+            _restore_raster_canvases(canvas_states)
+        raise RuntimeError(f"Unable to release QGIS raster providers before commit: {error}") from error
+    return resources
+
+
+def restore_released_raster_layers(resources):
+    """Reconnect released layers, preserving their renderer and reporting every failure."""
+    restored = []
+    failures = []
+    for state in resources.layers:
+        try:
+            state.layer.setDataSource(state.source, state.name, state.provider_type, False)
+            if not state.layer.isValid():
+                layer_error = state.layer.error().summary() if state.layer.error() is not None else "invalid layer"
+                raise RuntimeError(layer_error or "invalid layer")
+            if state.renderer is not None:
+                state.layer.setRenderer(state.renderer.clone())
+            provider = state.layer.dataProvider()
+            for band, (user_nodata, use_source_nodata) in enumerate(
+                zip(state.user_nodata, state.use_source_nodata, strict=True),
+                start=1,
+            ):
+                provider.setUserNoDataValue(band, list(user_nodata))
+                provider.setUseSourceNoDataValue(band, use_source_nodata)
+            if state.zoomed_in_resampling is not None and hasattr(provider, "setZoomedInResamplingMethod"):
+                provider.setZoomedInResamplingMethod(state.zoomed_in_resampling)
+            if state.zoomed_out_resampling is not None and hasattr(provider, "setZoomedOutResamplingMethod"):
+                provider.setZoomedOutResamplingMethod(state.zoomed_out_resampling)
+            if state.provider_resampling_enabled is not None and hasattr(provider, "enableProviderResampling"):
+                provider.enableProviderResampling(state.provider_resampling_enabled)
+            if state.provider_dpi is not None and hasattr(provider, "setDpi"):
+                provider.setDpi(state.provider_dpi)
+            if hasattr(state.layer, "setCacheImage"):
+                state.layer.setCacheImage(None)
+            state.layer.triggerRepaint()
+            restored.append(state.layer)
+        except Exception as error:
+            failures.append(f"{state.name}: {error}")
+    _refresh_layer_to_edit_providers(restored)
+    _restore_raster_canvases(resources.canvases)
+    # The reconnected layers were repainted above, so only the canvases that were
+    # frozen need a refresh; reloading every layer of the project is not needed.
+    for canvas, _was_frozen in resources.canvases:
+        try:
+            canvas.refresh()
+        except RuntimeError:
+            pass
+    if failures:
+        raise RuntimeError("; ".join(failures))
+    return restored
+
+
+def _run_file_transaction(operation, *args):
+    """Run pure GDAL transaction I/O off the GUI thread while excluding user input."""
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="thrase-raster-commit") as executor:
+        future = executor.submit(operation, *args)
+        while not future.done():
+            completed, _pending = wait((future,), timeout=0.025)
+            if not completed:
+                QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents, 25)
+        return future.result()
+
+
+def finalize_commit_off_thread(receipt):
+    """Remove a committed edit's backup and lock without blocking GUI event processing."""
+    from ThRasE.core.raster_recode import finalize_commit
+
+    return _run_file_transaction(finalize_commit, receipt)
+
+
+def commit_staged_and_reload(result, additional_layers=()):
+    """Release QGIS handles, commit, and restore the original on reload failure."""
+    from ThRasE.core.raster_recode import (
+        RasterRecodeError,
+        RasterRecodeRecoveryError,
+        commit_staged,
+        rollback_commit,
+    )
+
+    states = release_raster_layers_for_source(result.source_path, additional_layers)
+    try:
+        receipt = _run_file_transaction(commit_staged, result)
+    except Exception as commit_error:
+        try:
+            restore_released_raster_layers(states)
+        except Exception as restore_error:
+            error_type = (
+                RasterRecodeRecoveryError if isinstance(commit_error, RasterRecodeRecoveryError) else RasterRecodeError
+            )
+            raise error_type(
+                f"The raster commit failed and QGIS could not reconnect the original layer: {restore_error}"
+            ) from commit_error
+        raise
+
+    try:
+        restored = restore_released_raster_layers(states)
+    except Exception as reload_error:
+        # The edited files are in place but QGIS cannot read them: put the original back
+        # before anything else uses the raster, then reconnect the layers and clean up.
+        try:
+            states.canvases = _freeze_raster_canvases(states.canvases)
+            _release_raster_layer_states(states.layers)
+            _run_file_transaction(rollback_commit, receipt)
+            restore_released_raster_layers(states)
+            finalize_commit_off_thread(receipt)
+        except Exception as rollback_error:
+            _restore_raster_canvases(states.canvases)
+            raise RasterRecodeRecoveryError(
+                "The raster was replaced but QGIS could not reload it, and automatic rollback failed. "
+                f'The original raster remains at "{receipt.backup_path}": {rollback_error}'
+            ) from reload_error
+        raise RasterRecodeError(
+            f"QGIS could not reload the edited raster, so the original raster was restored: {reload_error}"
+        ) from reload_error
+    return receipt, restored
+
+
+@dataclass
+class GlobalEditOutcome:
+    """What happened after a staged global edit replaced the raster on disk.
+
+    The raster is already edited when this is returned, so nothing here is a
+    reason to discard the staged files; every field is something to report.
     """
-    project = QgsProject.instance()
-    tree_root = project.layerTreeRoot()
-    for layer_id in list(project.mapLayers().keys()):
-        if tree_root.findLayer(layer_id) is None:
-            project.removeMapLayer(layer_id)
+
+    edited_count: int
+    retained_backups: tuple[str, ...] = ()
+    cleanup_error: Exception | None = None
+    leftovers: tuple[str, ...] = ()
+    recovery_error: Exception | None = None
+    registry_error: Exception | None = None
+
+
+def commit_and_reconcile(result, layer_to_edit, *, record_changes, registry_pixels, registry_widget=None):
+    """Replace the raster with a staged edit, reload QGIS, clean up, and update the registry.
+
+    This is the whole post-staging sequence, shared by the background controller
+    and the synchronous edit method so both behave identically.  It raises only
+    when the raster could not be replaced or reloaded, which is the one case where
+    the caller must discard the staged files.  Anything that can go wrong once the
+    edit is safely in place is reported through the returned outcome instead.
+    """
+    from ThRasE.core.raster_recode import RasterRecodeRecoveryError, find_transaction_leftovers
+
+    receipt, _restored_layers = commit_staged_and_reload(result, additional_layers=(layer_to_edit.qgs_layer,))
+    outcome = GlobalEditOutcome(edited_count=result.changed_count)
+    try:
+        outcome.retained_backups = finalize_commit_off_thread(receipt)
+    except RasterRecodeRecoveryError as error:
+        # The raster is edited but its transaction files need manual attention.
+        # Leave the registry untouched so the reported state stays reproducible.
+        outcome.recovery_error = error
+        return outcome
+    except Exception as error:
+        outcome.cleanup_error = error
+        outcome.leftovers = find_transaction_leftovers(receipt.source_path)
+
+    try:
+        if record_changes and result.changes is not None:
+            layer_to_edit.store_global_edit_changes(result.changes, result.geotransform)
+        else:
+            layer_to_edit.reconcile_registry(result.registry_values, registry_pixels)
+        if registry_widget is not None and layer_to_edit.pixel_log_store:
+            registry_widget.update_registry()
+    except Exception as error:
+        outcome.registry_error = error
+    return outcome
+
+
+def global_edit_memory_budget() -> int:
+    """Return the global-edit processing-memory budget in bytes.
+
+    Reads the advanced ``ThRasE/global_edit_memory_mib`` setting, treating a
+    missing or non-positive value as unset, and falls back to the documented default.
+    """
+    from ThRasE.core.raster_recode import DEFAULT_MEMORY_BUDGET_BYTES
+
+    default_memory_mib = DEFAULT_MEMORY_BUDGET_BYTES // (1024 * 1024)
+    memory_budget_mib = QSettings().value("ThRasE/global_edit_memory_mib", default_memory_mib, type=int)
+    if not memory_budget_mib or memory_budget_mib < 1:
+        memory_budget_mib = default_memory_mib
+    return memory_budget_mib * 1024 * 1024
 
 
 def get_nodata_value(layer, band=1):

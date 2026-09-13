@@ -285,7 +285,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
                 None,
                 "Building the navigation tiles",
                 quit_msg,
-                QMessageBox.StandardButton.Yes,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
             if reply == QMessageBox.StandardButton.No:
@@ -461,7 +461,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
                 None,
                 "Building the navigation tiles",
                 quit_msg,
-                QMessageBox.StandardButton.Yes,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
             if reply == QMessageBox.StandardButton.No:
@@ -498,15 +498,11 @@ class AOIPickerTool(QgsMapTool):
         color = QColor("red")
         color.setAlpha(40)
         # create the main polygon rubber band
-        self.rubber_band = QgsRubberBand(
-            self.navigation_dialog.render_widget.canvas, Qgis.GeometryType.Polygon
-        )
+        self.rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, Qgis.GeometryType.Polygon)
         self.rubber_band.setColor(color)
         self.rubber_band.setWidth(3)
         # create the mouse/tmp polygon rubber band, this is main rubber band + current mouse position
-        self.aux_rubber_band = QgsRubberBand(
-            self.navigation_dialog.render_widget.canvas, Qgis.GeometryType.Polygon
-        )
+        self.aux_rubber_band = QgsRubberBand(self.navigation_dialog.render_widget.canvas, Qgis.GeometryType.Polygon)
         self.aux_rubber_band.setColor(color)
         self.aux_rubber_band.setWidth(3)
 

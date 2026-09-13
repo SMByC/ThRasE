@@ -78,6 +78,52 @@ class _EnableDisable:
         return False
 
 
+class _SynchronousRasterRecodeController:
+    """Run the task payload inline for dialog integration tests."""
+
+    def __init__(self):
+        self.last_result = None
+
+    def start(self, request, layer_to_edit, **kwargs):
+        from dataclasses import replace
+
+        from qgis.core import QgsVectorLayerFeatureSource
+
+        from ThRasE.core.raster_recode import RecodeStatus, finalize_commit
+        from ThRasE.gui.raster_recode_task import stage_recode_with_qgis_mask
+        from ThRasE.utils.qgis_utils import commit_staged_and_reload
+
+        vector_mask_layer = kwargs.get("vector_mask_layer")
+        vector_mask_source = QgsVectorLayerFeatureSource(vector_mask_layer) if vector_mask_layer is not None else None
+        registry_pixels = tuple(layer_to_edit.pixel_log_store)
+        request = replace(
+            request,
+            registry_points=tuple((pixel.x(), pixel.y()) for pixel in registry_pixels),
+        )
+        result = stage_recode_with_qgis_mask(
+            request,
+            vector_mask_source,
+            progress_callback=lambda _value: None,
+            is_cancelled=lambda: False,
+        )
+        self.last_result = result
+        if result.status is RecodeStatus.NO_CHANGES:
+            callback = kwargs.get("on_no_changes")
+            if callback:
+                callback(result)
+            return True
+        receipt, _restored_layers = commit_staged_and_reload(result, additional_layers=(layer_to_edit.qgs_layer,))
+        finalize_commit(receipt)
+        if request.collect_changes and result.changes is not None:
+            layer_to_edit.store_global_edit_changes(result.changes, result.geotransform)
+        else:
+            layer_to_edit.reconcile_registry(result.registry_values, registry_pixels)
+        callback = kwargs.get("on_success")
+        if callback:
+            callback(replace(result, status=RecodeStatus.COMMITTED, stage_path=None, lock_path=None, lock_token=None))
+        return True
+
+
 class DummyDialog:
     """A minimal ThRasE.dialog stub needed by core editing functions during tests."""
 
@@ -91,6 +137,7 @@ class DummyDialog:
         # Navigation stubs
         self.NavigationBlockWidgetControls = _EnableDisable()
         self.currentTileKeepVisible = _EnableDisable()
+        self.raster_recode_controller = _SynchronousRasterRecodeController()
 
 
 @pytest.fixture

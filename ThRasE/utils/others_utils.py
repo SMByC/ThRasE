@@ -148,7 +148,7 @@ def get_xml_style(layer, band):
             None,
             "Reading the symbology layer style...",
             msg,
-            QMessageBox.StandardButton.Apply,
+            QMessageBox.StandardButton.Apply | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Cancel,
         )
         if reply == QMessageBox.StandardButton.Apply:
@@ -216,95 +216,3 @@ def get_pixel_count_by_pixel_values(layer, band, pixel_values=None):
         imap_it = pool.imap(pixel_count_in_chunk, input_data)
         pixel_counts = np.sum(list(imap_it), axis=0).tolist()
         return dict(zip(pixel_values, pixel_counts, strict=True))
-
-
-# --------------------------------------------------------------------------
-# GDAL metadata copy utils
-
-
-def safe_call(method, *args):
-    """Call a GDAL method, ignoring expected binding failures."""
-    try:
-        method(*args)
-    except RuntimeError:
-        pass
-
-
-def copy_band_metadata(src, dst):
-    """Copy all metadata from source band to destination band
-
-    Args:
-        src: Source GDAL raster band
-        dst: Destination GDAL raster band
-    """
-    nodata = src.GetNoDataValue()
-    if nodata is not None:
-        safe_call(dst.SetNoDataValue, nodata)
-
-    color_table = src.GetRasterColorTable()
-    if color_table is not None:
-        safe_call(dst.SetRasterColorTable, color_table.Clone())
-
-    category_names = src.GetCategoryNames()
-    if category_names:
-        safe_call(dst.SetCategoryNames, category_names)
-
-    rat = src.GetDefaultRAT()
-    if rat is not None:
-        safe_call(dst.SetDefaultRAT, rat.Clone())
-
-    metadata_domains = src.GetMetadataDomainList()
-    if not metadata_domains:
-        metadata = src.GetMetadata()
-        if metadata:
-            safe_call(dst.SetMetadata, metadata)
-    else:
-        for domain in metadata_domains:
-            metadata = src.GetMetadata(domain)
-            if metadata:
-                safe_call(dst.SetMetadata, metadata, domain)
-
-    unit = src.GetUnitType()
-    if unit:
-        safe_call(dst.SetUnitType, unit)
-
-    scale = src.GetScale()
-    if scale is not None:
-        safe_call(dst.SetScale, scale)
-
-    offset = src.GetOffset()
-    if offset is not None:
-        safe_call(dst.SetOffset, offset)
-
-    description = src.GetDescription()
-    if description:
-        safe_call(dst.SetDescription, description)
-
-    safe_call(dst.SetColorInterpretation, src.GetColorInterpretation())
-
-
-def copy_dataset_metadata(src, dst):
-    """Copy all metadata from source dataset to destination dataset
-
-    Args:
-        src: Source GDAL dataset
-        dst: Destination GDAL dataset
-    """
-    metadata_domains = src.GetMetadataDomainList()
-    if not metadata_domains:
-        metadata = src.GetMetadata()
-        if metadata:
-            safe_call(dst.SetMetadata, metadata)
-    else:
-        for domain in metadata_domains:
-            metadata = src.GetMetadata(domain)
-            if metadata:
-                safe_call(dst.SetMetadata, metadata, domain)
-
-    description = src.GetDescription()
-    if description:
-        safe_call(dst.SetDescription, description)
-
-    gcps = src.GetGCPs()
-    if gcps:
-        safe_call(dst.SetGCPs, gcps, src.GetGCPProjection())
