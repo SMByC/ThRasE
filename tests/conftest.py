@@ -208,3 +208,67 @@ def load_yaml_mapping():
         return data, mapping
 
     return _loader
+
+
+@pytest.fixture
+def editable_raster(tmp_path, qgis_app, thrase_dialog, monkeypatch):
+    """Small writable two-band raster, isolated from other editing sessions."""
+    import numpy as np
+    from osgeo import gdal
+    from qgis.core import QgsRasterLayer
+    from qgis.PyQt import sip
+
+    from ThRasE.core.editing import LayerToEdit
+
+    monkeypatch.setattr(LayerToEdit, "instances", {})
+    path = tmp_path / "manual.tif"
+    dataset = gdal.GetDriverByName("GTiff").Create(str(path), 4, 4, 2, gdal.GDT_Byte)
+    dataset.SetGeoTransform((0, 1, 0, 4, 0, -1))
+    dataset.GetRasterBand(1).WriteArray(np.ones((4, 4), dtype=np.uint8))
+    dataset.GetRasterBand(2).WriteArray(np.full((4, 4), 9, dtype=np.uint8))
+    dataset = None
+    layer = QgsRasterLayer(str(path), "manual")
+    layer_id = layer.id()
+    editing = LayerToEdit(layer, 1)
+    monkeypatch.setattr(LayerToEdit, "current", editing)
+    yield editing
+    if not sip.isdeleted(layer) and editing.data_provider.isEditable():
+        editing.data_provider.setEditable(False)
+    LayerToEdit.instances.pop((layer_id, 1), None)
+
+
+@pytest.fixture
+def editing_ui(editable_raster, monkeypatch):
+    """Real main dialog and one editing view, without modal startup.
+
+    The view's signals are wired by setup_view_widget(); tests invoke main-dialog
+    slots explicitly instead of running setup_gui() and its modal InitDialog.
+    """
+    from copy import deepcopy
+
+    from qgis.PyQt import sip
+
+    from ThRasE.gui.main_dialog import ThRasEDialog
+    from ThRasE.gui.view_widget import ViewWidgetSingle
+    from ThRasE.thrase import ThRasE
+
+    dialog = ThRasEDialog()
+    monkeypatch.setattr(ThRasE, "dialog", dialog)
+    view = ViewWidgetSingle(dialog)
+    monkeypatch.setattr(ThRasEDialog, "view_widgets", [view])
+    view.setup_view_widget()
+    view.set_edit_target(editable_raster)
+    dialog.grid_rows = dialog.grid_columns = 1
+    dialog.ccd_plugin_available = False
+    editable_raster.pixels = [
+        {"value": 1, "new_value": 7, "label": "one", "s/h": True, "color": {"R": 1, "G": 2, "B": 3, "A": 255}}
+    ]
+    editable_raster.pixels_backup = deepcopy(editable_raster.pixels)
+    editable_raster.symbology = [("one", 1, (1, 2, 3, 255))]
+    editable_raster.old_new_value = {1: 7}
+    dialog.set_recode_pixel_table()
+    yield dialog, view
+    if not sip.isdeleted(dialog):
+        dialog.closing_for_unload = True
+        dialog.close()
+        dialog.deleteLater()

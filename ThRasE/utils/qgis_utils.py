@@ -30,18 +30,20 @@ from qgis.core import (
     Qgis,
     QgsColorRampShader,
     QgsPalettedRasterRenderer,
+    QgsPathResolver,
     QgsPointXY,
     QgsProject,
     QgsProviderRegistry,
     QgsRasterLayer,
     QgsRasterRange,
     QgsRasterShader,
+    QgsReadWriteContext,
     QgsSingleBandPseudoColorRenderer,
     QgsStyle,
     QgsVectorLayer,
 )
 from qgis.gui import QgsMapCanvas, QgsMapLayerComboBox, QgsRendererPropertiesDialog, QgsRendererRasterPropertiesWidget
-from qgis.PyQt import uic
+from qgis.PyQt import sip, uic
 from qgis.PyQt.QtCore import QEventLoop, QSettings
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QApplication, QDialog, QDialogButtonBox, QFileDialog
@@ -108,22 +110,62 @@ def valid_file_selected_in(combo_box):
         return False
 
 
-def get_loaded_layer(source):
+def get_loaded_layer(source, provider=None):
     # return the loaded layer in Qgis that matches the source
     # whatever the name of the layer
     for layer in QgsProject.instance().mapLayers().values():
-        if layer.source() == source:
+        if layer.source() == source and (provider is None or layer.providerType() == provider):
             return layer
 
 
-def load_and_select_layer_in(source, combo_box, layer_name=None, add_to_legend=True):
+def session_layer_source(layer, config_path):
+    """Persist a provider's full URI, making only its path components relative."""
+    if layer is None:
+        return None
+    return resolve_session_source(layer.source(), config_path, layer.providerType(), writing=True)
+
+
+def resolve_session_source(source, config_path, provider=None, *, writing=False):
+    """Resolve a saved provider URI against its YAML path, or relativize it when writing."""
+    if not source:
+        return source
+    key, layer_class = detect_provider(source)
+    provider = provider or key or ("ogr" if layer_class is QgsVectorLayer else "gdal")
+    # Legacy configurations used bare relative filenames instead of ./filename.
+    path = source.split("|", 1)[0]
+    if (
+        not writing
+        and "://" not in path
+        and not os.path.isabs(path)
+        and Path(path).suffix.lower() in RASTER_EXTENSIONS + VECTOR_EXTENSIONS
+    ):
+        source = os.path.abspath(os.path.join(os.path.dirname(config_path), path)) + source[len(path) :]
+    context = QgsReadWriteContext()
+    context.setPathResolver(QgsPathResolver(os.path.abspath(config_path)))
+    registry = QgsProviderRegistry.instance()
+    if registry is None:
+        raise RuntimeError("QGIS providers have not been initialized")
+    convert = registry.absoluteToRelativeUri if writing else registry.relativeToAbsoluteUri
+    return convert(provider, source, context)
+
+
+def dispose_canvas_item(item):
+    """Release a canvas-owned graphics item; reset() alone only clears its shape."""
+    if item is not None and not sip.isdeleted(item):
+        scene = item.scene()
+        if scene is not None:
+            scene.removeItem(item)
+        sip.delete(item)
+
+
+def load_and_select_layer_in(source, combo_box, layer_name=None, add_to_legend=True, provider=None):
     if not source:
         combo_box.setCurrentIndex(-1)
         return None
-    qgslayer = get_loaded_layer(source)
+    qgslayer = get_loaded_layer(source, provider)
     # try to load the layer if not already in QGIS
     if qgslayer is None:
-        qgslayer = load_layer(source, name=layer_name, add_to_legend=add_to_legend)
+        qgslayer = load_layer(source, name=layer_name, add_to_legend=add_to_legend, provider=provider)
         if qgslayer is None or not qgslayer.isValid():
             return None
     # select the exact layer in combobox
@@ -162,7 +204,7 @@ def detect_provider(source):
     s = source.lower().strip()
 
     # Local filesystem files (let QGIS auto-detect the best provider)
-    ext = os.path.splitext(s)[1]
+    ext = os.path.splitext(s.split("|", 1)[0])[1]
     if ext:
         if ext in RASTER_EXTENSIONS:
             return None, QgsRasterLayer
@@ -225,11 +267,17 @@ def detect_provider(source):
     return None, None
 
 
-def load_layer(source, name=None, add_to_legend=True):
+def load_layer(source, name=None, add_to_legend=True, provider=None):
     """Load a layer from a file path or remote datasource URI and add it to the project."""
     name = name or (os.path.splitext(os.path.basename(source))[0] if os.path.isfile(source) else "Remote Layer")
 
     provider_key, layer_class = detect_provider(source)
+    if provider:
+        provider_key = provider
+        if provider in {"gdal", "wms", "wcs", "arcgismapserver", "EE"}:
+            layer_class = QgsRasterLayer
+        elif layer_class is None:
+            layer_class = QgsVectorLayer
     qgslayer = (
         (layer_class(source, name, provider_key) if provider_key else layer_class(source, name))
         if layer_class
@@ -740,9 +788,11 @@ def add_color_value_to_symbology(renderer, new_value, new_color, new_label=None)
 
 
 def get_pixel_centroid(x, y):
-    """Get the centroid of the pixel where the point is located"""
+    """Return the target pixel's centre, or None when the point is outside the raster."""
     from ThRasE.core.editing import LayerToEdit
 
+    if LayerToEdit.current is None or not LayerToEdit.current.check_point_inside_layer(QgsPointXY(x, y)):
+        return None
     bounds = LayerToEdit.current.bounds
     pixel_width = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelX()
     pixel_height = LayerToEdit.current.qgs_layer.rasterUnitsPerPixelY()

@@ -97,6 +97,7 @@ def _restore(monkeypatch, live_pixels, config, *, response=None):
         pixels_backup=None,
         symbology=None,
         config_file=None,
+        navigation=SimpleNamespace(delete=lambda: None),
         setup_symbology=lambda: setattr(
             restored,
             "symbology",
@@ -118,6 +119,8 @@ def _restore(monkeypatch, live_pixels, config, *, response=None):
         blockSignals=lambda _enabled: None,
     )
     dialog.update_save_buttons_state = lambda: None
+    dialog.QPBtn_EnableNavigation = SimpleNamespace(setChecked=lambda _checked: None)
+    dialog.enable_navigation_tool = lambda _enabled: None
     dialog.set_recode_pixel_table = lambda: None
     dialog.update_recode_pixel_table = lambda: None
     dialog.QCBox_NumLayerToolbars = SimpleNamespace(setCurrentIndex=lambda _index: None)
@@ -257,6 +260,7 @@ def test_restore_recode_table_rebuilds_old_new_value(monkeypatch):
         qgs_layer=object(),
         band=1,
         old_new_value={1: 99, 2: 88},
+        validate_new_value=lambda _value: None,
     )
     LayerToEdit.current = restored
 

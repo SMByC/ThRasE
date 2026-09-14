@@ -503,9 +503,22 @@ class Registry:
 
         # define fields
         fields = QgsFields()
+        values = (
+            int(value)
+            for log in self.layer_to_edit.pixel_log_store.values()
+            for value in (log.old_value, log.new_value)
+        )
+        # GPKG supports signed int64. Text preserves UInt64 and values which other
+        # formats/readers would coerce through double precision.
+        value_type_name = "LongLong"
+        limit = (1 << 63) - 1 if ext == ".gpkg" else (1 << 53) - 1
+        if any(value < -(1 << 63) or value > limit or (ext != ".gpkg" and value < -limit) for value in values):
+            value_type_name = "String"
+        value_type = getattr(QVariant, value_type_name)
+        convert_value = str if value_type_name == "String" else int
         fields.append(QgsField("group_id", QVariant.Int))
-        fields.append(QgsField("old_value", QVariant.Int))
-        fields.append(QgsField("new_value", QVariant.Int))
+        fields.append(QgsField("old_value", value_type))
+        fields.append(QgsField("new_value", value_type))
         fields.append(QgsField("edit_date", QVariant.String))
 
         # pre-calculate pixel size (constant for all features)
@@ -528,7 +541,12 @@ class Registry:
             feat = QgsFeature(fields)
             feat.setGeometry(geom)
             feat.setAttributes(
-                [group_ids.get(pl.group_id), int(pl.old_value), int(pl.new_value), pl.edit_date.isoformat()]
+                [
+                    group_ids.get(pl.group_id),
+                    convert_value(pl.old_value),
+                    convert_value(pl.new_value),
+                    pl.edit_date.isoformat(),
+                ]
             )
             features.append(feat)
 

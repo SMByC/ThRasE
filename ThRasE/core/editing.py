@@ -21,11 +21,12 @@
 import functools
 import math
 import os
+import tempfile
 import uuid
 from collections import OrderedDict
 from copy import deepcopy
 from datetime import datetime
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
 import yaml
@@ -46,19 +47,24 @@ from ThRasE.core.raster_recode import (
     RecodeRequest,
     RecodeStatus,
     discard_staged,
+    raster_integer_limits,
     stage_recode,
+    validate_integer_value,
 )
 from ThRasE.core.registry import Registry
 from ThRasE.utils.others_utils import get_xml_style
-from ThRasE.utils.qgis_utils import apply_symbology, commit_and_reconcile, get_source_from
+from ThRasE.utils.qgis_utils import apply_symbology, commit_and_reconcile, get_source_from, session_layer_source
 from ThRasE.utils.system_utils import block_signals_to, wait_process
+
+if TYPE_CHECKING:
+    from ThRasE.gui.navigation_dialog import NavigationDialog
 
 
 def check_before_editing():
     from ThRasE.thrase import ThRasE
 
     # check if the recode pixel table is empty
-    if not LayerToEdit.current.old_new_value:
+    if LayerToEdit.current is None or not LayerToEdit.current.old_new_value:
         ThRasE.dialog.MsgBar.pushMessage(
             "There are no changes to apply in the recode pixel table. Please set new pixel values first",
             level=Qgis.MessageLevel.Warning,
@@ -73,21 +79,31 @@ def edit_layer(func):
     def wrapper(*args, **kwargs):
         from ThRasE.thrase import ThRasE
 
-        # set layer for edit
-        if not LayerToEdit.current.data_provider.isEditable():
-            if not LayerToEdit.current.data_provider.setEditable(True):
+        target = args[0] if args and isinstance(args[0], LayerToEdit) else LayerToEdit.current
+        if target is None or target is not LayerToEdit.current:
+            return None
+        # Validate the entire mapping before the first write of a multi-pixel edit.
+        # This goes through validate_new_value, which reads the band's limits once per
+        # target: the pixel picker edits on every mouse move, so reading them here would
+        # reopen the raster for each painted pixel.
+        if args and isinstance(args[0], LayerToEdit):
+            for value in target.old_new_value.values():
+                target.validate_new_value(value)
+        provider = target.data_provider
+        was_editable = provider.isEditable()
+        if not was_editable:
+            if not provider.setEditable(True):
                 ThRasE.dialog.MsgBar.pushMessage(
                     "The current thematic raster cannot be edited due to layer restrictions or permission issues",
                     level=Qgis.MessageLevel.Critical,
                     duration=20,
                 )
-                return False
-        # do
-        obj_returned = func(*args, **kwargs)
-        # close edition
-        LayerToEdit.current.data_provider.setEditable(False)
-        # finally return the object of func
-        return obj_returned
+                return None
+        try:
+            return func(*args, **kwargs)
+        finally:
+            if not was_editable:
+                provider.setEditable(False)
 
     return wrapper
 
@@ -104,7 +120,8 @@ class LayerToEdit:
         self.bounds = layer.extent().toRectF().getCoords()  # (xmin , ymin, xmax, ymax)
         # navigation
         self.navigation = Navigation(self)
-        self.navigation_dialog = None  # Created only when navigation is explicitly enabled
+        # Created only when navigation is explicitly enabled
+        self.navigation_dialog: NavigationDialog | None = None
         # store pixels: value, color, new_value, on/off, label
         #   -> [{"value": int, "color": {"R", "G", "B", "A"}, "new_value": int, "s/h": bool, "label": str}, ...]
         self.pixels_backup = None  # backup for save the original values
@@ -114,6 +131,7 @@ class LayerToEdit:
         self.symbology = None
         # dictionary for quick search the new value based on the old value in the recode table
         self.old_new_value = {}
+        self._integer_limits = None
         # setup decimal-place tolerance for comparing pixels, derived from pixel size
         pixel_size = min(self.qgs_layer.rasterUnitsPerPixelX(), self.qgs_layer.rasterUnitsPerPixelY())
         self.pixel_tolerance = 1 - math.floor(math.log10(abs(pixel_size))) + (1 if abs(pixel_size) >= 1 else 0)
@@ -132,10 +150,13 @@ class LayerToEdit:
         return self.qgs_layer.extent()
 
     def get_pixel_value_from_xy(self, x, y):
-        return self.data_provider.identify(QgsPointXY(x, y), Qgis.RasterIdentifyFormat.Value).results()[self.band]
+        return self.get_pixel_value_from_pnt(QgsPointXY(x, y))
 
     def get_pixel_value_from_pnt(self, point):
-        return self.data_provider.identify(point, Qgis.RasterIdentifyFormat.Value).results()[self.band]
+        if not self.check_point_inside_layer(point):
+            return None
+        result = self.data_provider.identify(point, Qgis.RasterIdentifyFormat.Value)
+        return result.results().get(self.band) if result.isValid() else None
 
     def setup_pixel_table(self, force_update=False, nodata=None):
         if self.pixels is None or force_update is True:
@@ -232,9 +253,17 @@ class LayerToEdit:
 
     def check_point_inside_layer(self, pixel):
         # check if the pixel is within active raster bounds
-        return bool(self.bounds[0] <= pixel.x() <= self.bounds[2] and self.bounds[1] <= pixel.y() <= self.bounds[3])
+        return bool(self.bounds[0] <= pixel.x() < self.bounds[2] and self.bounds[1] < pixel.y() <= self.bounds[3])
+
+    def validate_new_value(self, value):
+        """Validate against the band range, including NBITS, cached for this target."""
+        if self._integer_limits is None:
+            self._integer_limits = raster_integer_limits(self.file_path, self.band)
+        validate_integer_value(value, self._integer_limits)
 
     def edit_pixel(self, pixel, new_value=None, group_id=None, store=None):
+        if not self.check_point_inside_layer(pixel):
+            return None
         if new_value is None:
             old_value, new_value = self.get_old_and_new_pixel_values(pixel)
             if new_value is None:
@@ -242,16 +271,34 @@ class LayerToEdit:
         else:
             old_value = self.get_pixel_value_from_pnt(pixel.qgs_point)
 
-        px = int((pixel.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())  # num column position in x
-        py = int((self.bounds[3] - pixel.y()) / self.qgs_layer.rasterUnitsPerPixelY())  # num row position in y
+        if old_value is None or not math.isfinite(old_value):
+            return None
+        self.validate_new_value(new_value)
+        px = math.floor((pixel.x() - self.bounds[0]) / self.qgs_layer.rasterUnitsPerPixelX())
+        py = math.floor((self.bounds[3] - pixel.y()) / self.qgs_layer.rasterUnitsPerPixelY())
+        if not (0 <= px < self.qgs_layer.width() and 0 <= py < self.qgs_layer.height()):
+            return None
 
         rblock = QgsRasterBlock(self.data_provider.dataType(self.band), 1, 1)
         rblock.setValue(0, 0, new_value)
+        if int(rblock.value(0, 0)) != new_value:
+            raise ValueError(f"Value {new_value} cannot be represented exactly by the raster provider")
         if self.data_provider.writeBlock(rblock, self.band, px, py):  # write and check if writing status is ok
-            return PixelLog(
-                pixel, old_value, new_value, group_id, store=self.registry.enabled if store is None else store
-            )
+            record = self.registry.enabled if store is None else store
+            log = PixelLog(pixel, old_value, new_value, group_id, store=False)
+            existing = self.pixel_log_store.get(pixel)
+            if existing is not None:
+                if existing.old_value == new_value:
+                    del self.pixel_log_store[pixel]
+                else:
+                    existing.new_value = int(new_value)
+                    if record:
+                        existing.edit_date, existing.group_id = log.edit_date, group_id
+            elif record:
+                self.pixel_log_store[pixel] = log
+            return log
 
+    @wait_process
     @edit_layer
     def edit_from_pixel_picker(self, pixel):
         group_id = uuid.uuid4()
@@ -335,29 +382,12 @@ class LayerToEdit:
         if polygon_feature is None:
             return
 
-        box = polygon_feature.geometry().boundingBox()
-        ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
-        ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
-
-        # locate the pixel centroid in x and y for the pixel in min/max in the extent
-        y_min = self.bounds[3] - int((self.bounds[3] - box.yMinimum()) / ps_y) * ps_y - ps_y / 2
-        y_max = self.bounds[3] - int((self.bounds[3] - box.yMaximum()) / ps_y) * ps_y - ps_y / 2
-        x_min = self.bounds[0] + int((box.xMinimum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
-        x_max = self.bounds[0] + int((box.xMaximum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
-
-        # create geometry engine for optimized contains operations
-        geom_engine = QgsGeometry.createGeometryEngine(polygon_feature.geometry().constGet())
-        geom_engine.prepareGeometry()
-        points = [
-            QgsGeometry.fromPointXY(QgsPointXY(x, y))
-            for y in np.arange(y_min, y_max + ps_y, ps_y)
-            for x in np.arange(x_min, x_max + ps_x, ps_x)
-        ]
-        points_inside_polygon = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
-
         group_id = uuid.uuid4()
-        pixel_logs = [self.edit_pixel(Pixel(point=point), group_id=group_id) for point in points_inside_polygon]
-        pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
+        pixel_logs = [
+            log
+            for pixel in self.pixels_in_geometry(polygon_feature.geometry())
+            if (log := self.edit_pixel(pixel, group_id=group_id)) is not None
+        ]
 
         from ThRasE.thrase import ThRasE
 
@@ -379,29 +409,12 @@ class LayerToEdit:
         if freehand_feature is None:
             return
 
-        box = freehand_feature.geometry().boundingBox()
-        ps_x = self.qgs_layer.rasterUnitsPerPixelX()  # pixel size in x
-        ps_y = self.qgs_layer.rasterUnitsPerPixelY()  # pixel size in y
-
-        # locate the pixel centroid in x and y for the pixel in min/max in the extent
-        y_min = self.bounds[3] - int((self.bounds[3] - box.yMinimum()) / ps_y) * ps_y - ps_y / 2
-        y_max = self.bounds[3] - int((self.bounds[3] - box.yMaximum()) / ps_y) * ps_y - ps_y / 2
-        x_min = self.bounds[0] + int((box.xMinimum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
-        x_max = self.bounds[0] + int((box.xMaximum() - self.bounds[0]) / ps_x) * ps_x + ps_x / 2
-
-        # create geometry engine for optimized contains operations
-        geom_engine = QgsGeometry.createGeometryEngine(freehand_feature.geometry().constGet())
-        geom_engine.prepareGeometry()
-        points = [
-            QgsGeometry.fromPointXY(QgsPointXY(x, y))
-            for y in np.arange(y_min, y_max + ps_y, ps_y)
-            for x in np.arange(x_min, x_max + ps_x, ps_x)
-        ]
-        points_inside_freehand = [p.asPoint() for p in points if geom_engine.contains(p.constGet())]
-
         group_id = uuid.uuid4()
-        pixel_logs = [self.edit_pixel(Pixel(point=point), group_id=group_id) for point in points_inside_freehand]
-        pixel_logs = [item for item in pixel_logs if item]  # clean None, unedited pixels
+        pixel_logs = [
+            log
+            for pixel in self.pixels_in_geometry(freehand_feature.geometry())
+            if (log := self.edit_pixel(pixel, group_id=group_id)) is not None
+        ]
 
         from ThRasE.thrase import ThRasE
 
@@ -416,6 +429,24 @@ class LayerToEdit:
             # pixels and values edited to send to the history
             pixels_and_values = [(pixel_log.pixel, pixel_log.old_value) for pixel_log in pixel_logs]
             return pixels_and_values
+
+    def pixels_in_geometry(self, geometry):
+        """Yield selected centres lazily, clipping candidate indices to the raster."""
+        box = geometry.boundingBox()
+        xmin, _, _, ymax = self.bounds
+        dx, dy = self.qgs_layer.rasterUnitsPerPixelX(), self.qgs_layer.rasterUnitsPerPixelY()
+        col_start = max(0, math.floor((box.xMinimum() - xmin) / dx))
+        col_stop = min(self.qgs_layer.width(), math.floor((box.xMaximum() - xmin) / dx) + 1)
+        row_start = max(0, math.floor((ymax - box.yMaximum()) / dy))
+        row_stop = min(self.qgs_layer.height(), math.floor((ymax - box.yMinimum()) / dy) + 1)
+        engine = QgsGeometry.createGeometryEngine(geometry.constGet())
+        engine.prepareGeometry()
+        for row in range(row_start, row_stop):
+            for column in range(col_start, col_stop):
+                point = QgsPointXY(xmin + (column + 0.5) * dx, ymax - (row + 0.5) * dy)
+                candidate = QgsGeometry.fromPointXY(point)
+                if engine.contains(candidate.constGet()):
+                    yield Pixel(point=point)
 
     @wait_process
     def edit_to_entire_thematic_raster(self, record_in_registry=False):
@@ -498,7 +529,7 @@ class LayerToEdit:
         return edited_pixels_count
 
     def store_global_edit_changes(self, changes, geotransform):
-        """Store bounded worker change records in one registry group."""
+        """Store verified global-edit change records in one registry group."""
         group_id = uuid.uuid4()
         previous_store = self.pixel_log_store
         updated_store = previous_store.copy()
@@ -576,10 +607,8 @@ class LayerToEdit:
 
     @wait_process
     def save_config(self, file_out):
+        """Save the session atomically; return True only after replacement succeeds."""
         from ThRasE.thrase import ThRasE
-
-        # save in class
-        self.config_file = file_out
 
         def setup_yaml():
             """
@@ -629,7 +658,7 @@ class LayerToEdit:
         }
         data["grid_view_widgets"] = {"columns": ThRasE.dialog.grid_columns, "rows": ThRasE.dialog.grid_rows}
         data["main_dialog_size"] = (ThRasE.dialog.size().width(), ThRasE.dialog.size().height())
-        data["config_file"] = self.config_file
+        data["config_file"] = file_out
         # recode pixel table
         data["recode_pixel_table"] = self.pixels
         data["recode_pixel_table_backup"] = self.pixels_backup
@@ -655,7 +684,8 @@ class LayerToEdit:
                     {
                         "is_active": layer_toolbar.OnOff_LayerToolbar.isChecked(),
                         "layer_name": layer_toolbar.layer.name() if layer_toolbar.layer else None,
-                        "layer_path": setup_path(get_source_from(layer_toolbar.layer)),
+                        "layer_path": session_layer_source(layer_toolbar.layer, file_out),
+                        "layer_provider": layer_toolbar.layer.providerType() if layer_toolbar.layer else None,
                         "opacity": layer_toolbar.opacity,
                     }
                 )
@@ -708,7 +738,9 @@ class LayerToEdit:
                 ]
                 data["navigation"]["aois"] = aois
             if data["navigation"]["type"] in ["polygons", "points", "centroid of polygons"]:
-                data["navigation"]["vector_file"] = setup_path(get_source_from(self.navigation_dialog.QCBox_VectorFile))
+                vector = self.navigation_dialog.QCBox_VectorFile.currentLayer()
+                data["navigation"]["vector_file"] = session_layer_source(vector, file_out)
+                data["navigation"]["vector_provider"] = vector.providerType() if vector else None
 
         # registry (widget state and pixel logs)
         rw = ThRasE.dialog.registry_widget
@@ -754,25 +786,42 @@ class LayerToEdit:
             data["ccd_plugin_config"] = get_plugin_config(ThRasE.dialog.ccd_plugin.id)
             data["ccd_plugin_opened"] = ThRasE.dialog.QPBtn_CCDPlugin.isChecked()
 
-        with open(file_out, "w", encoding="utf-8") as yaml_file:
-            yaml.dump(data, yaml_file, Dumper=dumper, default_flow_style=False, sort_keys=False)
+        # Serialize beside the destination so a failed write leaves the previous session intact.
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=os.path.dirname(os.path.abspath(file_out)),
+                prefix=".thrase-config-",
+                delete=False,
+            ) as yaml_file:
+                temporary = yaml_file.name
+                yaml.dump(data, yaml_file, Dumper=dumper, default_flow_style=False, sort_keys=False)
+                yaml_file.flush()
+                os.fsync(yaml_file.fileno())
+            os.replace(temporary, file_out)
+            temporary = None
+            self.config_file = file_out
+            return True
+        finally:
+            if temporary is not None:
+                os.unlink(temporary)
 
 
 class Pixel:
     def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
+        if not isinstance(other, Pixel):
+            return NotImplemented
+        return self._key == other._key
 
     def __hash__(self):
-        return self._hash or hash(
-            (
-                round(self.qgs_point.x(), LayerToEdit.current.pixel_tolerance),
-                round(self.qgs_point.y(), LayerToEdit.current.pixel_tolerance),
-            )
-        )
+        return hash(self._key)
 
     def __init__(self, x=None, y=None, point=None):
-        self._hash = None
-        self.qgs_point = point if point is not None else QgsPointXY(x, y)
+        self.qgs_point = QgsPointXY(point) if point is not None else QgsPointXY(x, y)
+        tolerance = LayerToEdit.current.pixel_tolerance if LayerToEdit.current is not None else 12
+        self._key = (round(self.qgs_point.x(), tolerance), round(self.qgs_point.y(), tolerance))
 
     def x(self):
         return self.qgs_point.x()
@@ -815,8 +864,9 @@ class PixelLog:
 
 
 class EditLog:
-    """Class for store the edit events (pixels, lines, polygons, freehand) with the
-    purpose to go undo or redo the edit actions by user
+    """Undo/redo history for one view and one LayerToEdit instance.
+
+    Replay is available only while this history's target is current.
 
     For pixels:
         [(Pixel, value), ...]
@@ -828,14 +878,15 @@ class EditLog:
 
     def __init__(self, edit_type):
         self.edit_type = edit_type
+        self.target = LayerToEdit.current
         self.undos = []
         self.redos = []
 
     def can_be_undone(self):
-        return len(self.undos) > 0
+        return self.target is LayerToEdit.current and len(self.undos) > 0
 
     def can_be_redone(self):
-        return len(self.redos) > 0
+        return self.target is LayerToEdit.current and len(self.redos) > 0
 
     def get_current_status(self, edit_log_entry):
         if self.edit_type == "pixel":
@@ -860,5 +911,9 @@ class EditLog:
             return edit_log_entry
 
     def add(self, edit_log_entry):
+        if not self.undos and not self.redos:
+            self.target = LayerToEdit.current
+        if self.target is not LayerToEdit.current:
+            raise ValueError("Cannot add history for a different raster or band")
         self.undos.append(edit_log_entry)
         self.redos = []

@@ -43,10 +43,6 @@ def error_handler(func):
         try:
             return func(*args, **kwargs)
         except Exception as err:
-            # restore mouse
-            QApplication.restoreOverrideCursor()
-            QApplication.processEvents()
-
             # select the message bar
             from ThRasE.thrase import ThRasE
 
@@ -90,13 +86,12 @@ def wait_process(func):
     def wrapper(*args, **kwargs):
         # mouse wait
         QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
-        # do
-        obj_returned = func(*args, **kwargs)
-        # restore mouse
-        QApplication.restoreOverrideCursor()
-        QApplication.processEvents()
-        # finally return the object by f
-        return obj_returned
+        try:
+            return func(*args, **kwargs)
+        finally:
+            # Do not dispatch layer changes between an edit and its caller's
+            # history update. Return to Qt's event loop after the action completes.
+            QApplication.restoreOverrideCursor()
 
     return wrapper
 

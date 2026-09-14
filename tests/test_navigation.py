@@ -18,15 +18,130 @@
  ***************************************************************************/
 """
 
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 import pytest
-from qgis.core import QgsGeometry, QgsPointXY, QgsRectangle
+from qgis.core import QgsCoordinateReferenceSystem, QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.gui import QgsMapCanvas
 
 from ThRasE.core.editing import LayerToEdit
 from ThRasE.core.navigation import NavigationTile
 from ThRasE.utils.qgis_utils import load_layer
+
+if TYPE_CHECKING:
+    from ThRasE.gui.navigation_dialog import NavigationDialog
+
+
+def test_navigation_initializes_in_survey_feet(editable_raster, editing_ui):
+    from ThRasE.gui.navigation_dialog import NavigationDialog
+
+    dialog, _view = editing_ui
+    editable_raster.qgs_layer.setCrs(QgsCoordinateReferenceSystem("EPSG:2263"))
+    nav_dialog = NavigationDialog(dialog, layer_to_edit=editable_raster)
+    editable_raster.navigation_dialog = nav_dialog
+    assert nav_dialog.tileSize.value() == pytest.approx(15000 / (1200 / 3937), abs=0.1)
+
+
+def test_single_tile_navigation_cannot_advance_past_last_tile(editable_raster, editing_ui):
+    from ThRasE.gui.navigation_dialog import NavigationDialog
+
+    dialog, _view = editing_ui
+    nav_dialog = NavigationDialog(dialog, layer_to_edit=editable_raster)
+    editable_raster.navigation_dialog = nav_dialog
+    nav_dialog.call_to_build_navigation()
+    assert len(editable_raster.navigation.tiles) == 1
+    assert not dialog.nextTile.isEnabled()
+    current = editable_raster.navigation.current_tile
+    assert editable_raster.navigation.set_current_tile(2) is False
+    assert editable_raster.navigation.current_tile is current
+
+
+def test_navigation_preview_does_not_accumulate_canvas_items(editable_raster, editing_ui):
+    from ThRasE.gui.navigation_dialog import NavigationDialog
+
+    dialog, _view = editing_ui
+    nav_dialog = NavigationDialog(dialog, layer_to_edit=editable_raster)
+    editable_raster.navigation_dialog = nav_dialog
+    nav_dialog.tileSize.setValue(2)
+    nav_dialog.call_to_build_navigation()
+    canvas = nav_dialog.render_widget.canvas
+    baseline = len(canvas.scene().items())
+    for _ in range(10):
+        for index in range(1, 5):
+            nav_dialog.highlight(index)
+            nav_dialog.go_to_tile(index)
+    assert len(canvas.scene().items()) == baseline
+    editable_raster.navigation.delete()
+    assert len(canvas.scene().items()) < baseline
+
+
+def test_navigation_switch_restores_controls_without_showing_previous_dialog(editable_raster, editing_ui):
+    dialog, _view = editing_ui
+    dialog.QPBtn_EnableNavigation.setChecked(True)
+    dialog.enable_navigation_tool(True)
+    nav = editable_raster.navigation_dialog
+    nav.tileSize.setValue(2)
+    nav.call_to_build_navigation()
+    nav.go_to_tile(3)
+    nav.show()
+    other = LayerToEdit(editable_raster.qgs_layer, 2)
+    dialog.change_edit_target(other)
+    assert not nav.isVisible()
+    assert not dialog.NavigationBlockWidgetControls.isEnabled()
+    assert not dialog.QPBtn_EnableNavigation.isChecked()
+    assert not editable_raster.navigation.set_current_tile(1)
+    dialog.change_edit_target(editable_raster)
+    assert dialog.QPBtn_EnableNavigation.isChecked()
+    assert dialog.QPBar_TilesNavigation.value() == 3
+    assert dialog.previousTile.isEnabled()
+    assert dialog.nextTile.isEnabled()
+
+
+def test_main_navigation_actions_respect_target_and_tile_bounds(editable_raster, editing_ui):
+    dialog, _view = editing_ui
+    dialog.open_navigation_dialog()
+    nav = editable_raster.navigation_dialog
+    assert nav is not None
+    nav.tileSize.setValue(2)
+    nav.call_to_build_navigation()
+    dialog.go_to_previous_tile()
+    assert editable_raster.navigation.current_tile.idx == 1
+    dialog.go_to_next_tile()
+    assert editable_raster.navigation.current_tile.idx == 2
+    dialog.go_to_current_tile()
+    nav.go_to_tile(4)
+    dialog.go_to_next_tile()
+    assert editable_raster.navigation.current_tile.idx == 4
+    dialog.go_to_previous_tile()
+    assert editable_raster.navigation.current_tile.idx == 3
+    dialog.change_edit_target(None)
+    dialog.open_navigation_dialog()
+    dialog.go_to_next_tile()
+    dialog.go_to_previous_tile()
+    dialog.go_to_current_tile()
+
+
+def test_aoi_drawings_and_preview_are_disposed(editable_raster, editing_ui):
+    from ThRasE.gui.navigation_dialog import AOIPickerTool, NavigationDialog
+
+    dialog, _view = editing_ui
+    nav = NavigationDialog(dialog, layer_to_edit=editable_raster)
+    editable_raster.navigation_dialog = nav
+    canvas = nav.render_widget.canvas
+    baseline = len(canvas.scene().items())
+    tool = AOIPickerTool(nav)
+    canvas.setMapTool(tool)
+    for _ in range(5):
+        tool.start_new_polygon()
+        assert len(canvas.scene().items()) == baseline + len(nav.aoi_drawn) + 2
+        assert tool.rubber_band is not None
+        for point in (QgsPointXY(0, 0), QgsPointXY(1, 0), QgsPointXY(1, 1)):
+            tool.rubber_band.addPoint(point)
+        tool.define_polygon()
+    assert len(nav.aoi_drawn) == 5
+    nav.clear_all_aoi_drawn()
+    assert not nav.aoi_drawn
+    assert len(canvas.scene().items()) == baseline
 
 
 class _DummyWidget:
@@ -67,7 +182,8 @@ def nav_layer(plugin, thrase_dialog):
 
     lte = LayerToEdit(layer, band=1)
     lte.setup_pixel_table()
-    lte.navigation_dialog = _DummyNavigationDialog()
+    # The stub stands in for a NavigationDialog: navigation only needs its canvas.
+    lte.navigation_dialog = cast("NavigationDialog", _DummyNavigationDialog())
     LayerToEdit.current = lte
     return lte
 

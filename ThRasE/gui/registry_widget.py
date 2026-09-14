@@ -104,8 +104,9 @@ class RegistryWidget(QWidget, FORM_CLASS):
                 self.PixelLogGroups_Slider.setValue(total_groups)
                 self.change_group_from_slider(total_groups)
             else:
-                self.PixelLogGroups_Slider.setValue(self.last_slider_position)
-                self.change_group_from_slider(self.last_slider_position)
+                position = max(1, min(self.last_slider_position, total_groups))
+                self.PixelLogGroups_Slider.setValue(position)
+                self.change_group_from_slider(position)
         # enable show-all toggle and repaint if needed
         self.showAll.setEnabled(True)
         if self.showAll.isChecked():
@@ -228,6 +229,10 @@ class RegistryWidget(QWidget, FORM_CLASS):
         if not LayerToEdit.current:
             return
         LayerToEdit.current.registry.enabled = enabled
+        if enabled:
+            # Unrecorded edits still reconcile existing logs; rebuild their display
+            # before showing it again, including groups which have become empty.
+            self.update_registry(go_to_last=False)
         # restore or clear drawings
         if enabled and self.isVisible():
             if LayerToEdit.current.registry.groups:

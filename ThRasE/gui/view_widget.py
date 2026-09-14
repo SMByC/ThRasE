@@ -21,6 +21,7 @@
 import os
 import uuid
 from pathlib import Path
+from typing import Any
 
 from qgis.core import Qgis, QgsFeature
 from qgis.gui import QgsMapTool, QgsRubberBand
@@ -31,7 +32,7 @@ from qgis.PyQt.QtWidgets import QColorDialog, QWidget
 from qgis.utils import iface
 
 from ThRasE.core.editing import EditLog, LayerToEdit, Pixel, check_before_editing, edit_layer
-from ThRasE.utils.qgis_utils import get_pixel_centroid
+from ThRasE.utils.qgis_utils import dispose_canvas_item, get_pixel_centroid
 from ThRasE.utils.system_utils import block_signals_to, wait_process
 
 # plugin path
@@ -39,6 +40,10 @@ plugin_folder = os.path.dirname(os.path.dirname(__file__))
 
 
 class ViewWidget(QWidget):
+    # Created dynamically by the Designer-generated setupUi implementation.
+    render_widget: Any
+    widget_EditingToolbar: QWidget
+
     def setup_view_widget(self):
         self.render_widget.parent_view = self
 
@@ -59,6 +64,10 @@ class ViewWidget(QWidget):
             "polygon": EditLog("polygon"),
             "freehand": EditLog("polygon"),
         }
+        self._target_histories = {}
+        self._edit_target = None
+        self._target_generation = 0
+        self._pending_edits = []
         # mouse pixel value tracking in recode pixel table
         self.mouse_pixel_value_tracking = False
         self.mousePixelValue2Table.clicked.connect(self.unhighlight_cells_in_recode_pixel_table)
@@ -106,6 +115,52 @@ class ViewWidget(QWidget):
         # clean actions
         self.ClearAllFreehand.clicked.connect(self.clear_all_freehand_drawn)
 
+    def set_edit_target(self, target):
+        """Retire target-bound tools/callbacks and restore this view's target history."""
+        if target is self._edit_target:
+            return
+        for timer in self._pending_edits:
+            timer.stop()
+            timer.deleteLater()
+        self._pending_edits.clear()
+        tool = self.render_widget.canvas.mapTool()
+        if isinstance(tool, (PickerPixelTool, PickerLineTool, PickerPolygonTool, PickerFreehandTool)):
+            tool.finish()
+            tool.deleteLater()
+        self.clear_all_lines_drawn()
+        self.clear_all_polygons_drawn()
+        self.clear_all_freehand_drawn()
+        if self._edit_target is not None:
+            self._target_histories[self._edit_target] = self.edit_logs
+        self._edit_target = target
+        self._target_generation += 1
+        self.widget_EditingToolbar.setEnabled(target is not None)
+        self.edit_logs = self._target_histories.get(target) or {
+            name: EditLog("polygon" if name == "freehand" else name)
+            for name in ("pixel", "line", "polygon", "freehand")
+        }
+        for name, suffix in (("pixel", "Pixel"), ("line", "Line"), ("polygon", "Polygon"), ("freehand", "Freehand")):
+            history = self.edit_logs[name]
+            getattr(self, "Undo" + suffix).setEnabled(target is not None and history.can_be_undone())
+            getattr(self, "Redo" + suffix).setEnabled(target is not None and history.can_be_redone())
+
+    def schedule_edit(self, callback):
+        """A parent-owned timer is cancelled when its editing target is retired."""
+        target = LayerToEdit.current
+        tool = self.render_widget.canvas.mapTool()
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        self._pending_edits.append(timer)
+
+        def run():
+            self._pending_edits.remove(timer)
+            timer.deleteLater()
+            if target is not None and target is LayerToEdit.current and tool is self.render_widget.canvas.mapTool():
+                callback()
+
+        timer.timeout.connect(run)
+        timer.start(180)
+
     def trigger_auto_clear(self, picker_type="all"):
         """Trigger auto-clear after edit if enabled with a delay
 
@@ -115,7 +170,11 @@ class ViewWidget(QWidget):
         if not self.AutoClear.isChecked() or picker_type not in ["line", "polygon", "freehand", "all"]:
             return
 
+        generation = self._target_generation
+
         def auto_clear():
+            if generation != self._target_generation:
+                return
             if picker_type == "line" or picker_type == "all":
                 self.clear_all_lines_drawn()
             if picker_type == "polygon" or picker_type == "all":
@@ -125,13 +184,19 @@ class ViewWidget(QWidget):
             self.render_widget.canvas.clearCache()
             self.render_widget.refresh()
 
-        QTimer.singleShot(500, auto_clear)
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(auto_clear)
+        timer.timeout.connect(timer.deleteLater)
+        timer.start(500)
 
     @staticmethod
     @pyqtSlot()
     def unhighlight_cells_in_recode_pixel_table():
         from ThRasE.thrase import ThRasE
 
+        if LayerToEdit.current is None or LayerToEdit.current.pixels is None:
+            return
         with block_signals_to(ThRasE.dialog.recodePixelTable):
             [
                 ThRasE.dialog.recodePixelTable.item(idx, 2).setBackground(Qt.GlobalColor.white)
@@ -279,6 +344,12 @@ class ViewWidget(QWidget):
     def go_to_history(self, action, from_edit_tool):
         from ThRasE.thrase import ThRasE
 
+        target = LayerToEdit.current
+        if target is None:
+            return
+        history = self.edit_logs[from_edit_tool]
+        if not (history.can_be_undone() if action == "undo" else history.can_be_redone()):
+            return
         if from_edit_tool == "pixel":
             if action == "undo":
                 self.UndoPixel.setEnabled(False)
@@ -294,8 +365,8 @@ class ViewWidget(QWidget):
             # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
             # update status of undo/redo buttons
-            QTimer.singleShot(30, lambda: self.UndoPixel.setEnabled(self.edit_logs["pixel"].can_be_undone()))
-            QTimer.singleShot(30, lambda: self.RedoPixel.setEnabled(self.edit_logs["pixel"].can_be_redone()))
+            self.UndoPixel.setEnabled(self.edit_logs["pixel"].can_be_undone())
+            self.RedoPixel.setEnabled(self.edit_logs["pixel"].can_be_redone())
 
         if from_edit_tool == "line":
             if action == "undo":
@@ -306,8 +377,8 @@ class ViewWidget(QWidget):
                     (rb for rb in self.lines_drawn if rb.asGeometry().equals(line_feature.geometry())), None
                 )
                 if rubber_band:
-                    rubber_band.reset(Qgis.GeometryType.Line)
                     self.lines_drawn.remove(rubber_band)
+                    dispose_canvas_item(rubber_band)
                 ThRasE.dialog.editing_status.setText(f"Undo: {len(pixels_and_values)} pixels restored!")
             if action == "redo":
                 self.RedoLine.setEnabled(False)
@@ -327,8 +398,8 @@ class ViewWidget(QWidget):
             # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
             # update status of undo/redo/clean buttons
-            QTimer.singleShot(50, lambda: self.UndoLine.setEnabled(self.edit_logs["line"].can_be_undone()))
-            QTimer.singleShot(50, lambda: self.RedoLine.setEnabled(self.edit_logs["line"].can_be_redone()))
+            self.UndoLine.setEnabled(self.edit_logs["line"].can_be_undone())
+            self.RedoLine.setEnabled(self.edit_logs["line"].can_be_redone())
             self.ClearAllLines.setEnabled(len(self.lines_drawn) > 0)
 
         if from_edit_tool == "polygon":
@@ -340,8 +411,8 @@ class ViewWidget(QWidget):
                     (rb for rb in self.polygons_drawn if rb.asGeometry().equals(polygon_feature.geometry())), None
                 )
                 if rubber_band:
-                    rubber_band.reset(Qgis.GeometryType.Polygon)
                     self.polygons_drawn.remove(rubber_band)
+                    dispose_canvas_item(rubber_band)
                 ThRasE.dialog.editing_status.setText(f"Undo: {len(pixels_and_values)} pixels restored!")
             if action == "redo":
                 self.RedoPolygon.setEnabled(False)
@@ -361,8 +432,8 @@ class ViewWidget(QWidget):
             # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
             # update status of undo/redo buttons
-            QTimer.singleShot(50, lambda: self.UndoPolygon.setEnabled(self.edit_logs["polygon"].can_be_undone()))
-            QTimer.singleShot(50, lambda: self.RedoPolygon.setEnabled(self.edit_logs["polygon"].can_be_redone()))
+            self.UndoPolygon.setEnabled(self.edit_logs["polygon"].can_be_undone())
+            self.RedoPolygon.setEnabled(self.edit_logs["polygon"].can_be_redone())
             self.ClearAllPolygons.setEnabled(len(self.polygons_drawn) > 0)
 
         if from_edit_tool == "freehand":
@@ -374,8 +445,8 @@ class ViewWidget(QWidget):
                     (rb for rb in self.freehand_drawn if rb.asGeometry().equals(freehand_feature.geometry())), None
                 )
                 if rubber_band:
-                    rubber_band.reset(Qgis.GeometryType.Polygon)
                     self.freehand_drawn.remove(rubber_band)
+                    dispose_canvas_item(rubber_band)
                 ThRasE.dialog.editing_status.setText(f"Undo: {len(pixels_and_values)} pixels restored!")
             if action == "redo":
                 self.RedoFreehand.setEnabled(False)
@@ -395,10 +466,12 @@ class ViewWidget(QWidget):
             # refresh registry widget
             ThRasE.dialog.registry_widget.update_registry()
             # update status of undo/redo buttons
-            QTimer.singleShot(50, lambda: self.UndoFreehand.setEnabled(self.edit_logs["freehand"].can_be_undone()))
-            QTimer.singleShot(50, lambda: self.RedoFreehand.setEnabled(self.edit_logs["freehand"].can_be_redone()))
+            self.UndoFreehand.setEnabled(self.edit_logs["freehand"].can_be_undone())
+            self.RedoFreehand.setEnabled(self.edit_logs["freehand"].can_be_redone())
             self.ClearAllFreehand.setEnabled(len(self.freehand_drawn) > 0)
         # update changes done in the layer and view
+        target.qgs_layer.reload()
+        target.qgs_layer.triggerRepaint()
         self.render_widget.refresh()
         # trigger auto-clear drawings if enabled
         self.trigger_auto_clear(from_edit_tool)
@@ -418,7 +491,7 @@ class ViewWidget(QWidget):
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
         if actives_view_widget:
-            QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
+            QTimer.singleShot(10, actives_view_widget[0].canvas_changed)
 
     @staticmethod
     @pyqtSlot()
@@ -435,7 +508,7 @@ class ViewWidget(QWidget):
         # refresh all extents based on the first active view
         actives_view_widget = [view_widget for view_widget in ThRasEDialog.view_widgets if view_widget.is_active]
         if actives_view_widget:
-            QTimer.singleShot(10, lambda: actives_view_widget[0].canvas_changed())
+            QTimer.singleShot(10, actives_view_widget[0].canvas_changed)
 
     @pyqtSlot()
     def use_pixels_picker_for_edit(self):
@@ -515,7 +588,7 @@ class ViewWidget(QWidget):
     def clear_all_lines_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.lines_drawn:
-            rubber_band.reset(Qgis.GeometryType.Line)
+            dispose_canvas_item(rubber_band)
         self.lines_drawn = []
         self.ClearAllLines.setEnabled(False)
 
@@ -523,7 +596,7 @@ class ViewWidget(QWidget):
     def clear_all_polygons_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.polygons_drawn:
-            rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(rubber_band)
         self.polygons_drawn = []
         self.ClearAllPolygons.setEnabled(False)
 
@@ -531,7 +604,7 @@ class ViewWidget(QWidget):
     def clear_all_freehand_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.freehand_drawn:
-            rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(rubber_band)
         self.freehand_drawn = []
         self.ClearAllFreehand.setEnabled(False)
 
@@ -587,7 +660,10 @@ class PickerPixelTool(QgsMapTool):
         x = event.pos().x()
         y = event.pos().y()
         point = self.view_widget.render_widget.canvas.getCoordinateTransform().toMapCoordinates(x, y)
-        pixel = Pixel(point=get_pixel_centroid(x=point.x(), y=point.y()))
+        centre = get_pixel_centroid(x=point.x(), y=point.y())
+        if centre is None:
+            return
+        pixel = Pixel(point=centre)
         # avoid editing the same pixel multiple times while drawing
         if self.last_pixel is not None and pixel.qgs_point == self.last_pixel.qgs_point:
             return
@@ -638,6 +714,9 @@ class PickerLineTool(QgsMapTool):
         self.start_new_line()
 
     def start_new_line(self):
+        previous = getattr(self, "line", None)
+        if previous is not None and previous not in self.view_widget.lines_drawn:
+            dispose_canvas_item(previous)
         # set rubber band style
         color = self.view_widget.lines_color
         color.setAlpha(140)
@@ -649,7 +728,7 @@ class PickerLineTool(QgsMapTool):
 
     def finish(self):
         if self.line:
-            self.line.reset(Qgis.GeometryType.Line)
+            dispose_canvas_item(self.line)
         self.line = None
         self.view_widget.LinesPicker.setChecked(False)
         self.view_widget.unhighlight_cells_in_recode_pixel_table()
@@ -668,7 +747,7 @@ class PickerLineTool(QgsMapTool):
         new_feature.setGeometry(self.line.asGeometry())
         self.view_widget.lines_drawn.append(self.line)
         # edit pixels in line
-        QTimer.singleShot(180, lambda: self.edit(new_feature))
+        self.view_widget.schedule_edit(lambda: self.edit(new_feature))
 
         self.start_new_line()
 
@@ -686,11 +765,12 @@ class PickerLineTool(QgsMapTool):
             # trigger auto-clear if enabled for line drawings
             self.view_widget.trigger_auto_clear("line")
         else:
-            self.line.reset(Qgis.GeometryType.Line)
-            rubber_band = self.view_widget.lines_drawn[-1]
+            rubber_band = next(
+                (rb for rb in self.view_widget.lines_drawn if rb.asGeometry().equals(new_feature.geometry())), None
+            )
             if rubber_band:
-                rubber_band.reset(Qgis.GeometryType.Line)
                 self.view_widget.lines_drawn.remove(rubber_band)
+                dispose_canvas_item(rubber_band)
 
     def canvasMoveEvent(self, event):
         # set map coordinates in the footer
@@ -751,6 +831,10 @@ class PickerPolygonTool(QgsMapTool):
         self.start_new_polygon()
 
     def start_new_polygon(self):
+        previous = getattr(self, "rubber_band", None)
+        if previous is not None and previous not in self.view_widget.polygons_drawn:
+            dispose_canvas_item(previous)
+        dispose_canvas_item(getattr(self, "aux_rubber_band", None))
         # set rubber band style
         color = self.view_widget.polygons_color
         color.setAlpha(70)
@@ -765,7 +849,7 @@ class PickerPolygonTool(QgsMapTool):
 
     def define_polygon(self):
         # clean the aux rubber band
-        self.aux_rubber_band.reset(Qgis.GeometryType.Polygon)
+        dispose_canvas_item(self.aux_rubber_band)
         self.aux_rubber_band = None
         # adjust the color
         color = self.view_widget.polygons_color
@@ -777,7 +861,7 @@ class PickerPolygonTool(QgsMapTool):
         new_feature.setGeometry(self.rubber_band.asGeometry())
         self.view_widget.polygons_drawn.append(self.rubber_band)
         # edit pixels inside polygon
-        QTimer.singleShot(180, lambda: self.edit(new_feature))
+        self.view_widget.schedule_edit(lambda: self.edit(new_feature))
 
         self.start_new_polygon()
 
@@ -794,11 +878,12 @@ class PickerPolygonTool(QgsMapTool):
             # trigger auto-clear if enabled for polygon drawings
             self.view_widget.trigger_auto_clear("polygon")
         else:
-            self.rubber_band.reset(Qgis.GeometryType.Polygon)
-            rubber_band = self.view_widget.polygons_drawn[-1]
+            rubber_band = next(
+                (rb for rb in self.view_widget.polygons_drawn if rb.asGeometry().equals(new_feature.geometry())), None
+            )
             if rubber_band:
-                rubber_band.reset(Qgis.GeometryType.Polygon)
                 self.view_widget.polygons_drawn.remove(rubber_band)
+                dispose_canvas_item(rubber_band)
 
     def canvasMoveEvent(self, event):
         # set map coordinates in the footer
@@ -856,9 +941,9 @@ class PickerPolygonTool(QgsMapTool):
 
     def finish(self):
         if self.rubber_band:
-            self.rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(self.rubber_band)
         if self.aux_rubber_band:
-            self.aux_rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(self.aux_rubber_band)
         self.rubber_band = None
         self.aux_rubber_band = None
         self.view_widget.PolygonsPicker.setChecked(False)
@@ -883,6 +968,9 @@ class PickerFreehandTool(QgsMapTool):
         self.start_new_freehand()
 
     def start_new_freehand(self):
+        previous = getattr(self, "rubber_band", None)
+        if previous is not None and previous not in self.view_widget.freehand_drawn:
+            dispose_canvas_item(previous)
         # set rubber band style
         color = self.view_widget.freehand_color
         color.setAlpha(140)
@@ -940,7 +1028,7 @@ class PickerFreehandTool(QgsMapTool):
             new_feature.setGeometry(self.rubber_band.asGeometry())
             self.view_widget.freehand_drawn.append(self.rubber_band)
             # edit pixels inside freehand polygon
-            QTimer.singleShot(180, lambda: self.edit(new_feature))
+            self.view_widget.schedule_edit(lambda: self.edit(new_feature))
 
         self.start_new_freehand()
 
@@ -957,15 +1045,16 @@ class PickerFreehandTool(QgsMapTool):
             # trigger auto-clear if enabled for freehand drawings
             self.view_widget.trigger_auto_clear("freehand")
         else:
-            self.rubber_band.reset(Qgis.GeometryType.Polygon)
-            rubber_band = self.view_widget.freehand_drawn[-1]
+            rubber_band = next(
+                (rb for rb in self.view_widget.freehand_drawn if rb.asGeometry().equals(new_feature.geometry())), None
+            )
             if rubber_band:
-                rubber_band.reset(Qgis.GeometryType.Polygon)
                 self.view_widget.freehand_drawn.remove(rubber_band)
+                dispose_canvas_item(rubber_band)
 
     def finish(self):
         if self.rubber_band:
-            self.rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(self.rubber_band)
 
         self.rubber_band = None
         self.view_widget.FreehandPicker.setChecked(False)

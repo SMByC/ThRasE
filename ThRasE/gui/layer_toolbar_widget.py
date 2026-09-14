@@ -21,7 +21,7 @@
 import os
 from pathlib import Path
 
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsCoordinateTransform, QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QWidget
@@ -151,8 +151,11 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
 
     @pyqtSlot()
     def zoom_to_layer(self):
-        if self.layer:
-            self.render_widget.canvas.setExtent(self.layer.extent())
+        if self.layer and self.render_widget is not None:
+            transform = QgsCoordinateTransform(
+                self.layer.crs(), self.render_widget.canvas.mapSettings().destinationCrs(), QgsProject.instance()
+            )
+            self.render_widget.canvas.setExtent(transform.transformBoundingBox(self.layer.extent()))
             self.render_widget.canvas.refresh()
 
     @pyqtSlot(int)
@@ -182,6 +185,7 @@ class LayerToolbarWidget(QWidget, FORM_CLASS):
             ]
 
             for layer_toolbar in same_layer_in_others_layer_toolbars:
+                layer_toolbar.opacity = opacity
                 with block_signals_to(layer_toolbar.layerOpacity):
                     layer_toolbar.layerOpacity.setValue(opacity)
 

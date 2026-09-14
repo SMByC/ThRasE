@@ -191,14 +191,14 @@ class ThRasE:
             if lt.opacity < 100
         ]
 
-        # close the navigation dialog if is open
-        if (
-            LayerToEdit.current
-            and LayerToEdit.current.navigation_dialog
-            and LayerToEdit.current.navigation_dialog.isVisible()
-        ):
-            LayerToEdit.current.navigation_dialog.close()
-            LayerToEdit.current.navigation_dialog = None
+        # Retire every target, including hidden navigation dialogs from earlier selections.
+        for target in LayerToEdit.instances.values():
+            target.navigation.delete()
+            target.registry.clear()
+            if target.navigation_dialog is not None:
+                target.navigation_dialog.close()
+                target.navigation_dialog.deleteLater()
+                target.navigation_dialog = None
 
         # close the autofill dialog if is open
         if (
@@ -216,6 +216,8 @@ class ThRasE:
 
         self.removes_temporary_files()
 
+        if ThRasE.dialog is not None:
+            ThRasE.dialog.deleteLater()
         ThRasE.dialog = None
 
         # reset some variables

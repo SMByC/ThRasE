@@ -25,7 +25,7 @@ from copy import deepcopy
 from datetime import datetime
 from html import escape
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import yaml
 from qgis.core import (
@@ -40,7 +40,6 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QEvent, Qt, QTimer, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
 from qgis.PyQt.QtWidgets import (
-    QApplication,
     QCheckBox,
     QColorDialog,
     QComboBox,
@@ -125,6 +124,9 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # Set when the user already answered the save prompt for a close that a
         # running global edit deferred, so the deferred close does not ask again.
         self.close_confirmed = False
+        project = QgsProject.instance()
+        if project is not None:
+            project.layersWillBeRemoved.connect(self.layers_will_be_removed)
         # flags
         self.setWindowFlags(
             self.windowFlags() | Qt.WindowType.WindowMinimizeButtonHint | Qt.WindowType.WindowMaximizeButtonHint
@@ -413,16 +415,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # parsed YAML untouched so it can safely be reused by callers/tests.
         yaml_config = deepcopy(yaml_config)
 
-        def get_restore_path(_path):
-            """check if the file path exists or try using relative path to the yml file"""
-            if _path is None:
-                return None
-            if not os.path.isfile(_path):
-                _rel_path = os.path.join(os.path.dirname(yaml_file_path), _path)
-                if os.path.isfile(_rel_path):
-                    # the path is relative to the yml file
-                    return os.path.abspath(_rel_path)
-            return _path
+        def get_restore_path(_path, provider=None):
+            from ThRasE.utils.qgis_utils import resolve_session_source
+
+            return resolve_session_source(_path, yaml_file_path, provider)
 
         # support loading the old format (<=25.6) TODO: legacy config input
         # Map old keys to new keys for backward compatibility in a more maintainable way
@@ -458,13 +454,16 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if "band" in yaml_config["thematic_file_to_edit"]:
             self.QCBox_band_LayerToEdit.setCurrentIndex(yaml_config["thematic_file_to_edit"]["band"] - 1)
         # file config
-        LayerToEdit.current.config_file = yaml_config["config_file"]
+        if LayerToEdit.current is None:
+            return False
+        LayerToEdit.current.config_file = os.path.abspath(yaml_file_path)
         self.update_save_buttons_state()
 
         # Restore symbology and pixel table
         # Check if the current QGIS symbology has labels that differ from the saved config
         # This happens when the user has updated labels in the layer symbology
-        current_pixels = LayerToEdit.current.pixels  # from live QGIS symbology (set by select_layer_to_edit)
+        # Selection established the live table; the dynamic setup call is opaque to type checkers.
+        current_pixels = cast(list[dict], LayerToEdit.current.pixels)
         saved_pixels = yaml_config["recode_pixel_table"]
 
         current_labels = {p["value"]: p.get("label", "") for p in current_pixels}
@@ -579,8 +578,11 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
                 # select the layer for this layer toolbar if exists and is loaded in Qgis
                 layer_name = yaml_layer_toolbar["layer_name"]
-                source_file = get_restore_path(yaml_layer_toolbar["layer_path"])
-                qgslayer = load_and_select_layer_in(source_file, layer_toolbar.QCBox_RenderFile, layer_name=layer_name)
+                provider = yaml_layer_toolbar.get("layer_provider")
+                source_file = get_restore_path(yaml_layer_toolbar["layer_path"], provider)
+                qgslayer = load_and_select_layer_in(
+                    source_file, layer_toolbar.QCBox_RenderFile, layer_name=layer_name, provider=provider
+                )
                 if source_file and not qgslayer:
                     self.MsgBar.pushMessage(
                         f'Could not load the layer "{layer_name}" in the view {view_widget.id}: {source_file}',
@@ -647,9 +649,12 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.set_layer_toolbars(layer_toolbars_index)
 
         # navigation
+        # A cached layer/band can still own tiles from an earlier session.
+        # A failed rebuild must leave navigation empty, not reuse those tiles.
+        LayerToEdit.current.navigation.delete()
         if yaml_config["navigation"]["type"] != "free":
             if LayerToEdit.current.navigation_dialog is None:
-                LayerToEdit.current.navigation_dialog = NavigationDialog(layer_to_edit=LayerToEdit.current)
+                LayerToEdit.current.navigation_dialog = NavigationDialog(self, layer_to_edit=LayerToEdit.current)
 
             # TODO delete after some time, compatibility old yaml file
             if yaml_config["navigation"]["type"] == "by tiles throughout the thematic file":
@@ -689,24 +694,40 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                         nav_dialog_canvas.mapTool().aux_rubber_band.addPoint(point)
                     nav_dialog_canvas.mapTool().define_polygon()
                 nav_dialog_canvas.mapTool().finish()
+            # A navigation that cannot be rebuilt is reported and left invalid: the rest of
+            # the session still restores, and the user can rebuild it from the dialog.
+            can_build_navigation = True
             if yaml_config["navigation"]["type"] in ["polygons", "points", "centroid of polygons"]:
                 # recover the vector file
-                vector_file = yaml_config["navigation"]["vector_file"]
+                provider = yaml_config["navigation"].get("vector_provider")
+                vector_file = get_restore_path(yaml_config["navigation"]["vector_file"], provider)
                 nav_vector_layer = load_and_select_layer_in(
-                    vector_file, LayerToEdit.current.navigation_dialog.QCBox_VectorFile
+                    vector_file, LayerToEdit.current.navigation_dialog.QCBox_VectorFile, provider=provider
                 )
                 if not nav_vector_layer:
                     self.MsgBar.pushMessage(
-                        f'Could not load the navigation vector file: "{vector_file}"',
+                        f'Could not load the navigation vector file, so the navigation was not restored: "'
+                        f'{vector_file}"',
                         level=Qgis.MessageLevel.Warning,
                         duration=-1,
                     )
+                    can_build_navigation = False
             # build navigation with all settings loaded
-            LayerToEdit.current.navigation_dialog.call_to_build_navigation()
-            current_tile_id = yaml_config["navigation"]["current_tile_id"]
-            LayerToEdit.current.navigation.current_tile = next(
-                (tile for tile in LayerToEdit.current.navigation.tiles if tile.idx == current_tile_id), None
-            )
+            if can_build_navigation:
+                LayerToEdit.current.navigation_dialog.call_to_build_navigation()
+            navigation = LayerToEdit.current.navigation
+            current_tile_id = yaml_config["navigation"].get("current_tile_id", 1)
+            if navigation.is_valid and not navigation.set_current_tile(current_tile_id):
+                # The saved position is not among the rebuilt tiles, which happens when the
+                # raster extent, the tile size or the navigation vector changed since it was
+                # saved.  The navigation itself is usable, so it opens at its first tile.
+                self.MsgBar.pushMessage(
+                    f"The saved navigation tile ({current_tile_id}) is not part of the rebuilt navigation, "
+                    "so it starts at the first tile",
+                    level=Qgis.MessageLevel.Warning,
+                    duration=10,
+                )
+                current_tile_id = navigation.current_tile.idx if navigation.current_tile is not None else None
             # navigation dialog
             LayerToEdit.current.navigation_dialog.QPBtn_BuildNavigationTools.setChecked(
                 bool(yaml_config["navigation"]["build_tools"])
@@ -718,15 +739,19 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 LayerToEdit.current.navigation_dialog.render_widget.canvas.setExtent(
                     QgsRectangle(*yaml_config["navigation"]["extent_dialog"])
                 )
-            if LayerToEdit.current.navigation.is_valid:
+            if navigation.is_valid and current_tile_id is not None:
                 LayerToEdit.current.navigation_dialog.change_tile_from_slider(current_tile_id)
                 LayerToEdit.current.navigation_dialog.change_tile_from_spinbox(current_tile_id)
             # navigation block widget
             self.currentTileKeepVisible.setChecked(bool(yaml_config["navigation"]["tile_keep_visible"]))
             self.enable_navigation_tool(True)
-            self.NavigationBlockWidgetControls.setEnabled(True)
-            self.QPBar_TilesNavigation.setMaximum(len(LayerToEdit.current.navigation.tiles))
-            self.QPBar_TilesNavigation.setValue(current_tile_id)
+            self.NavigationBlockWidgetControls.setEnabled(navigation.is_valid)
+            if navigation.is_valid and current_tile_id is not None:
+                self.QPBar_TilesNavigation.setMaximum(len(navigation.tiles))
+                self.QPBar_TilesNavigation.setValue(current_tile_id)
+        else:
+            self.QPBtn_EnableNavigation.setChecked(False)
+            self.enable_navigation_tool(False)
 
         # restore the extent in the views using a view with a valid layer (not empty)
         if yaml_config.get("extent"):
@@ -922,6 +947,15 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             event.ignore()
             return
 
+        try:
+            project = QgsProject.instance()
+            if project is not None:
+                project.layersWillBeRemoved.disconnect(self.layers_will_be_removed)
+        except (TypeError, RuntimeError):
+            pass
+        for view in ThRasEDialog.view_widgets:
+            view.set_edit_target(None)
+
         # Disconnect each signal independently: a missing/already-destroyed signal
         # must not prevent teardown of the remaining widgets.
         try:
@@ -972,9 +1006,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
                 self.QPBtn_EnableNavigation.setChecked(False)
             return
 
+        LayerToEdit.current.navigation_enabled = checked
         if checked:
             if LayerToEdit.current.navigation_dialog is None:
-                LayerToEdit.current.navigation_dialog = NavigationDialog(layer_to_edit=LayerToEdit.current)
+                LayerToEdit.current.navigation_dialog = NavigationDialog(self, layer_to_edit=LayerToEdit.current)
 
             self.NavigationBlockWidget.setVisible(True)
             if LayerToEdit.current.navigation.is_valid:
@@ -988,14 +1023,15 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def go_to_current_tile(self):
-        if LayerToEdit.current.navigation.is_valid:
+        if LayerToEdit.current is not None and LayerToEdit.current.navigation.is_valid:
             LayerToEdit.current.navigation.current_tile.focus()
 
     @pyqtSlot()
     def go_to_previous_tile(self):
-        if LayerToEdit.current.navigation.is_valid:
+        if LayerToEdit.current is not None and LayerToEdit.current.navigation.is_valid:
             # set the previous tile
-            LayerToEdit.current.navigation.set_current_tile(LayerToEdit.current.navigation.current_tile.idx - 1)
+            if not LayerToEdit.current.navigation.set_current_tile(LayerToEdit.current.navigation.current_tile.idx - 1):
+                return
             # adjust navigation components
             self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             self.nextTile.setEnabled(True)
@@ -1014,9 +1050,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def go_to_next_tile(self):
-        if LayerToEdit.current.navigation.is_valid:
+        if LayerToEdit.current is not None and LayerToEdit.current.navigation.is_valid:
             # set the next tile
-            LayerToEdit.current.navigation.set_current_tile(LayerToEdit.current.navigation.current_tile.idx + 1)
+            if not LayerToEdit.current.navigation.set_current_tile(LayerToEdit.current.navigation.current_tile.idx + 1):
+                return
             # adjust navigation components
             self.QPBar_TilesNavigation.setValue(LayerToEdit.current.navigation.current_tile.idx)
             self.previousTile.setEnabled(True)
@@ -1092,6 +1129,10 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def open_navigation_dialog(self):
+        if LayerToEdit.current is None:
+            return
+        if LayerToEdit.current.navigation_dialog is None:
+            self.enable_navigation_tool(True)
         if LayerToEdit.current.navigation_dialog.isVisible():
             LayerToEdit.current.navigation_dialog.setWindowState(
                 LayerToEdit.current.navigation_dialog.windowState() & ~Qt.WindowState.WindowMinimized
@@ -1102,7 +1143,54 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         else:
             LayerToEdit.current.navigation_dialog.show()
 
+    def change_edit_target(self, target):
+        """Switch all target-owned interaction state together, before any modal prompt."""
+        previous = LayerToEdit.current
+        if previous is target:
+            return
+        if previous is not None:
+            previous.navigation_enabled = self.QPBtn_EnableNavigation.isChecked()
+            previous.navigation.clear()
+            previous.registry.clear()
+            if previous.navigation_dialog is not None:
+                previous.navigation_dialog.hide()
+        LayerToEdit.current = target
+        for view in ThRasEDialog.view_widgets:
+            view.set_edit_target(target)
+        enabled = target is not None and getattr(target, "navigation_enabled", False)
+        with block_signals_to(self.QPBtn_EnableNavigation):
+            self.QPBtn_EnableNavigation.setChecked(enabled)
+        self.NavigationBlockWidget.setVisible(enabled)
+        navigation = target.navigation if target is not None else None
+        valid = navigation is not None and navigation.is_valid
+        self.NavigationBlockWidgetControls.setEnabled(valid)
+        if navigation is not None and navigation.current_tile is not None:
+            self.QPBar_TilesNavigation.setMaximum(len(navigation.tiles))
+            self.QPBar_TilesNavigation.setValue(navigation.current_tile.idx)
+            self.previousTile.setEnabled(valid and navigation.current_tile.idx > 1)
+            self.nextTile.setEnabled(valid and navigation.current_tile.idx < len(navigation.tiles))
+        else:
+            self.previousTile.setEnabled(False)
+            self.nextTile.setEnabled(False)
+
+    def layers_will_be_removed(self, layer_ids):
+        """Release sessions before QGIS destroys their layers and providers."""
+        removed = {key: target for key, target in LayerToEdit.instances.items() if key[0] in layer_ids}
+        if any(target is LayerToEdit.current for target in removed.values()):
+            self.unset_thematic_layer_to_edit()
+        for key, target in removed.items():
+            target.navigation.delete()
+            if target.navigation_dialog is not None:
+                target.navigation_dialog.close()
+                target.navigation_dialog.deleteLater()
+                target.navigation_dialog = None
+            target.registry.clear()
+            for view in ThRasEDialog.view_widgets:
+                view._target_histories.pop(target, None)
+            LayerToEdit.instances.pop(key, None)
+
     def unset_thematic_layer_to_edit(self):
+        self.change_edit_target(None)
         # disable and clear the thematic file
         self.NavigationBlockWidget.setDisabled(True)
         self.QPBtn_LayerStyle.setDisabled(True)
@@ -1122,6 +1210,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             self.registry_widget.setDisabled(True)
 
     def select_layer_to_edit(self, layer_selected, nodata_action=None):
+        self.change_edit_target(None)
         # first clear table
         self.recodePixelTable.setRowCount(0)
         self.recodePixelTable.setColumnCount(0)
@@ -1173,6 +1262,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
 
     @error_handler
     def setup_layer_to_edit(self, nodata_action=None):
+        self.change_edit_target(None)
         layer = self.QCBox_LayerToEdit.currentLayer()
         if layer is None or not self.QCBox_band_LayerToEdit.currentText():
             return
@@ -1282,7 +1372,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             layer_to_edit.nodata_action = nodata_action
 
         # Set the new current layer
-        LayerToEdit.current = layer_to_edit
+        self.change_edit_target(layer_to_edit)
 
         # set the CRS of all canvas view based on current thematic layer to edit
         [view_widget.render_widget.set_crs(layer_to_edit.qgs_layer.crs()) for view_widget in ThRasEDialog.view_widgets]
@@ -1304,26 +1394,46 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.QPBtn_Registry.setEnabled(True)
         if self.registry_widget.isVisible():
             self.registry_widget.setEnabled(True)
+        with block_signals_to(self.registry_widget.EnableRegistry):
+            self.registry_widget.EnableRegistry.setChecked(layer_to_edit.registry.enabled)
+        self.registry_widget.toggle_registry_enabled(layer_to_edit.registry.enabled)
 
     @pyqtSlot()
     @error_handler
     def update_recode_pixel_table(self):
         layer_to_edit = LayerToEdit.current
-        layer_to_edit.old_new_value = {}
         if not layer_to_edit or layer_to_edit.pixels is None:
             return
+        layer_to_edit.old_new_value = {}
+
+        def accepted(value):
+            """Return the value when the band can store it, None when it cannot."""
+            if value is None:
+                return None
+            try:
+                integer_value = int(value)
+                if not isinstance(value, str) and integer_value != value:
+                    return None
+                layer_to_edit.validate_new_value(integer_value)
+            except (ValueError, OverflowError, TypeError):
+                return None
+            return integer_value
 
         for row_idx, pixel in enumerate(layer_to_edit.pixels):
-            # assign the new value
+            # assign the new value, keeping the last accepted one when the typed text is
+            # not a usable value.  A value the band cannot store is dropped even when it
+            # comes from a config saved against a wider raster, because leaving it in the
+            # table would seed a mapping that no edit can write.
             new_value = self.recodePixelTable.item(row_idx, 3).text()
-            try:
-                if new_value == "":
-                    pixel["new_value"] = None
-                elif float(new_value) == int(new_value) and int(new_value) != pixel["value"]:
-                    pixel["new_value"] = int(new_value)
-                    layer_to_edit.old_new_value[pixel["value"]] = pixel["new_value"]
-            except (ValueError, OverflowError, TypeError):
-                pass
+            if new_value == "":
+                pixel["new_value"] = None
+            else:
+                value = accepted(new_value)
+                if value is None:
+                    value = accepted(pixel["new_value"])
+                pixel["new_value"] = value if value != pixel["value"] else None
+            if pixel["new_value"] is not None:
+                layer_to_edit.old_new_value[pixel["value"]] = pixel["new_value"]
             # assign the on state
             on = self.recodePixelTable.item(row_idx, 1)
             if on.checkState() == 2:
@@ -1693,6 +1803,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             except RuntimeError:
                 pass
         self._global_edit_widget_states = {}
+        if LayerToEdit.current is None:
+            self.unset_thematic_layer_to_edit()
 
     @pyqtSlot()
     def save_thrase_config(self):
@@ -1704,19 +1816,13 @@ class ThRasEDialog(QDialog, FORM_CLASS):
             return self.file_dialog_save_thrase_config()
 
         output_file = layer_to_edit.config_file
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.SaveConfig.setDown(True)
-        QApplication.processEvents()
-
-        def restore_save_feedback():
+        try:
+            success = bool(layer_to_edit.save_config(output_file))
+        finally:
             self.SaveConfig.setDown(False)
-            QApplication.restoreOverrideCursor()
-            QApplication.processEvents()
-
-        QTimer.singleShot(1000, restore_save_feedback)
-        layer_to_edit.save_config(output_file)
         self.update_save_buttons_state()
-        return True
+        return success
 
     def update_save_buttons_state(self):
         layer_to_edit = LayerToEdit.current
@@ -1770,7 +1876,8 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         if not output_file.endswith((".yaml", ".yml")):
             output_file += ".yaml"
 
-        layer_to_edit.save_config(output_file)
+        if not layer_to_edit.save_config(output_file):
+            return False
         self.MsgBar.pushMessage(
             f"DONE: Configuration file saved successfully in '{output_file}'",
             level=Qgis.MessageLevel.Success,

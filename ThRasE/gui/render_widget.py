@@ -51,12 +51,17 @@ class RenderWidget(QWidget):
         gridLayout.addWidget(self.canvas)
 
     def refresh(self):
-        if self.layer_toolbars is not None:
-            [layer_toolbar.layer.reload() for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
-            [layer_toolbar.layer.triggerRepaint() for layer_toolbar in self.layer_toolbars if layer_toolbar.is_active]
-        self.canvas.refreshAllLayers()
+        """Redraw without invalidating provider caches on every pan or zoom."""
+        self.canvas.refresh()
 
     def set_crs(self, crs):
+        old_crs = self.canvas.mapSettings().destinationCrs()
+        extent = self.canvas.extent()
+        if old_crs.isValid() and crs.isValid() and old_crs != crs and not extent.isEmpty():
+            transform = QgsCoordinateTransform(old_crs, crs, QgsProject.instance())
+            with block_signals_to(self.canvas):
+                self.canvas.setDestinationCrs(crs)
+                self.canvas.setExtent(transform.transformBoundingBox(extent))
         self.crs = crs
         self.update_render_layers()
 
@@ -100,6 +105,8 @@ class RenderWidget(QWidget):
                 for view_widget in ThRasEDialog.view_widgets
                 if view_widget.is_active
                 and view_widget.render_widget != self
+                and view_widget.render_widget.canvas.mapSettings().destinationCrs()
+                == self.canvas.mapSettings().destinationCrs()
                 and not view_widget.render_widget.canvas.extent().isEmpty()
             ]
 

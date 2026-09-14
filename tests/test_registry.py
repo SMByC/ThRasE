@@ -3,9 +3,84 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 from osgeo import gdal
+from qgis.core import QgsVectorLayer
 
 from ThRasE.core.editing import LayerToEdit, Pixel, PixelLog
 from ThRasE.utils.qgis_utils import load_layer
+
+
+@pytest.mark.parametrize("new_value", [1, 3])
+def test_unrecorded_edit_reconciles_existing_record(editable_raster, new_value):
+    editable_raster.data_provider.setEditable(True)
+    pixel = Pixel(0.5, 3.5)
+    editable_raster.edit_pixel(pixel, 2)
+    editable_raster.registry.enabled = False
+    editable_raster.edit_pixel(pixel, new_value)
+    if new_value == 1:
+        assert not editable_raster.pixel_log_store
+    else:
+        log = editable_raster.pixel_log_store[pixel]
+        assert (log.old_value, log.new_value) == (1, 3)
+    editable_raster.edit_pixel(Pixel(1.5, 3.5), 2)
+    assert Pixel(1.5, 3.5) not in editable_raster.pixel_log_store
+
+
+@pytest.mark.parametrize("value", [4294967295, (1 << 63) - 1, (1 << 64) - 1])
+@pytest.mark.parametrize("extension", ["gpkg", "shp", "geojson"])
+def test_registry_export_preserves_large_integer_values(editable_raster, tmp_path, value, extension):
+    pixel = Pixel(0.5, 3.5)
+    editable_raster.pixel_log_store[pixel] = PixelLog(pixel, 1, value, None, store=False)
+    path = str(tmp_path / ("registry." + extension))
+    ok, message, count = editable_raster.registry.export_registry(path)
+    assert ok, message
+    assert count == 1
+    layer = QgsVectorLayer(path, "export", "ogr")
+    assert layer.isValid()
+    assert int(next(layer.getFeatures())["new_value"]) == value
+
+
+@pytest.mark.parametrize("extension", ["gpkg", "shp", "geojson"])
+def test_registry_export_keeps_numeric_fields_for_ordinary_values(editable_raster, tmp_path, extension):
+    """The text fallback is only for values a numeric field would lose."""
+    pixel = Pixel(0.5, 3.5)
+    editable_raster.pixel_log_store[pixel] = PixelLog(pixel, 1, 2, None, store=False)
+    path = str(tmp_path / ("registry." + extension))
+    ok, message, _count = editable_raster.registry.export_registry(path)
+    assert ok, message
+    layer = QgsVectorLayer(path, "export", "ogr")
+    assert layer.isValid()
+    assert layer.fields().field("old_value").isNumeric()
+    assert layer.fields().field("new_value").isNumeric()
+    assert next(layer.getFeatures())["new_value"] == 2
+
+
+def test_reenabling_registry_rebuilds_reconciled_groups(editable_raster, editing_ui):
+    import uuid
+
+    dialog, _view = editing_ui
+    editable_raster.data_provider.setEditable(True)
+    pixel = Pixel(0.5, 3.5)
+    editable_raster.edit_pixel(pixel, 2, group_id=uuid.uuid4())
+    editable_raster.registry.update()
+    assert len(editable_raster.registry.groups) == 1
+    dialog.registry_widget.toggle_registry_enabled(False)
+    editable_raster.edit_pixel(pixel, 1)
+    dialog.registry_widget.toggle_registry_enabled(True)
+    assert not editable_raster.registry.groups
+
+
+def test_registry_browser_clamps_saved_position_after_groups_change(editable_raster, editing_ui, monkeypatch):
+    import uuid
+
+    dialog, _view = editing_ui
+    widget = dialog.registry_widget
+    monkeypatch.setattr(widget, "isVisible", lambda: True)
+    editable_raster.data_provider.setEditable(True)
+    editable_raster.edit_pixel(Pixel(0.5, 3.5), 2, group_id=uuid.uuid4())
+    widget.last_slider_position = 99
+    widget.update_registry(go_to_last=False)
+    assert widget.PixelLogGroups_Slider.value() == 1
+    assert editable_raster.registry.current_group.idx == 1
 
 
 @pytest.mark.usefixtures("qgis_new_project", "thrase_dialog")

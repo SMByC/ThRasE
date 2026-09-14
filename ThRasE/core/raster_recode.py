@@ -627,13 +627,31 @@ def _effective_integer_limits(dataset, band, dtype: np.dtype) -> tuple[int, int,
     return minimum, maximum, f"NBITS={nbits} {dtype.name}"
 
 
+def raster_integer_limits(source_path: str, band_number: int) -> tuple[int, int, str]:
+    """Read the effective integer range, shared by manual and global editing."""
+    dataset = gdal.Open(source_path, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise ValueError(f"Unable to open raster {source_path}")
+    try:
+        band = dataset.GetRasterBand(band_number)
+        return _effective_integer_limits(dataset, band, _integer_dtype(band.DataType))
+    finally:
+        dataset = None
+
+
+def validate_integer_value(value: int, limits: tuple[int, int, str]) -> None:
+    """Reject values which the selected band cannot store without conversion."""
+    minimum, maximum, range_name = limits
+    if not minimum <= value <= maximum:
+        raise ValueError(f"Value {value} is outside the {range_name} range")
+
+
 def _validated_pairs(request: RecodeRequest, limits: tuple[int, int, str], nodata) -> tuple[tuple[int, int], ...]:
     if not request.recode_pairs:
         raise RasterRecodeError("There are no recode values to apply")
     if request.memory_budget_bytes < 1:
         raise RasterRecodeError("The raster memory budget must be greater than zero")
 
-    minimum, maximum, range_name = limits
     pairs = []
     seen = set()
     for old_value, new_value in request.recode_pairs:
@@ -642,10 +660,11 @@ def _validated_pairs(request: RecodeRequest, limits: tuple[int, int, str], nodat
         if old_value in seen:
             raise RasterRecodeError(f"The recode table contains duplicate source value {old_value}")
         seen.add(old_value)
-        if not minimum <= old_value <= maximum:
-            raise RasterRecodeError(f"Source value {old_value} is outside the {range_name} range")
-        if not minimum <= new_value <= maximum:
-            raise RasterRecodeError(f"New value {new_value} is outside the {range_name} range")
+        try:
+            validate_integer_value(old_value, limits)
+            validate_integer_value(new_value, limits)
+        except ValueError as error:
+            raise RasterRecodeError(str(error)) from error
         if nodata is not None and old_value == nodata:
             raise RasterRecodeError(f"The active NoData value {old_value} cannot be recoded")
         if old_value != new_value:

@@ -36,7 +36,7 @@ from qgis.PyQt.QtCore import Qt, QTimer, pyqtSlot
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QColorDialog, QDialog, QMessageBox
 
-from ThRasE.utils.qgis_utils import browse_dialog_to_load_file
+from ThRasE.utils.qgis_utils import browse_dialog_to_load_file, dispose_canvas_item
 from ThRasE.utils.system_utils import block_signals_to
 
 # plugin path
@@ -155,7 +155,11 @@ class NavigationDialog(QDialog, FORM_CLASS):
             Qgis.DistanceUnit.Centimeters: 1500000,
             Qgis.DistanceUnit.Millimeters: 15000000,
         }
-        self.tileSize.setValue(default_tile_size[layer_unit])
+        self.tileSize.setValue(
+            default_tile_size.get(
+                layer_unit, 15000 * QgsUnitTypes.fromUnitToUnitFactor(Qgis.DistanceUnit.Meters, layer_unit)
+            )
+        )
 
     @pyqtSlot()
     def build_tools(self):
@@ -264,7 +268,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
     def clear_all_aoi_drawn(self):
         # clean/reset all rubber bands
         for rubber_band in self.aoi_drawn:
-            rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(rubber_band)
         self.aoi_drawn = []
         if isinstance(self.render_widget.canvas.mapTool(), AOIPickerTool):
             self.render_widget.canvas.mapTool().finish()
@@ -272,6 +276,10 @@ class NavigationDialog(QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def call_to_build_navigation(self):
+        from ThRasE.core.editing import LayerToEdit
+
+        if self.layer_to_edit is not LayerToEdit.current:
+            return
         # first prompt if the user do some progress in navigation tile
         if (
             self.layer_to_edit.navigation.current_tile is not None
@@ -382,7 +390,7 @@ class NavigationDialog(QDialog, FORM_CLASS):
             ThRasE.dialog.QPBar_TilesNavigation.setMaximum(len(self.layer_to_edit.navigation.tiles))
             ThRasE.dialog.QPBar_TilesNavigation.setValue(self.layer_to_edit.navigation.current_tile.idx)
             ThRasE.dialog.previousTile.setEnabled(False)
-            ThRasE.dialog.nextTile.setEnabled(True)
+            ThRasE.dialog.nextTile.setEnabled(len(self.layer_to_edit.navigation.tiles) > 1)
             self.highlight()
         else:  # navigation is not valid
             self.SliderNavigationBlock.setEnabled(False)
@@ -406,7 +414,8 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.go_to_tile(idx_tile)
 
     def go_to_tile(self, idx_tile):
-        self.layer_to_edit.navigation.set_current_tile(idx_tile)
+        if not self.layer_to_edit.navigation.set_current_tile(idx_tile):
+            return
 
         # adjust navigation components in main dialog
         from ThRasE.thrase import ThRasE
@@ -424,16 +433,15 @@ class NavigationDialog(QDialog, FORM_CLASS):
         self.highlight()
 
     def highlight(self, idx_tile=None):
+        navigation = self.layer_to_edit.navigation
+        if not navigation.tiles or navigation.current_tile is None:
+            return
+        preview_index = idx_tile or navigation.current_tile.idx
+        for tile in navigation.tiles:
+            tile.create(self.render_widget.canvas, rbs_in="nav_dialog", current_idx_tile=preview_index)
         if idx_tile:  # from slider
             with block_signals_to(self.currentTile):
                 self.currentTile.setValue(idx_tile)
-
-            # update the review tiles in the navigation dialog
-            self.layer_to_edit.navigation.clear(rbs_in="nav_dialog")
-            [
-                tile.create(self.render_widget.canvas, rbs_in="nav_dialog", current_idx_tile=idx_tile)
-                for tile in self.layer_to_edit.navigation.tiles
-            ]
 
         if idx_tile:
             tile = next((tile for tile in self.layer_to_edit.navigation.tiles if tile.idx == idx_tile), None)
@@ -441,10 +449,14 @@ class NavigationDialog(QDialog, FORM_CLASS):
             tile = self.layer_to_edit.navigation.current_tile
 
         # unhighlight the before tile (rubber band)
-        if self.highlight_tile:
-            self.highlight_tile.reset(Qgis.GeometryType.Polygon)
+        if tile is None:
+            return
+        if self.highlight_tile is None:
+            self.highlight_tile = tile.create(self.render_widget.canvas, line_width=6, rbs_in="highlight")
+        else:
+            from qgis.core import QgsGeometry
 
-        self.highlight_tile = tile.create(self.render_widget.canvas, line_width=6, rbs_in="highlight")
+            self.highlight_tile.setToGeometry(QgsGeometry.fromRect(tile.extent), None)
 
     @pyqtSlot()
     def delete_navigation(self):
@@ -494,6 +506,10 @@ class AOIPickerTool(QgsMapTool):
         self.start_new_polygon()
 
     def start_new_polygon(self):
+        previous = getattr(self, "rubber_band", None)
+        if previous is not None and previous not in self.navigation_dialog.aoi_drawn:
+            dispose_canvas_item(previous)
+        dispose_canvas_item(getattr(self, "aux_rubber_band", None))
         # set rubber band style
         color = QColor("red")
         color.setAlpha(40)
@@ -508,9 +524,9 @@ class AOIPickerTool(QgsMapTool):
 
     def finish(self):
         if self.rubber_band:
-            self.rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(self.rubber_band)
         if self.aux_rubber_band:
-            self.aux_rubber_band.reset(Qgis.GeometryType.Polygon)
+            dispose_canvas_item(self.aux_rubber_band)
         self.rubber_band = None
         self.aux_rubber_band = None
         self.navigation_dialog.AOI_Picker.setChecked(False)
@@ -521,7 +537,7 @@ class AOIPickerTool(QgsMapTool):
 
     def define_polygon(self):
         # clean the aux rubber band
-        self.aux_rubber_band.reset(Qgis.GeometryType.Polygon)
+        dispose_canvas_item(self.aux_rubber_band)
         self.aux_rubber_band = None
         # adjust the color
         color = QColor("red")

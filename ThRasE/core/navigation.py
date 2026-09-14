@@ -20,11 +20,12 @@
 
 from math import ceil
 
-from qgis.core import Qgis, QgsGeometry, QgsPointXY, QgsRectangle
+from qgis.core import QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.gui import QgsRubberBand
 from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtGui import QColor
 
+from ThRasE.utils.qgis_utils import dispose_canvas_item
 from ThRasE.utils.system_utils import wait_process
 
 
@@ -38,15 +39,22 @@ class NavigationTile:
         self.tile_color = tile_color
 
     def create(self, canvas, line_width=2, rbs_in="main_dialog", current_idx_tile=None):
-        """Create the tile as a rubber band inside the canvas given"""
-        rubber_band = QgsRubberBand(canvas)
-        points = [
-            QgsPointXY(self.xmin, self.ymax),
-            QgsPointXY(self.xmax, self.ymax),
-            QgsPointXY(self.xmax, self.ymin),
-            QgsPointXY(self.xmin, self.ymin),
-        ]
-        rubber_band.setToGeometry(QgsGeometry.fromPolygonXY([points]), None)
+        """Create or restyle this tile's canvas item; highlights are separate items."""
+        bands = self.rbs_in_main_dialog if rbs_in == "main_dialog" else self.rbs_in_nav_dialog
+        rubber_band = (
+            next((rb for rb in bands if rb.scene() is canvas.scene()), None) if rbs_in != "highlight" else None
+        )
+        if rubber_band is None:
+            rubber_band = QgsRubberBand(canvas)
+            if rbs_in != "highlight":
+                bands.append(rubber_band)
+            points = [
+                QgsPointXY(self.xmin, self.ymax),
+                QgsPointXY(self.xmax, self.ymax),
+                QgsPointXY(self.xmax, self.ymin),
+                QgsPointXY(self.xmin, self.ymin),
+            ]
+            rubber_band.setToGeometry(QgsGeometry.fromPolygonXY([points]), None)
         if rbs_in == "highlight":
             rubber_band.setStrokeColor(QColor("yellow"))
         else:
@@ -62,10 +70,6 @@ class NavigationTile:
         rubber_band.setFillColor(fill_color)
         rubber_band.setWidth(line_width)
         rubber_band.show()
-        if rbs_in == "main_dialog":
-            self.rbs_in_main_dialog.append(rubber_band)
-        if rbs_in == "nav_dialog":
-            self.rbs_in_nav_dialog.append(rubber_band)
         if rbs_in == "highlight":
             return rubber_band
 
@@ -81,7 +85,9 @@ class NavigationTile:
                 self.create(view_widget.render_widget.canvas)
 
     def hide(self):
-        [rubber_band.reset() for rubber_band in self.rbs_in_main_dialog]
+        for rubber_band in self.rbs_in_main_dialog:
+            dispose_canvas_item(rubber_band)
+        self.rbs_in_main_dialog.clear()
 
     def focus(self):
         """Adjust to the tile extent in all view widgets in main dialog"""
@@ -125,6 +131,8 @@ class Navigation:
 
     @wait_process
     def build_navigation(self, tile_size, nav_mode, polygons=None, points=None):
+        if tile_size <= 0:
+            return False
         # define type of navigation
         if polygons:
             self.nav_type = "polygons"
@@ -232,11 +240,9 @@ class Navigation:
         self.current_tile = next((tile for tile in self.tiles if tile.idx == 1), None)
 
         # show all tiles in build navigation canvas dialog
-        from ThRasE.core.editing import LayerToEdit
-
         [
             tile.create(
-                LayerToEdit.current.navigation_dialog.render_widget.canvas,
+                self.layer_to_edit.navigation_dialog.render_widget.canvas,
                 rbs_in="nav_dialog",
                 current_idx_tile=self.current_tile.idx,
             )
@@ -246,35 +252,41 @@ class Navigation:
         return self.current_tile is not None
 
     def set_current_tile(self, idx_tile):
-        self.clear(rbs_in="main_dialog")
-        self.current_tile = next((tile for tile in self.tiles if tile.idx == idx_tile), None)
-        self.current_tile.show()
+        """Focus a tile on the active target; return False without changes for invalid requests."""
+        from ThRasE.core.editing import LayerToEdit
+
+        if self.layer_to_edit is not LayerToEdit.current:
+            return False
+        tile = next((tile for tile in self.tiles if tile.idx == idx_tile), None)
+        if tile is None:
+            return False
+        if self.current_tile is not None:
+            self.current_tile.hide()
+        self.current_tile = tile
         self.current_tile.focus()
 
         # update the review tiles in the navigation dialog
-        self.clear(rbs_in="nav_dialog")
-        from ThRasE.core.editing import LayerToEdit
-
         [
             tile.create(
-                LayerToEdit.current.navigation_dialog.render_widget.canvas,
+                self.layer_to_edit.navigation_dialog.render_widget.canvas,
                 rbs_in="nav_dialog",
                 current_idx_tile=idx_tile,
             )
             for tile in self.tiles
         ]
+        return True
 
     def clear(self, rbs_in="main_dialog"):
         """Clear all tiles drawn (rubber bands instances)"""
         if rbs_in == "main_dialog":
             for tile in self.tiles:
                 for rubber_band in tile.rbs_in_main_dialog:
-                    rubber_band.reset(Qgis.GeometryType.Polygon)
+                    dispose_canvas_item(rubber_band)
                 tile.rbs_in_main_dialog = []
         if rbs_in == "nav_dialog":
             for tile in self.tiles:
                 for rubber_band in tile.rbs_in_nav_dialog:
-                    rubber_band.reset(Qgis.GeometryType.Polygon)
+                    dispose_canvas_item(rubber_band)
                 tile.rbs_in_nav_dialog = []
 
     def delete(self):
@@ -283,14 +295,16 @@ class Navigation:
 
         self.clear(rbs_in="main_dialog")
         self.clear(rbs_in="nav_dialog")
-        if LayerToEdit.current.navigation_dialog and LayerToEdit.current.navigation_dialog.highlight_tile:
-            LayerToEdit.current.navigation_dialog.highlight_tile.reset(Qgis.GeometryType.Polygon)
+        dialog = self.layer_to_edit.navigation_dialog
+        if dialog is not None:
+            dispose_canvas_item(dialog.highlight_tile)
+            dialog.highlight_tile = None
         self.is_valid = False
         self.current_tile = None
         self.tiles = []
 
         # disable navigations widgets
-        if LayerToEdit.current.navigation_dialog:
-            LayerToEdit.current.navigation_dialog.SliderNavigationBlock.setEnabled(False)
-        if hasattr(ThRasE.dialog, "NavigationBlockWidgetControls"):
+        if dialog is not None:
+            dialog.SliderNavigationBlock.setEnabled(False)
+        if self.layer_to_edit is LayerToEdit.current and hasattr(ThRasE.dialog, "NavigationBlockWidgetControls"):
             ThRasE.dialog.NavigationBlockWidgetControls.setEnabled(False)

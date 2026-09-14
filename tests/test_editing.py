@@ -18,14 +18,168 @@
  ***************************************************************************/
 """
 
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 from osgeo import gdal
+from qgis.core import QgsGeometry, QgsPointXY, QgsRasterLayer, QgsRectangle
 from qgis.PyQt.QtCore import Qt
 
-from ThRasE.core.editing import LayerToEdit
+from ThRasE.core.editing import EditLog, LayerToEdit, Pixel, edit_layer
 from ThRasE.gui.apply_from_classes_or_mask import ApplyFromClassesOrMask
-from ThRasE.utils.qgis_utils import load_layer
+from ThRasE.utils.qgis_utils import get_pixel_centroid, load_layer
+
+
+def test_pixel_keys_compare_coordinates_and_stay_stable(monkeypatch):
+    monkeypatch.setattr(LayerToEdit, "current", SimpleNamespace(pixel_tolerance=2))
+    first, second = Pixel(-1, 5), Pixel(-2, 5)
+    assert first != second
+    pixels = {Pixel(1.234, 5): "saved"}
+    key = next(iter(pixels))
+    monkeypatch.setattr(LayerToEdit, "current", SimpleNamespace(pixel_tolerance=0))
+    assert pixels[key] == "saved"
+
+
+def test_history_is_not_available_on_another_target(monkeypatch):
+    first = SimpleNamespace(pixel_tolerance=2)
+    monkeypatch.setattr(LayerToEdit, "current", first)
+    history = EditLog("pixel")
+    history.add((Pixel(1, 1), 7))
+    monkeypatch.setattr(LayerToEdit, "current", SimpleNamespace(pixel_tolerance=2))
+    assert not history.can_be_undone()
+    assert history.undo() is None
+
+
+@pytest.mark.parametrize("initially_editable", [False, True])
+@pytest.mark.parametrize("fail", [False, True])
+def test_editable_state_restored(editable_raster, initially_editable, fail):
+    provider = editable_raster.data_provider
+    provider.setEditable(initially_editable)
+
+    @edit_layer
+    def operation():
+        assert provider.isEditable()
+        if fail:
+            raise ValueError("injected failure")
+        return "success"
+
+    if fail:
+        with pytest.raises(ValueError, match="injected failure"):
+            operation()
+    else:
+        assert operation() == "success"
+    assert provider.isEditable() == initially_editable
+
+
+@pytest.mark.parametrize("value", [-1, 300])
+def test_manual_edit_rejects_overflow(editable_raster, value):
+    editable_raster.data_provider.setEditable(True)
+    with pytest.raises(ValueError):
+        editable_raster.edit_pixel(Pixel(0.5, 3.5), value)
+    assert editable_raster.get_pixel_value_from_xy(0.5, 3.5) == 1
+
+
+@pytest.mark.parametrize("x, y", [(-0.1, 4.1), (4, 2), (2, 0), (-0.1, 2), (2, 4.1)])
+def test_outside_point_does_not_snap_inside(editable_raster, x, y):
+    assert get_pixel_centroid(x, y) is None
+    assert editable_raster.edit_pixel(Pixel(x, y), 2) is None
+    assert not editable_raster.check_point_inside_layer(QgsPointXY(x, y))
+
+
+@pytest.mark.parametrize("text, expected", [("1", None), ("nonsense", 7), ("300", 7), ("", None)])
+def test_recode_input_keeps_model_and_mapping_consistent(editable_raster, editing_ui, text, expected):
+    dialog, _view = editing_ui
+    dialog.recodePixelTable.item(0, 3).setText(text)
+    dialog.update_recode_pixel_table()
+    assert editable_raster.pixels[0]["new_value"] == expected
+    assert editable_raster.old_new_value == ({} if expected is None else {1: expected})
+
+
+@pytest.mark.parametrize("restored_value", [300, -1, 2.5])
+def test_unwritable_restored_mapping_is_cleared(editable_raster, editing_ui, restored_value):
+    dialog, _view = editing_ui
+    editable_raster.pixels[0]["new_value"] = restored_value
+    dialog.set_recode_pixel_table()
+    dialog.update_recode_pixel_table()
+    assert editable_raster.pixels[0]["new_value"] is None
+    assert not editable_raster.old_new_value
+    assert dialog.recodePixelTable.item(0, 3).text() == ""
+
+
+def test_painting_reuses_integer_limits_per_band(editable_raster, monkeypatch):
+    import ThRasE.core.editing as editing
+
+    reads = []
+    original = editing.raster_integer_limits
+
+    def read_limits(path, band):
+        reads.append(band)
+        return original(path, band)
+
+    monkeypatch.setattr(editing, "raster_integer_limits", read_limits)
+    editable_raster.old_new_value = {1: 2}
+    for x in (0.5, 1.5, 2.5):
+        assert editable_raster.edit_from_pixel_picker(Pixel(x, 3.5)) == 1
+    assert reads == [1]
+    other_band = LayerToEdit(editable_raster.qgs_layer, 2)
+    monkeypatch.setattr(LayerToEdit, "current", other_band)
+    other_band.old_new_value = {9: 8}
+    assert other_band.edit_from_pixel_picker(Pixel(0.5, 3.5)) == 9
+    assert reads == [1, 2]
+
+
+def test_polygon_candidates_are_clipped_and_lazy(editable_raster, monkeypatch):
+    import inspect
+
+    constructed = []
+    original = QgsGeometry.fromPointXY
+
+    def make_point(point):
+        constructed.append(point)
+        return original(point)
+
+    monkeypatch.setattr(QgsGeometry, "fromPointXY", make_point)
+    pixels = editable_raster.pixels_in_geometry(QgsGeometry.fromRect(QgsRectangle(-100000, -100000, 100000, 100000)))
+    assert inspect.isgenerator(pixels)
+    assert not constructed
+    first = next(pixels)
+    assert len(constructed) == 1
+    selected = [first, *pixels]
+    assert len(selected) == 16
+    assert len(constructed) == 16
+    assert all(editable_raster.check_point_inside_layer(pixel) for pixel in selected)
+
+
+def test_packed_manual_values_are_rejected(tmp_path, editable_raster):
+    path = tmp_path / "packed.tif"
+    ds = gdal.GetDriverByName("GTiff").Create(str(path), 4, 4, 1, gdal.GDT_Byte, options=["NBITS=2"])
+    ds.SetGeoTransform((0, 1, 0, 4, 0, -1))
+    ds.GetRasterBand(1).Fill(0)
+    ds = None
+    layer = QgsRasterLayer(str(path), "packed")
+    packed = LayerToEdit(layer, 1)
+    packed.data_provider.setEditable(True)
+    try:
+        with pytest.raises(ValueError, match="NBITS=2"):
+            packed.edit_pixel(Pixel(0.5, 3.5), 4)
+        assert packed.get_pixel_value_from_xy(0.5, 3.5) == 0
+    finally:
+        packed.data_provider.setEditable(False)
+
+
+def test_invalid_mapping_is_rejected_before_any_polygon_write(editable_raster, monkeypatch):
+    from qgis.core import QgsFeature
+
+    editable_raster.old_new_value = {1: 2, 9: 300}
+    writes = []
+    monkeypatch.setattr(editable_raster.data_provider, "writeBlock", lambda *args: writes.append(args))
+    feature = QgsFeature()
+    feature.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 0, 4, 4)))
+    editable_raster.edit_from_polygon_picker(feature)
+    assert not writes
+    assert not editable_raster.pixel_log_store
+    assert not editable_raster.data_provider.isEditable()
 
 
 @pytest.mark.usefixtures("plugin", "thrase_dialog")
@@ -462,3 +616,41 @@ def _assert_rasters_equal(layer_a, layer_b, band=1):
 
     # No differences found -> rasters are equal on the requested band
     return None
+
+
+def test_wait_process_restores_the_cursor_when_the_action_fails(thrase_dialog):
+    """Manual edits run under @wait_process; a failure must not leave a busy cursor."""
+    from qgis.PyQt.QtWidgets import QApplication
+
+    from ThRasE.utils.system_utils import wait_process
+
+    @wait_process
+    def failing():
+        raise ValueError("injected failure")
+
+    assert QApplication.overrideCursor() is None
+    failing()  # error_handler reports the failure instead of propagating it
+    assert QApplication.overrideCursor() is None
+
+
+def test_float_band_is_not_accepted_as_a_thematic_layer(tmp_path, editing_ui):
+    """edit_layer reads the band's integer limits, which only integer bands have."""
+    from qgis.core import QgsProject
+
+    from ThRasE.utils.qgis_utils import is_integer_data_type
+
+    dialog, _view = editing_ui
+    path = tmp_path / "float.tif"
+    dataset = gdal.GetDriverByName("GTiff").Create(str(path), 2, 2, 1, gdal.GDT_Float32)
+    dataset.SetGeoTransform((0, 1, 0, 2, 0, -1))
+    dataset = None
+    layer = QgsRasterLayer(str(path), "float")
+    assert layer.isValid()
+    assert not is_integer_data_type(layer, band=1)
+
+    project = QgsProject.instance()
+    assert project is not None
+    project.addMapLayer(layer)
+    dialog.QCBox_LayerToEdit.setLayer(layer)
+    dialog.select_layer_to_edit(layer)
+    assert LayerToEdit.current is None
