@@ -76,15 +76,33 @@ This operation cannot be undone, so use with caution.
 
 ## Advanced settings
 
-The default processing-memory budget is 64 MiB, which is enough for rasters of any size: raising it was measured to
-make no meaningful difference to the time an edit takes, while the memory it uses grows with it. Window sizing reserves
-half of the budget for the working arrays, and ThRasE temporarily limits GDAL's shared block cache to the remainder
-while it works, never taking more than the budget in total. QGIS, Python, and already-loaded plugin data still have
-their own baseline memory use. Advanced users can change the budget from the QGIS Python console; the value is read
-when an operation starts:
+A global edit works through the raster in pieces rather than loading it whole, so ThRasE can edit a thematic map far
+larger than the memory of the computer running it. The processing-memory budget is the most memory one edit may use to
+do that, and its default of 64 MiB is enough for a raster of any size. QGIS, Python, and already-loaded plugin data
+still have their own memory use on top of it. Advanced users can change the budget from the QGIS Python console; the
+value is read when an edit starts:
 
 ```python
 from qgis.PyQt.QtCore import QSettings
 
 QSettings().setValue("ThRasE/global_edit_memory_mib", 64)
 ```
+
+**The default suits almost every raster, and having more memory available is not by itself a reason to raise it.** The
+pieces an edit works in stay small whatever the budget is, so a larger one was measured to make no meaningful
+difference to how long an edit takes, while using proportionally more memory. Two situations are worth changing it for:
+
+- **Memory is tight**, for example on a small machine or while other heavy QGIS work is running: lower the budget. The
+  edit still completes, it simply works in smaller pieces.
+- **A global edit is unexpectedly slow on a raster stored in large tiles**: raise the budget. ThRasE reads the raster
+  in strips, but a tiled raster is stored in square blocks that have to be decompressed whole, so a budget that cannot
+  hold a whole row of blocks decompresses the same blocks again for every strip that touches them. Give it at least
+  three times one row of blocks:
+
+  ```
+  one row of blocks = raster width × block height × bytes per pixel
+  ```
+
+  `gdalinfo` reports the block size as `Block=512x512`. A 20000-pixel-wide 32-bit raster with 512-pixel blocks has a
+  block row of 39 MiB and therefore wants at least 120 MiB: that edit took 60 seconds at the 64 MiB default and 19
+  seconds at 128 MiB. Beyond what the blocks need there is nothing to gain, so raise it to fit them and no further.
