@@ -450,15 +450,34 @@ This operation cannot be undone, so use with caution.</p>
 </section>
 <section id="advanced-settings">
 <h2>Advanced settings<a class="headerlink" href="#advanced-settings" title="Link to this heading">#</a></h2>
-<p>The default processing-memory budget is 64 MiB. Window sizing reserves half of this budget for allocation overhead, and
-ThRasE temporarily limits GDAL’s shared block cache to at most one quarter of the budget while staging. QGIS, Python, and
-already-loaded plugin data still have their own baseline memory use. Advanced users can change the budget from the QGIS
-Python console; the value is read when an operation starts:</p>
+<p>A global edit works through the raster in pieces rather than loading it whole, so ThRasE can edit a thematic map far
+larger than the memory of the computer running it. The processing-memory budget is the most memory one edit may use to
+do that, and its default of 64 MiB is enough for a raster of any size. QGIS, Python, and already-loaded plugin data
+still have their own memory use on top of it. Advanced users can change the budget from the QGIS Python console; the
+value is read when an edit starts:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qgis.PyQt.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">QSettings</span>
 
 <span class="n">QSettings</span><span class="p">()</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s2">"ThRasE/global_edit_memory_mib"</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
 </pre></div>
 </div>
+<p><strong>The default suits almost every raster, and having more memory available is not by itself a reason to raise it.</strong> The
+pieces an edit works in stay small whatever the budget is, so a larger one was measured to make no meaningful
+difference to how long an edit takes, while using proportionally more memory. Two situations are worth changing it for:</p>
+<ul>
+<li><p><strong>Memory is tight</strong>, for example on a small machine or while other heavy QGIS work is running: lower the budget. The
+edit still completes, it simply works in smaller pieces.</p></li>
+<li><p><strong>A global edit is unexpectedly slow on a raster stored in large tiles</strong>: raise the budget. ThRasE reads the raster
+in strips, but a tiled raster is stored in square blocks that have to be decompressed whole, so a budget that cannot
+hold a whole row of blocks decompresses the same blocks again for every strip that touches them. Give it at least
+three times one row of blocks:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>one row of blocks = raster width × block height × bytes per pixel
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">gdalinfo</span></code> reports the block size as <code class="docutils literal notranslate"><span class="pre">Block=512x512</span></code>. A 20000-pixel-wide 32-bit raster with 512-pixel blocks has a
+block row of 39 MiB and therefore wants at least 120 MiB: that edit took 60 seconds at the 64 MiB default and 19
+seconds at 128 MiB. Beyond what the blocks need there is nothing to gain, so raise it to fit them and no further.</p>
+</li>
+</ul>
 </section>
 </section>
 
