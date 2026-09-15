@@ -49,7 +49,9 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog,
     QFrame,
     QGridLayout,
+    QHBoxLayout,
     QLabel,
+    QLayout,
     QMessageBox,
     QStyle,
     QTableWidgetItem,
@@ -114,6 +116,23 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        # QToolButton text is plain text; embed mouse-transparent labels for rich text.
+        button = self.QPBtn_Registry
+        layout = QHBoxLayout(button)
+        layout.setContentsMargins(4, 2, 4, 2)
+        layout.setSpacing(4)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        icon_label = QLabel(button)
+        icon_label.setPixmap(button.icon().pixmap(button.iconSize()))
+        self.registry_status = QLabel(button)
+        self.registry_status.setTextFormat(Qt.TextFormat.RichText)
+        for label in (icon_label, self.registry_status):
+            label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+            label.setStyleSheet("background: transparent; padding: 0px; margin: 0px;")
+            layout.addWidget(label)
+        button.setIcon(QIcon())
+        button.setText("")
+        self.update_registry_button_status()
         #
         self.grid_rows = None
         self.grid_columns = None
@@ -131,6 +150,17 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         self.setWindowFlags(
             self.windowFlags() | Qt.WindowType.WindowMinimizeButtonHint | Qt.WindowType.WindowMaximizeButtonHint
         )
+
+    def update_registry_button_status(self, enabled=None):
+        name = self.tr("Registry")
+        text = escape(name)
+        accessible_name = name
+        if enabled is not None:
+            status, color = ("ON", "green") if enabled else ("OFF", "red")
+            text += f' <span style="color: {color};">{status}</span>'
+            accessible_name += f" {status}"
+        self.registry_status.setText(text)
+        self.QPBtn_Registry.setAccessibleName(accessible_name)
 
     def setup_gui(self):
         # ######### plugin info ######### #
@@ -1206,6 +1236,7 @@ class ThRasEDialog(QDialog, FORM_CLASS):
         [view_widget.widget_EditingToolbar.setEnabled(False) for view_widget in ThRasEDialog.view_widgets]
         # registry
         self.QPBtn_Registry.setDisabled(True)
+        self.update_registry_button_status()
         if self.registry_widget.isVisible():
             self.registry_widget.setDisabled(True)
 
